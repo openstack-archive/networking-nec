@@ -228,7 +228,3 @@ def main():
 
     # Start everything.
     agent.daemon_loop()
-
-
-if __name__ == "__main__":
-    main()
