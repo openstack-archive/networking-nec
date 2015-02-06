@@ -15,6 +15,7 @@
 import abc
 import httplib
 
+from oslo_log import log as logging
 from oslo_utils import excutils
 import six
 
@@ -22,7 +23,6 @@ from neutron.common import log as call_log
 from neutron.common import utils
 from neutron.i18n import _LE, _LW
 
-from networking_nec.openstack.common import log as logging
 from networking_nec.plugins.openflow.common import constants as nconst
 from networking_nec.plugins.openflow.common import exceptions as nexc
 

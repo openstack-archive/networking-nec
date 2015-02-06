@@ -13,11 +13,11 @@
 #    under the License.
 
 import mock
+from oslo_utils import uuidutils
 
 from neutron import context
 from neutron.tests.unit import testlib_api
 
-from networking_nec.openstack.common import uuidutils
 from networking_nec.plugins.openflow.common import config
 from networking_nec.plugins.openflow.db import api as ndb
 from networking_nec.plugins.openflow import ofc_manager

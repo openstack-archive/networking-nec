@@ -12,6 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from oslo_utils import uuidutils
 import sqlalchemy as sa
 from sqlalchemy import orm
 from sqlalchemy.orm import exc as sa_exc
@@ -20,7 +21,7 @@ from sqlalchemy import sql
 from neutron.api.v2 import attributes
 from neutron.db import model_base
 from neutron.db import models_v2
-from networking_nec.openstack.common import uuidutils
+
 from networking_nec.plugins.openflow.db import models as nmodels
 from networking_nec.plugins.openflow.extensions import packetfilter as ext_pf
 

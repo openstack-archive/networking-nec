@@ -25,6 +25,7 @@ import time
 import eventlet
 eventlet.monkey_patch()
 
+from oslo_log import log as logging
 import oslo_messaging
 
 from neutron.agent.linux import ovs_lib
@@ -37,7 +38,6 @@ from neutron import context as q_context
 from neutron.extensions import securitygroup as ext_sg
 from neutron.i18n import _LE, _LI
 
-from networking_nec.openstack.common import log as logging
 from networking_nec.openstack.common import loopingcall
 from networking_nec.plugins.openflow.common import config
 

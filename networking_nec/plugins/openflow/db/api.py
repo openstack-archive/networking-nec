@@ -12,6 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from oslo_log import log as logging
 import sqlalchemy as sa
 
 from neutron.db import api as db
@@ -20,7 +21,7 @@ from neutron.db import securitygroups_db as sg_db
 from neutron.extensions import securitygroup as ext_sg
 from neutron.i18n import _LW
 from neutron import manager
-from networking_nec.openstack.common import log as logging
+
 from networking_nec.plugins.openflow.common import config  # noqa
 from networking_nec.plugins.openflow.common import exceptions as nexc
 from networking_nec.plugins.openflow.db import models as nmodels

@@ -12,6 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from oslo_log import log as logging
 import sqlalchemy as sa
 from sqlalchemy import orm
 from sqlalchemy.orm import exc as sa_exc
@@ -19,7 +20,6 @@ from sqlalchemy.orm import exc as sa_exc
 from neutron.db import l3_db
 from neutron.db import models_v2
 
-from networking_nec.openstack.common import log as logging
 
 LOG = logging.getLogger(__name__)
 

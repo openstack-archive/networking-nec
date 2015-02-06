@@ -12,9 +12,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from oslo_log import log as logging
 import oslo_messaging
 from oslo_utils import excutils
 from oslo_utils import importutils
+from oslo_utils import uuidutils
 
 from neutron.agent import securitygroups_rpc as sg_rpc
 from neutron.api import extensions as neutron_extensions
@@ -42,8 +44,6 @@ from neutron.extensions import portbindings
 from neutron.i18n import _LE, _LI, _LW
 from neutron.plugins.common import constants as svc_constants
 
-from networking_nec.openstack.common import log as logging
-from networking_nec.openstack.common import uuidutils
 from networking_nec.plugins.openflow.common import config
 from networking_nec.plugins.openflow.common import exceptions as nexc
 from networking_nec.plugins.openflow.common import utils as necutils

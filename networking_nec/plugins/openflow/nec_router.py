@@ -12,6 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from oslo_log import log as logging
 from oslo_utils import excutils
 from oslo_utils import importutils
 
@@ -27,7 +28,6 @@ from neutron.db import models_v2
 from neutron.extensions import l3
 from neutron.i18n import _LE, _LI, _LW
 
-from networking_nec.openstack.common import log as logging
 from networking_nec.plugins.openflow.common import config
 from networking_nec.plugins.openflow.common import constants as nconst
 from networking_nec.plugins.openflow.common import exceptions as nexc

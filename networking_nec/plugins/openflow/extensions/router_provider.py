@@ -12,9 +12,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from neutron.api.v2 import attributes
+from oslo_log import log as logging
 
-from networking_nec.openstack.common import log as logging
+from neutron.api.v2 import attributes
 
 
 LOG = logging.getLogger(__name__)

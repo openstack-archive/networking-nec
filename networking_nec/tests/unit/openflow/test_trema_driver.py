@@ -15,9 +15,9 @@
 import random
 
 import mock
+from oslo_utils import uuidutils
 from six import moves
 
-from networking_nec.openstack.common import uuidutils
 from networking_nec.plugins.openflow.common import exceptions as nexc
 from networking_nec.plugins.openflow.common import ofc_client
 from networking_nec.plugins.openflow.db import models as nmodels

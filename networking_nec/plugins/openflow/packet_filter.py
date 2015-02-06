@@ -12,11 +12,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from oslo_log import log as logging
 from oslo_utils import excutils
 
 from neutron.i18n import _LE
 
-from networking_nec.openstack.common import log as logging
 from networking_nec.plugins.openflow.common import config
 from networking_nec.plugins.openflow.common import exceptions as nexc
 from networking_nec.plugins.openflow.db import packetfilter as pf_db

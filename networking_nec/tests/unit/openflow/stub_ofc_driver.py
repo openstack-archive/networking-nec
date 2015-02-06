@@ -13,11 +13,11 @@
 #    under the License.
 
 import netaddr
+from oslo_log import log as logging
+from oslo_utils import uuidutils
 
 from neutron.common import log as call_log
 
-from networking_nec.openstack.common import log as logging
-from networking_nec.openstack.common import uuidutils
 from networking_nec.plugins.openflow.common import exceptions as nexc
 from networking_nec.plugins.openflow import ofc_driver_base
 
