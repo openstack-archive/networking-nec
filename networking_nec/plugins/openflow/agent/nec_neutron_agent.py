@@ -36,8 +36,9 @@ from neutron.common import topics
 from neutron import context as q_context
 from neutron.extensions import securitygroup as ext_sg
 from neutron.i18n import _LE, _LI
-from neutron.openstack.common import log as logging
-from neutron.openstack.common import loopingcall
+
+from networking_nec.openstack.common import log as logging
+from networking_nec.openstack.common import loopingcall
 from networking_nec.plugins.openflow.common import config
 
 

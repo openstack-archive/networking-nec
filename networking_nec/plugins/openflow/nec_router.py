@@ -26,8 +26,8 @@ from neutron.db import l3_gwmode_db
 from neutron.db import models_v2
 from neutron.extensions import l3
 from neutron.i18n import _LE, _LI, _LW
-from neutron.openstack.common import log as logging
 
+from networking_nec.openstack.common import log as logging
 from networking_nec.plugins.openflow.common import config
 from networking_nec.plugins.openflow.common import constants as nconst
 from networking_nec.plugins.openflow.common import exceptions as nexc

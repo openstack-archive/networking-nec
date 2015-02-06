@@ -16,8 +16,8 @@ import contextlib
 import random
 
 from neutron.common import constants as q_const
-from neutron.openstack.common import uuidutils
 
+from networking_nec.openstack.common import uuidutils
 from networking_nec.plugins.openflow.common import exceptions as nexc
 from networking_nec.plugins.openflow.db import api as ndb
 from networking_nec.tests.unit.openflow import test_nec_plugin

@@ -45,7 +45,7 @@ class TestNecAgentBase(base.BaseTestCase):
             mock.patch.object(ovs_lib.OVSBridge, 'get_datapath_id',
                               return_value=OVS_DPID),
             mock.patch('socket.gethostname', return_value='dummy-host'),
-            mock.patch('neutron.openstack.common.loopingcall.'
+            mock.patch('networking_nec.openstack.common.loopingcall.'
                        'FixedIntervalLoopingCall'),
             mock.patch('neutron.agent.rpc.PluginReportStateAPI')
         ) as (get_datapath_id, gethostname,

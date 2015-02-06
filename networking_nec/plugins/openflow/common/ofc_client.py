@@ -19,7 +19,7 @@ from oslo_utils import excutils
 import requests
 
 from neutron.i18n import _LI, _LW
-from neutron.openstack.common import log as logging
+from networking_nec.openstack.common import log as logging
 from networking_nec.plugins.openflow.common import config
 from networking_nec.plugins.openflow.common import exceptions as nexc
 

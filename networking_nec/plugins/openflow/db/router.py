@@ -18,7 +18,8 @@ from sqlalchemy.orm import exc as sa_exc
 
 from neutron.db import l3_db
 from neutron.db import models_v2
-from neutron.openstack.common import log as logging
+
+from networking_nec.openstack.common import log as logging
 
 LOG = logging.getLogger(__name__)
 

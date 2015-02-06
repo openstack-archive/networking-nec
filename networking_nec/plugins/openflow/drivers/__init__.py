@@ -15,7 +15,7 @@
 from oslo_utils import importutils
 
 from neutron.i18n import _LI
-from neutron.openstack.common import log as logging
+from networking_nec.openstack.common import log as logging
 
 
 LOG = logging.getLogger(__name__)

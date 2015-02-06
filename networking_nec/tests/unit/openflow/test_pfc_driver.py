@@ -21,9 +21,9 @@ import netaddr
 from oslo_config import cfg
 
 from neutron.common import constants
-from neutron.openstack.common import uuidutils
 from neutron.tests import base
 
+from networking_nec.openstack.common import uuidutils
 from networking_nec.plugins.openflow.common import ofc_client as ofc
 from networking_nec.plugins.openflow.db import models as nmodels
 from networking_nec.plugins.openflow import drivers

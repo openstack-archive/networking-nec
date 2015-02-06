@@ -20,7 +20,7 @@ from sqlalchemy import sql
 from neutron.api.v2 import attributes
 from neutron.db import model_base
 from neutron.db import models_v2
-from neutron.openstack.common import uuidutils
+from networking_nec.openstack.common import uuidutils
 from networking_nec.plugins.openflow.db import models as nmodels
 from networking_nec.plugins.openflow.extensions import packetfilter as ext_pf
 

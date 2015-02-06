@@ -13,7 +13,8 @@
 #    under the License.
 
 from neutron.api.v2 import attributes
-from neutron.openstack.common import log as logging
+
+from networking_nec.openstack.common import log as logging
 
 
 LOG = logging.getLogger(__name__)
