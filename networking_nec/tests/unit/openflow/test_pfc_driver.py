@@ -381,7 +381,8 @@ class PFCFilterDriverTestMixin(object):
             body.update(filter_post)
 
         self.do_request.return_value = {'id': filter_id}
-        with mock.patch('networking_nec.plugins.openflow.db.api.get_active_ports_on_ofc',
+        with mock.patch('networking_nec.plugins.openflow.db.api.'
+                        'get_active_ports_on_ofc',
                         return_value=apply_ports) as active_ports:
             ret = self.driver.create_filter(mock.sentinel.ctx, f)
         self.do_request.assert_called_once_with("POST", "/filters",

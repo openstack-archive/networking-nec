@@ -22,6 +22,7 @@ from neutron.common import constants
 from neutron.common import exceptions as qexc
 from neutron.common import log as call_log
 from neutron import manager
+
 from networking_nec.plugins.openflow import config
 from networking_nec.plugins.openflow.db import api as ndb
 from networking_nec.plugins.openflow.extensions import packetfilter as ext_pf

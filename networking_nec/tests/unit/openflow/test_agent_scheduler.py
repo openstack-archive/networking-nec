@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import contextlib
-
 from neutron.api.rpc.handlers import l3_rpc
 from neutron.common import constants
 from neutron.tests.unit.openvswitch import test_agent_scheduler

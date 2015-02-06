@@ -15,6 +15,7 @@
 from oslo_config import cfg
 
 from neutron.agent.common import config
+
 from networking_nec.plugins.openflow import constants as nconst
 
 

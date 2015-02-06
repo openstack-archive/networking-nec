@@ -24,7 +24,6 @@ import time
 
 import eventlet
 eventlet.monkey_patch()
-
 from oslo_log import log as logging
 import oslo_messaging
 

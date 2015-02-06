@@ -222,7 +222,6 @@ class OFCManagerRouterTest(OFCManagerTestBase):
         return (tenant, router, network)
 
     def test_create_ofc_router(self):
-        """test create ofc_router"""
         t, r, _n = self.get_random_params()
         self.ofc.create_ofc_tenant(self.ctx, t)
         self.assertFalse(ndb.get_ofc_item(self.ctx.session, 'ofc_router', r))
@@ -232,7 +231,6 @@ class OFCManagerRouterTest(OFCManagerTestBase):
         self.assertEqual(router.ofc_id, "ofc-" + r[:-4])
 
     def test_exists_ofc_router(self):
-        """test exists_ofc_router"""
         t, r, _n = self.get_random_params()
         self.ofc.create_ofc_tenant(self.ctx, t)
         self.assertFalse(self.ofc.exists_ofc_router(self.ctx, r))
@@ -240,7 +238,6 @@ class OFCManagerRouterTest(OFCManagerTestBase):
         self.assertTrue(self.ofc.exists_ofc_router(self.ctx, r))
 
     def test_delete_ofc_router(self):
-        """test delete ofc_router"""
         t, r, _n = self.get_random_params()
         self.ofc.create_ofc_tenant(self.ctx, t)
         self.ofc.create_ofc_router(self.ctx, t, r)

@@ -20,9 +20,9 @@ from six import moves
 
 from neutron.tests import base
 
-from networking_nec.plugins.openflow import exceptions as nexc
 from networking_nec.plugins.openflow.db import models as nmodels
 from networking_nec.plugins.openflow import drivers
+from networking_nec.plugins.openflow import exceptions as nexc
 from networking_nec.plugins.openflow import ofc_client
 
 
