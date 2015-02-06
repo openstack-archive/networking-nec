@@ -15,7 +15,7 @@
 from oslo_log import log as logging
 from oslo_utils import importutils
 
-from neutron.i18n import _LI
+from networking_nec.i18n import _LI
 
 
 LOG = logging.getLogger(__name__)
