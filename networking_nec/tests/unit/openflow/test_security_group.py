@@ -20,13 +20,16 @@ import mock
 from neutron.api.v2 import attributes
 from neutron.extensions import securitygroup as ext_sg
 from neutron import manager
-from neutron.tests.unit.nec import test_nec_plugin
 from neutron.tests.unit import test_extension_security_group as test_sg
 from neutron.tests.unit import test_security_groups_rpc as test_sg_rpc
 
+from networking_nec.tests.unit.openflow import test_nec_plugin
+
+
 PLUGIN_NAME = test_nec_plugin.PLUGIN_NAME
-OFC_MANAGER = 'neutron.plugins.nec.nec_plugin.ofc_manager.OFCManager'
-NOTIFIER = 'neutron.plugins.nec.nec_plugin.NECPluginV2AgentNotifierApi'
+OFC_MANAGER = 'networking_nec.plugins.openflow.nec_plugin.OFCManager'
+NOTIFIER = ('networking_nec.plugins.openflow.nec_plugin'
+            '.NECPluginV2AgentNotifierApi')
 
 
 class NecSecurityGroupsTestCase(test_sg.SecurityGroupDBTestCase):

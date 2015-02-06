@@ -21,9 +21,9 @@ from neutron.extensions import securitygroup as ext_sg
 from neutron.i18n import _LW
 from neutron import manager
 from neutron.openstack.common import log as logging
-from neutron.plugins.nec.common import config  # noqa
-from neutron.plugins.nec.common import exceptions as nexc
-from neutron.plugins.nec.db import models as nmodels
+from networking_nec.plugins.openflow.common import config  # noqa
+from networking_nec.plugins.openflow.common import exceptions as nexc
+from networking_nec.plugins.openflow.db import models as nmodels
 
 
 LOG = logging.getLogger(__name__)

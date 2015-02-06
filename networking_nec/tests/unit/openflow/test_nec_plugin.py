@@ -22,22 +22,24 @@ from neutron.common import topics
 from neutron import context
 from neutron.db import db_base_plugin_v2
 from neutron import manager
-from neutron.plugins.nec.common import exceptions as nexc
-from neutron.plugins.nec.db import api as ndb
-from neutron.plugins.nec import nec_plugin
-from neutron.tests.unit.nec import fake_ofc_manager
 from neutron.tests.unit import test_db_plugin as test_plugin
 from neutron.tests.unit import test_extension_allowedaddresspairs as test_pair
 
+from networking_nec.plugins.openflow.common import exceptions as nexc
+from networking_nec.plugins.openflow.db import api as ndb
+from networking_nec.plugins.openflow import nec_plugin
+from networking_nec.tests.unit.openflow import fake_ofc_manager
 
-PLUGIN_NAME = 'neutron.plugins.nec.nec_plugin.NECPluginV2'
-OFC_MANAGER = 'neutron.plugins.nec.nec_plugin.ofc_manager.OFCManager'
-NOTIFIER = 'neutron.plugins.nec.nec_plugin.NECPluginV2AgentNotifierApi'
+
+PLUGIN_BASE = 'networking_nec.plugins.openflow.'
+PLUGIN_NAME = PLUGIN_BASE + 'nec_plugin.NECPluginV2'
+OFC_MANAGER = PLUGIN_BASE + 'ofc_manager.OFCManager'
+NOTIFIER = PLUGIN_BASE + 'nec_plugin.NECPluginV2AgentNotifierApi'
 NEC_PLUGIN_INI = """
 [DEFAULT]
-api_extensions_path = neutron/plugins/nec/extensions
+api_extensions_path = networking_nec/plugins/openflow/extensions
 [OFC]
-driver = neutron.tests.unit.nec.stub_ofc_driver.StubOFCDriver
+driver = networking_nec.tests.unit.openflow.stub_ofc_driver.StubOFCDriver
 enable_packet_filter = False
 """
 

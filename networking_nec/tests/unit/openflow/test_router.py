@@ -16,9 +16,10 @@
 import mock
 
 from neutron import manager
-from neutron.plugins.nec.common import config
-from neutron.tests.unit.nec import test_nec_plugin
 from neutron.tests.unit import test_extension_extraroute as test_ext_route
+
+from networking_nec.plugins.openflow.common import config
+from networking_nec.tests.unit.openflow import test_nec_plugin
 
 
 class NecRouterL3AgentTestCase(test_ext_route.ExtraRouteDBIntTestCase):

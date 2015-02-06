@@ -16,9 +16,10 @@ from oslo_utils import excutils
 
 from neutron.i18n import _LE
 from neutron.openstack.common import log as logging
-from neutron.plugins.nec.common import config
-from neutron.plugins.nec.common import exceptions as nexc
-from neutron.plugins.nec.db import packetfilter as pf_db
+
+from networking_nec.plugins.openflow.common import config
+from networking_nec.plugins.openflow.common import exceptions as nexc
+from networking_nec.plugins.openflow.db import packetfilter as pf_db
 
 
 LOG = logging.getLogger(__name__)

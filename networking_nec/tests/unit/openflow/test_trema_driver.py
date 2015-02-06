@@ -18,10 +18,10 @@ import mock
 from six import moves
 
 from neutron.openstack.common import uuidutils
-from neutron.plugins.nec.common import exceptions as nexc
-from neutron.plugins.nec.common import ofc_client
-from neutron.plugins.nec.db import models as nmodels
-from neutron.plugins.nec import drivers
+from networking_nec.plugins.openflow.common import exceptions as nexc
+from networking_nec.plugins.openflow.common import ofc_client
+from networking_nec.plugins.openflow.db import models as nmodels
+from networking_nec.plugins.openflow import drivers
 from neutron.tests import base
 
 
@@ -249,10 +249,11 @@ class TremaFilterDriverTest(TremaDriverTestBase):
 
         ctx = mock.Mock()
         ctx.session = mock.sentinel.session
-        with mock.patch('neutron.plugins.nec.db.api.get_portinfo',
+        with mock.patch('networking_nec.plugins.openflow.db.api.get_portinfo',
                         return_value=p) as get_portinfo:
-            with mock.patch('neutron.plugins.nec.db.api.get_ofc_id',
-                            return_value=net_path) as get_ofc_id:
+            with mock.patch(
+                    'networking_nec.plugins.openflow.db.api.get_ofc_id',
+                    return_value=net_path) as get_ofc_id:
                 ret = self.driver.create_filter(ctx, f, f['id'])
 
         # The content of 'body' is checked below.

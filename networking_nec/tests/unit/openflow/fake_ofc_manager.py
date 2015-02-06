@@ -16,7 +16,7 @@
 import mock
 
 
-OFC_MANAGER = 'neutron.plugins.nec.nec_plugin.ofc_manager.OFCManager'
+OFC_MANAGER = 'networking_nec.plugins.openflow.ofc_manager.OFCManager'
 
 
 def patch_ofc_manager():

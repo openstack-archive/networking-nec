@@ -19,7 +19,7 @@ from neutron.openstack.common import log as logging
 
 
 LOG = logging.getLogger(__name__)
-DRIVER_PATH = "neutron.plugins.nec.drivers.%s"
+DRIVER_PATH = "networking_nec.plugins.openflow.drivers.%s"
 DRIVER_LIST = {
     'trema': DRIVER_PATH % "trema.TremaPortBaseDriver",
     'trema_port': DRIVER_PATH % "trema.TremaPortBaseDriver",

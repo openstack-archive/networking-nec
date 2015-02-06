@@ -24,8 +24,9 @@ import testtools
 
 from neutron.agent.linux import ovs_lib
 from neutron.extensions import securitygroup as ext_sg
-from neutron.plugins.nec.agent import nec_neutron_agent
 from neutron.tests import base
+
+from networking_nec.plugins.openflow.agent import nec_neutron_agent
 
 DAEMON_LOOP_COUNT = 10
 OVS_DPID = '00000629355b6943'

@@ -20,8 +20,8 @@ import requests
 
 from neutron.i18n import _LI, _LW
 from neutron.openstack.common import log as logging
-from neutron.plugins.nec.common import config
-from neutron.plugins.nec.common import exceptions as nexc
+from networking_nec.plugins.openflow.common import config
+from networking_nec.plugins.openflow.common import exceptions as nexc
 
 
 LOG = logging.getLogger(__name__)

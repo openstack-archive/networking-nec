@@ -21,8 +21,9 @@ from neutron.common import exceptions as n_exc
 from neutron import context
 from neutron.extensions import portbindings
 from neutron.tests.unit import _test_extension_portbindings as test_bindings
-from neutron.tests.unit.nec import test_nec_plugin
 from neutron.tests.unit import test_security_groups_rpc as test_sg_rpc
+
+from networking_nec.tests.unit.openflow import test_nec_plugin
 
 
 class TestNecPortBinding(test_bindings.PortBindingsTestCase,

@@ -22,12 +22,13 @@ from oslo_config import cfg
 
 from neutron.common import constants
 from neutron.openstack.common import uuidutils
-from neutron.plugins.nec.common import ofc_client as ofc
-from neutron.plugins.nec.db import models as nmodels
-from neutron.plugins.nec import drivers
-from neutron.plugins.nec.drivers import pfc
-from neutron.plugins.nec.extensions import packetfilter as ext_pf
 from neutron.tests import base
+
+from networking_nec.plugins.openflow.common import ofc_client as ofc
+from networking_nec.plugins.openflow.db import models as nmodels
+from networking_nec.plugins.openflow import drivers
+from networking_nec.plugins.openflow.drivers import pfc
+from networking_nec.plugins.openflow.extensions import packetfilter as ext_pf
 
 
 class TestConfig(object):
@@ -47,7 +48,7 @@ def _ofc(id):
 
 class PFCDriverTestBase(base.BaseTestCase):
 
-    driver = 'neutron.plugins.nec.drivers.pfc.PFCDriverBase'
+    driver = 'networking_nec.plugins.openflow.drivers.pfc.PFCDriverBase'
     filter_supported = False
 
     def setUp(self):
@@ -380,7 +381,7 @@ class PFCFilterDriverTestMixin(object):
             body.update(filter_post)
 
         self.do_request.return_value = {'id': filter_id}
-        with mock.patch('neutron.plugins.nec.db.api.get_active_ports_on_ofc',
+        with mock.patch('networking_nec.plugins.openflow.db.api.get_active_ports_on_ofc',
                         return_value=apply_ports) as active_ports:
             ret = self.driver.create_filter(mock.sentinel.ctx, f)
         self.do_request.assert_called_once_with("POST", "/filters",
@@ -685,7 +686,7 @@ class PFCV51DriverTest(PFCFilterDriverTestMixin, PFCV5DriverTest):
 
 class PFCDriverStringTest(base.BaseTestCase):
 
-    driver = 'neutron.plugins.nec.drivers.pfc.PFCDriverBase'
+    driver = 'networking_nec.plugins.openflow.drivers.pfc.PFCDriverBase'
 
     def setUp(self):
         super(PFCDriverStringTest, self).setUp()

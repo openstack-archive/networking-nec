@@ -20,17 +20,18 @@ import webob.exc
 
 from neutron.api.v2 import attributes
 from neutron import context
-from neutron.plugins.nec.common import exceptions as nexc
-from neutron.plugins.nec.extensions import packetfilter as ext_pf
-from neutron.tests.unit.nec import test_nec_plugin
 from neutron.tests.unit import test_db_plugin as test_plugin
+
+from networking_nec.plugins.openflow.common import exceptions as nexc
+from networking_nec.plugins.openflow.extensions import packetfilter as ext_pf
+from networking_nec.tests.unit.openflow import test_nec_plugin
 
 
 NEC_PLUGIN_PF_INI = """
 [DEFAULT]
-api_extensions_path = neutron/plugins/nec/extensions
+api_extensions_path = networking_nec/plugins/openflow/extensions
 [OFC]
-driver = neutron.tests.unit.nec.stub_ofc_driver.StubOFCDriver
+driver = networking_nec.tests.unit.openflow.stub_ofc_driver.StubOFCDriver
 enable_packet_filter = True
 """
 

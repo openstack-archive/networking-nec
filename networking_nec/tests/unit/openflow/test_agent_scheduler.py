@@ -17,8 +17,9 @@ import contextlib
 
 from neutron.api.rpc.handlers import l3_rpc
 from neutron.common import constants
-from neutron.tests.unit.nec import test_nec_plugin
 from neutron.tests.unit.openvswitch import test_agent_scheduler
+
+from networking_nec.tests.unit.openflow import test_nec_plugin
 
 L3_HOSTA = test_agent_scheduler.L3_HOSTA
 L3_HOSTB = test_agent_scheduler.L3_HOSTB

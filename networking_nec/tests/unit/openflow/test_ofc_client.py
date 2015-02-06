@@ -17,10 +17,11 @@ from oslo_config import cfg
 from oslo_serialization import jsonutils
 import requests
 
-from neutron.plugins.nec.common import config
-from neutron.plugins.nec.common import exceptions as nexc
-from neutron.plugins.nec.common import ofc_client
 from neutron.tests import base
+
+from networking_nec.plugins.openflow.common import config
+from networking_nec.plugins.openflow.common import exceptions as nexc
+from networking_nec.plugins.openflow.common import ofc_client
 
 
 class FakeResponse(requests.Response):

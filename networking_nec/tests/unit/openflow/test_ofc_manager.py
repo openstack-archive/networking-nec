@@ -16,9 +16,10 @@ import mock
 
 from neutron import context
 from neutron.openstack.common import uuidutils
-from neutron.plugins.nec.common import config
-from neutron.plugins.nec.db import api as ndb
-from neutron.plugins.nec import ofc_manager
+
+from networking_nec.plugins.openflow.common import config
+from networking_nec.plugins.openflow.db import api as ndb
+from networking_nec.plugins.openflow import ofc_manager
 from neutron.tests.unit import testlib_api
 
 
@@ -40,7 +41,8 @@ class OFCManagerTestBase(testlib_api.SqlTestCase):
 
     def setUp(self):
         super(OFCManagerTestBase, self).setUp()
-        driver = "neutron.tests.unit.nec.stub_ofc_driver.StubOFCDriver"
+        driver = ("networking_nec.tests.unit.openflow."
+                  "stub_ofc_driver.StubOFCDriver")
         config.CONF.set_override('driver', driver, 'OFC')
         self.plugin = mock.Mock()
         self.plugin.get_packet_filters_for_port.return_value = None

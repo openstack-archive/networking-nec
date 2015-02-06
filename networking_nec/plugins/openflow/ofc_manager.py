@@ -16,10 +16,11 @@ import netaddr
 
 from neutron.common import utils
 from neutron.openstack.common import log as logging
-from neutron.plugins.nec.common import config
-from neutron.plugins.nec.common import exceptions as nexc
-from neutron.plugins.nec.db import api as ndb
-from neutron.plugins.nec import drivers
+
+from networking_nec.plugins.openflow.common import config
+from networking_nec.plugins.openflow.common import exceptions as nexc
+from networking_nec.plugins.openflow.db import api as ndb
+from networking_nec.plugins.openflow import drivers
 
 
 LOG = logging.getLogger(__name__)

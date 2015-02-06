@@ -12,8 +12,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from neutron.plugins.nec.common import config
 from neutron.tests import base
+
+from networking_nec.plugins.openflow.common import config
 
 
 class ConfigurationTest(base.BaseTestCase):

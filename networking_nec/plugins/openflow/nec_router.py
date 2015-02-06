@@ -27,18 +27,19 @@ from neutron.db import models_v2
 from neutron.extensions import l3
 from neutron.i18n import _LE, _LI, _LW
 from neutron.openstack.common import log as logging
-from neutron.plugins.nec.common import config
-from neutron.plugins.nec.common import constants as nconst
-from neutron.plugins.nec.common import exceptions as nexc
-from neutron.plugins.nec.db import router as rdb
-from neutron.plugins.nec.extensions import router_provider as ext_provider
+
+from networking_nec.plugins.openflow.common import config
+from networking_nec.plugins.openflow.common import constants as nconst
+from networking_nec.plugins.openflow.common import exceptions as nexc
+from networking_nec.plugins.openflow.db import router as rdb
+from networking_nec.plugins.openflow.extensions import router_provider
 
 LOG = logging.getLogger(__name__)
 
 PROVIDER_L3AGENT = nconst.ROUTER_PROVIDER_L3AGENT
 PROVIDER_OPENFLOW = nconst.ROUTER_PROVIDER_OPENFLOW
 
-ROUTER_DRIVER_PATH = 'neutron.plugins.nec.router_drivers.'
+ROUTER_DRIVER_PATH = 'networking_nec.plugins.openflow.router_drivers.'
 ROUTER_DRIVER_MAP = {
     PROVIDER_L3AGENT: ROUTER_DRIVER_PATH + 'RouterL3AgentDriver',
     PROVIDER_OPENFLOW: ROUTER_DRIVER_PATH + 'RouterOpenFlowDriver'
@@ -60,7 +61,7 @@ class RouterMixin(extraroute_db.ExtraRoute_db_mixin,
         tenant_id = self._get_tenant_id_for_create(context, router['router'])
 
         provider = get_provider_with_default(
-            router['router'].get(ext_provider.ROUTER_PROVIDER))
+            router['router'].get(router_provider.ROUTER_PROVIDER))
         driver = get_driver_by_provider(provider)
 
         with context.session.begin(subtransactions=True):
@@ -87,7 +88,7 @@ class RouterMixin(extraroute_db.ExtraRoute_db_mixin,
 
         with context.session.begin(subtransactions=True):
             old_rtr = super(RouterMixin, self).get_router(context, router_id)
-            provider = old_rtr[ext_provider.ROUTER_PROVIDER]
+            provider = old_rtr[router_provider.ROUTER_PROVIDER]
             driver = get_driver_by_provider(provider)
             old_rtr['gw_port'] = self._get_gw_port_detail(
                 context, driver, old_rtr['gw_port_id'])
@@ -246,7 +247,7 @@ class RouterMixin(extraroute_db.ExtraRoute_db_mixin,
         return rdb.get_provider_by_router(context.session, router_id)
 
     def _extend_router_dict_provider(self, router_res, provider):
-        router_res[ext_provider.ROUTER_PROVIDER] = provider
+        router_res[router_provider.ROUTER_PROVIDER] = provider
 
     def extend_router_dict_provider(self, router_res, router_db):
         # NOTE: router_db.provider is None just after creating a router,

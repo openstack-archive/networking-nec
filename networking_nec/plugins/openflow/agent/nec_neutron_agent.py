@@ -38,7 +38,7 @@ from neutron.extensions import securitygroup as ext_sg
 from neutron.i18n import _LE, _LI
 from neutron.openstack.common import log as logging
 from neutron.openstack.common import loopingcall
-from neutron.plugins.nec.common import config
+from networking_nec.plugins.openflow.common import config
 
 
 LOG = logging.getLogger(__name__)

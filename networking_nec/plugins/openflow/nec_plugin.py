@@ -43,15 +43,16 @@ from neutron.i18n import _LE, _LI, _LW
 from neutron.openstack.common import log as logging
 from neutron.openstack.common import uuidutils
 from neutron.plugins.common import constants as svc_constants
-from neutron.plugins.nec.common import config
-from neutron.plugins.nec.common import exceptions as nexc
-from neutron.plugins.nec.common import utils as necutils
-from neutron.plugins.nec.db import api as ndb
-from neutron.plugins.nec.db import router as rdb
-from neutron.plugins.nec import extensions
-from neutron.plugins.nec import nec_router
-from neutron.plugins.nec import ofc_manager
-from neutron.plugins.nec import packet_filter
+
+from networking_nec.plugins.openflow.common import config
+from networking_nec.plugins.openflow.common import exceptions as nexc
+from networking_nec.plugins.openflow.common import utils as necutils
+from networking_nec.plugins.openflow.db import api as ndb
+from networking_nec.plugins.openflow.db import router as rdb
+from networking_nec.plugins.openflow import extensions
+from networking_nec.plugins.openflow import nec_router
+from networking_nec.plugins.openflow import ofc_manager
+from networking_nec.plugins.openflow import packet_filter
 
 LOG = logging.getLogger(__name__)
 

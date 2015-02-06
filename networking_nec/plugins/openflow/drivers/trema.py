@@ -13,10 +13,10 @@
 #    under the License.
 
 from neutron.openstack.common import uuidutils
-from neutron.plugins.nec.common import exceptions as nexc
-from neutron.plugins.nec.common import ofc_client
-from neutron.plugins.nec.db import api as ndb
-from neutron.plugins.nec import ofc_driver_base
+from networking_nec.plugins.openflow.common import exceptions as nexc
+from networking_nec.plugins.openflow.common import ofc_client
+from networking_nec.plugins.openflow.db import api as ndb
+from networking_nec.plugins.openflow import ofc_driver_base
 
 
 class TremaDriverBase(ofc_driver_base.OFCDriverBase):

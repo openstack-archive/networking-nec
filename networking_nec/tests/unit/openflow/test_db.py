@@ -17,9 +17,10 @@ import random
 
 from neutron.common import constants as q_const
 from neutron.openstack.common import uuidutils
-from neutron.plugins.nec.common import exceptions as nexc
-from neutron.plugins.nec.db import api as ndb
-from neutron.tests.unit.nec import test_nec_plugin
+
+from networking_nec.plugins.openflow.common import exceptions as nexc
+from networking_nec.plugins.openflow.db import api as ndb
+from networking_nec.tests.unit.openflow import test_nec_plugin
 
 
 class NECPluginV2DBTestBase(test_nec_plugin.NecPluginV2TestCase):
