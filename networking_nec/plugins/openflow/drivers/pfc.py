@@ -16,6 +16,7 @@ import re
 import uuid
 
 import netaddr
+from oslo_config import cfg
 
 from neutron.api.v2 import attributes
 from neutron.common import constants
@@ -24,7 +25,6 @@ from neutron.common import log as call_log
 from neutron import manager
 from neutron.plugins.nec.extensions import packetfilter as ext_pf
 
-from networking_nec.plugins.openflow import config
 from networking_nec.plugins.openflow.db import api as ndb
 from networking_nec.plugins.openflow import ofc_client
 from networking_nec.plugins.openflow import ofc_driver_base
@@ -179,7 +179,7 @@ class PFCFilterDriverMixin(object):
         {'tenant': xxxx, 'router': xxxx, 'interface': xxxx}
         If no matching ofc id is found, InvalidOFCIdFormat is raised.
         """
-        if config.OFC.support_packet_filter_on_ofc_router:
+        if cfg.CONF.OFC.support_packet_filter_on_ofc_router:
             try:
                 return self._extract_ofc_router_inf_id(ofc_port_id)
             except InvalidOFCIdFormat:

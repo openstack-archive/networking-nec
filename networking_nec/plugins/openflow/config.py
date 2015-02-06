@@ -75,10 +75,3 @@ cfg.CONF.register_opts(ofc_opts, "OFC")
 cfg.CONF.register_opts(provider_opts, "PROVIDER")
 config.register_agent_state_opts_helper(cfg.CONF)
 config.register_root_helper(cfg.CONF)
-
-# shortcuts
-CONF = cfg.CONF
-OVS = cfg.CONF.OVS
-AGENT = cfg.CONF.AGENT
-OFC = cfg.CONF.OFC
-PROVIDER = cfg.CONF.PROVIDER

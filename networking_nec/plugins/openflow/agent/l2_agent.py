@@ -24,6 +24,7 @@ import time
 
 import eventlet
 eventlet.monkey_patch()
+from oslo_config import cfg
 from oslo_log import log as logging
 import oslo_messaging
 
@@ -38,7 +39,6 @@ from neutron.extensions import securitygroup as ext_sg
 
 from networking_nec.i18n import _LE, _LI
 from networking_nec.openstack.common import loopingcall
-from networking_nec.plugins.openflow import config
 
 
 LOG = logging.getLogger(__name__)
@@ -110,7 +110,7 @@ class NECNeutronAgent(object):
 
         self.agent_state = {
             'binary': 'neutron-nec-agent',
-            'host': config.CONF.host,
+            'host': cfg.CONF.host,
             'topic': q_const.L2_AGENT_TOPIC,
             'configurations': {},
             'agent_type': q_const.AGENT_TYPE_NEC,
@@ -146,7 +146,7 @@ class NECNeutronAgent(object):
                                                      self.topic,
                                                      consumers)
 
-        report_interval = config.CONF.AGENT.report_interval
+        report_interval = cfg.CONF.AGENT.report_interval
         if report_interval:
             heartbeat = loopingcall.FixedIntervalLoopingCall(
                 self._report_state)
@@ -220,9 +220,9 @@ def main():
     common_config.setup_logging()
 
     # Determine which agent type to use.
-    integ_br = config.OVS.integration_bridge
-    root_helper = config.AGENT.root_helper
-    polling_interval = config.AGENT.polling_interval
+    integ_br = cfg.CONF.OVS.integration_bridge
+    root_helper = cfg.CONF.AGENT.root_helper
+    polling_interval = cfg.CONF.AGENT.polling_interval
 
     agent = NECNeutronAgent(integ_br, root_helper, polling_interval)
 

@@ -13,11 +13,11 @@
 #    under the License.
 
 import netaddr
+from oslo_config import cfg
 from oslo_log import log as logging
 
 from neutron.common import utils
 
-from networking_nec.plugins.openflow import config
 from networking_nec.plugins.openflow.db import api as ndb
 from networking_nec.plugins.openflow import drivers
 from networking_nec.plugins.openflow import exceptions as nexc
@@ -37,7 +37,7 @@ class OFCManager(object):
     """
 
     def __init__(self, plugin):
-        self.driver = drivers.get_driver(config.OFC.driver)(config.OFC)
+        self.driver = drivers.get_driver(cfg.CONF.OFC.driver)(cfg.CONF.OFC)
         self.plugin = plugin
 
     def _get_ofc_id(self, context, resource, neutron_id):

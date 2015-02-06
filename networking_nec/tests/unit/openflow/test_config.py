@@ -12,32 +12,27 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from oslo_config import cfg
+
 from neutron.tests import base
 
-from networking_nec.plugins.openflow import config
+from networking_nec.plugins.openflow import config  # noqa
 
 
 class ConfigurationTest(base.BaseTestCase):
 
     def test_defaults(self):
-        self.assertEqual('br-int', config.CONF.OVS.integration_bridge)
-        self.assertEqual(2, config.CONF.AGENT.polling_interval)
-        self.assertEqual('sudo', config.CONF.AGENT.root_helper)
+        self.assertEqual('br-int', cfg.CONF.OVS.integration_bridge)
+        self.assertEqual(2, cfg.CONF.AGENT.polling_interval)
+        self.assertEqual('sudo', cfg.CONF.AGENT.root_helper)
 
-        self.assertEqual('127.0.0.1', config.CONF.OFC.host)
-        self.assertEqual('8888', config.CONF.OFC.port)
+        self.assertEqual('127.0.0.1', cfg.CONF.OFC.host)
+        self.assertEqual('8888', cfg.CONF.OFC.port)
         # Check path_prefix is an empty string explicitly.
-        self.assertEqual('', config.CONF.OFC.path_prefix)
-        self.assertEqual('trema', config.CONF.OFC.driver)
-        self.assertTrue(config.CONF.OFC.enable_packet_filter)
-        self.assertTrue(config.CONF.OFC.support_packet_filter_on_ofc_router)
-        self.assertFalse(config.CONF.OFC.use_ssl)
-        self.assertIsNone(config.CONF.OFC.key_file)
-        self.assertIsNone(config.CONF.OFC.cert_file)
-
-    def test_shortcuts(self):
-        self.assertEqual(config.CONF.OVS.integration_bridge,
-                         config.OVS.integration_bridge)
-        self.assertEqual(config.CONF.AGENT.polling_interval,
-                         config.AGENT.polling_interval)
-        self.assertEqual(config.CONF.OFC.host, config.OFC.host)
+        self.assertEqual('', cfg.CONF.OFC.path_prefix)
+        self.assertEqual('trema', cfg.CONF.OFC.driver)
+        self.assertTrue(cfg.CONF.OFC.enable_packet_filter)
+        self.assertTrue(cfg.CONF.OFC.support_packet_filter_on_ofc_router)
+        self.assertFalse(cfg.CONF.OFC.use_ssl)
+        self.assertIsNone(cfg.CONF.OFC.key_file)
+        self.assertIsNone(cfg.CONF.OFC.cert_file)

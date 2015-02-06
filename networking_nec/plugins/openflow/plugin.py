@@ -12,6 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from oslo_config import cfg
 from oslo_log import log as logging
 import oslo_messaging
 from oslo_utils import excutils
@@ -45,7 +46,7 @@ from neutron.plugins.common import constants as svc_constants
 from neutron.plugins.nec import extensions
 
 from networking_nec.i18n import _LE, _LI, _LW
-from networking_nec.plugins.openflow import config
+from networking_nec.plugins.openflow import config  # noqa
 from networking_nec.plugins.openflow.db import api as ndb
 from networking_nec.plugins.openflow.db import router as rdb
 from networking_nec.plugins.openflow import exceptions as nexc
@@ -127,10 +128,10 @@ class NECPluginV2(db_base_plugin_v2.NeutronDbPluginV2,
         self.l3_rpc_notifier = nec_router.L3AgentNotifyAPI()
 
         self.network_scheduler = importutils.import_object(
-            config.CONF.network_scheduler_driver
+            cfg.CONF.network_scheduler_driver
         )
         self.router_scheduler = importutils.import_object(
-            config.CONF.router_scheduler_driver
+            cfg.CONF.router_scheduler_driver
         )
 
         nec_router.load_driver(self.safe_reference, self.ofc)

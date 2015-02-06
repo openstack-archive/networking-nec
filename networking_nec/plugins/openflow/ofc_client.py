@@ -14,13 +14,13 @@
 
 import time
 
+from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_serialization import jsonutils
 from oslo_utils import excutils
 import requests
 
 from networking_nec.i18n import _LI, _LW
-from networking_nec.plugins.openflow import config
 from networking_nec.plugins.openflow import exceptions as nexc
 
 
@@ -74,7 +74,7 @@ class OFCClient(object):
             return res
 
     def do_single_request(self, method, action, body=None):
-        action = config.OFC.path_prefix + action
+        action = cfg.CONF.OFC.path_prefix + action
         LOG.debug("Client request: %(host)s:%(port)s "
                   "%(method)s %(action)s [%(body)s]",
                   {'host': self.host, 'port': self.port,
@@ -126,7 +126,7 @@ class OFCClient(object):
             raise nexc.OFCException(reason=reason)
 
     def do_request(self, method, action, body=None):
-        max_attempts = config.OFC.api_max_attempts
+        max_attempts = cfg.CONF.OFC.api_max_attempts
         for i in range(max_attempts, 0, -1):
             try:
                 return self.do_single_request(method, action, body)

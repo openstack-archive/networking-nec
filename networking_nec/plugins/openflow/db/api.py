@@ -23,7 +23,6 @@ from neutron import manager
 from neutron.plugins.nec.db import models as nmodels
 
 from networking_nec.i18n import _LW
-from networking_nec.plugins.openflow import config  # noqa
 from networking_nec.plugins.openflow import exceptions as nexc
 
 

@@ -12,6 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_utils import excutils
 from oslo_utils import importutils
@@ -29,7 +30,6 @@ from neutron.extensions import l3
 from neutron.plugins.nec.extensions import router_provider
 
 from networking_nec.i18n import _LE, _LI, _LW
-from networking_nec.plugins.openflow import config
 from networking_nec.plugins.openflow import constants as nconst
 from networking_nec.plugins.openflow.db import router as rdb
 from networking_nec.plugins.openflow import exceptions as nexc
@@ -317,15 +317,15 @@ def load_driver(plugin, ofc_manager):
              'driver_map': ROUTER_DRIVER_MAP})
         del ROUTER_DRIVER_MAP[PROVIDER_OPENFLOW]
 
-    if config.PROVIDER.default_router_provider not in ROUTER_DRIVER_MAP:
+    if cfg.CONF.PROVIDER.default_router_provider not in ROUTER_DRIVER_MAP:
         LOG.error(_LE('default_router_provider %(default)s is supported! '
                     'Please specify one of %(supported)s'),
-                  {'default': config.PROVIDER.default_router_provider,
+                  {'default': cfg.CONF.PROVIDER.default_router_provider,
                    'supported': ROUTER_DRIVER_MAP.keys()})
         raise SystemExit(1)
 
-    enabled_providers = (set(config.PROVIDER.router_providers +
-                             [config.PROVIDER.default_router_provider]) &
+    enabled_providers = (set(cfg.CONF.PROVIDER.router_providers +
+                             [cfg.CONF.PROVIDER.default_router_provider]) &
                          set(ROUTER_DRIVER_MAP.keys()))
 
     for driver in enabled_providers:
@@ -339,13 +339,13 @@ def load_driver(plugin, ofc_manager):
                       'terminated! (supported=%(supported)s, '
                       'configured=%(config)s)'),
                   {'supported': ROUTER_DRIVER_MAP.keys(),
-                   'config': config.PROVIDER.router_providers})
+                   'config': cfg.CONF.PROVIDER.router_providers})
         raise SystemExit(1)
 
 
 def get_provider_with_default(provider):
     if not attr.is_attr_set(provider):
-        provider = config.PROVIDER.default_router_provider
+        provider = cfg.CONF.PROVIDER.default_router_provider
     elif provider not in ROUTER_DRIVERS:
         raise nexc.ProviderNotFound(provider=provider)
     return provider
@@ -353,7 +353,7 @@ def get_provider_with_default(provider):
 
 def get_driver_by_provider(provider):
     if provider is None:
-        provider = config.PROVIDER.default_router_provider
+        provider = cfg.CONF.PROVIDER.default_router_provider
     elif provider not in ROUTER_DRIVERS:
         raise nexc.ProviderNotFound(provider=provider)
     return ROUTER_DRIVERS[provider]

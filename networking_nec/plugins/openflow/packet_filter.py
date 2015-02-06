@@ -12,11 +12,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_utils import excutils
 
 from networking_nec.i18n import _LE
-from networking_nec.plugins.openflow import config
 from networking_nec.plugins.openflow.db import packetfilter as pf_db
 from networking_nec.plugins.openflow import exceptions as nexc
 
@@ -31,7 +31,7 @@ class PacketFilterMixin(pf_db.PacketFilterDbMixin):
     def packet_filter_enabled(self):
         if not hasattr(self, '_packet_filter_enabled'):
             self._packet_filter_enabled = (
-                config.OFC.enable_packet_filter and
+                cfg.CONF.OFC.enable_packet_filter and
                 self.ofc.driver.filter_supported())
         return self._packet_filter_enabled
 
