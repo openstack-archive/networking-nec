@@ -333,12 +333,11 @@ class TestNecAgentMain(base.BaseTestCase):
     def test_main(self):
         with contextlib.nested(
             mock.patch.object(l2_agent, 'NECNeutronAgent'),
-            mock.patch.object(l2_agent, 'common_config'),
-            mock.patch.object(l2_agent, 'config')
-        ) as (agent, common_config, cfg):
-            cfg.OVS.integration_bridge = 'br-int-x'
-            cfg.AGENT.root_helper = 'dummy-helper'
-            cfg.AGENT.polling_interval = 10
+            mock.patch.object(l2_agent, 'common_config')
+        ) as (agent, common_config):
+            cfg.CONF.set_override('integration_bridge', 'br-int-x', 'OVS')
+            cfg.CONF.set_override('root_helper', 'dummy-helper', 'AGENT')
+            cfg.CONF.set_override('polling_interval', 10, 'AGENT')
 
             l2_agent.main()
 

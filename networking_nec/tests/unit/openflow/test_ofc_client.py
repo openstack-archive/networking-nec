@@ -19,7 +19,6 @@ import requests
 
 from neutron.tests import base
 
-from networking_nec.plugins.openflow import config
 from networking_nec.plugins.openflow import exceptions as nexc
 from networking_nec.plugins.openflow import ofc_client
 
@@ -76,7 +75,7 @@ class OFCClientTest(base.BaseTestCase):
             self._test_do_request(status, None, None)
 
     def test_do_request_with_path_prefix(self):
-        config.CONF.set_override('path_prefix', '/dummy', group='OFC')
+        cfg.CONF.set_override('path_prefix', '/dummy', group='OFC')
         self._test_do_request(200, jsonutils.dumps([1, 2, 3]), [1, 2, 3],
                               path_prefix='/dummy')
 

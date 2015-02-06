@@ -14,11 +14,11 @@
 # limitations under the License.
 
 import mock
+from oslo_config import cfg
 
 from neutron import manager
 from neutron.tests.unit import test_extension_extraroute as test_ext_route
 
-from networking_nec.plugins.openflow import config
 from networking_nec.tests.unit.openflow import test_plugin
 
 
@@ -41,6 +41,6 @@ class NecRouterL3AgentTestCase(test_ext_route.ExtraRouteDBIntTestCase):
 class NecRouterOpenFlowTestCase(NecRouterL3AgentTestCase):
 
     def setUp(self):
-        config.CONF.set_override('default_router_provider',
-                                 'openflow', 'PROVIDER')
+        cfg.CONF.set_override('default_router_provider',
+                              'openflow', 'PROVIDER')
         super(NecRouterOpenFlowTestCase, self).setUp()

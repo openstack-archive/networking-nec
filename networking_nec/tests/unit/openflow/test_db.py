@@ -19,8 +19,8 @@ from oslo_utils import uuidutils
 
 from neutron.common import constants as q_const
 
-from networking_nec.plugins.openflow.common import exceptions as nexc
 from networking_nec.plugins.openflow.db import api as ndb
+from networking_nec.plugins.openflow import exceptions as nexc
 from networking_nec.tests.unit.openflow import test_plugin
 
 
