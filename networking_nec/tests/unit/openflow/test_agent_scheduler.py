@@ -18,7 +18,7 @@ from neutron.api.rpc.handlers import l3_rpc
 from neutron.common import constants
 from neutron.tests.unit.openvswitch import test_agent_scheduler
 
-from networking_nec.tests.unit.openflow import test_nec_plugin
+from networking_nec.tests.unit.openflow import test_plugin
 
 L3_HOSTA = test_agent_scheduler.L3_HOSTA
 L3_HOSTB = test_agent_scheduler.L3_HOSTB
@@ -26,9 +26,9 @@ L3_HOSTB = test_agent_scheduler.L3_HOSTB
 
 class NecAgentSchedulerTestCase(
     test_agent_scheduler.OvsAgentSchedulerTestCase,
-    test_nec_plugin.NecPluginV2TestCaseBase):
+    test_plugin.NecPluginV2TestCaseBase):
 
-    plugin_str = test_nec_plugin.PLUGIN_NAME
+    plugin_str = test_plugin.PLUGIN_NAME
     l3_plugin = None
 
     def setUp(self):
@@ -38,9 +38,9 @@ class NecAgentSchedulerTestCase(
 
 class NecDhcpAgentNotifierTestCase(
     test_agent_scheduler.OvsDhcpAgentNotifierTestCase,
-    test_nec_plugin.NecPluginV2TestCaseBase):
+    test_plugin.NecPluginV2TestCaseBase):
 
-    plugin_str = test_nec_plugin.PLUGIN_NAME
+    plugin_str = test_plugin.PLUGIN_NAME
     l3_plugin = None
 
     def setUp(self):
@@ -50,9 +50,9 @@ class NecDhcpAgentNotifierTestCase(
 
 class NecL3AgentNotifierTestCase(
     test_agent_scheduler.OvsL3AgentNotifierTestCase,
-    test_nec_plugin.NecPluginV2TestCaseBase):
+    test_plugin.NecPluginV2TestCaseBase):
 
-    plugin_str = test_nec_plugin.PLUGIN_NAME
+    plugin_str = test_plugin.PLUGIN_NAME
     l3_plugin = None
 
     def setUp(self):
@@ -62,9 +62,9 @@ class NecL3AgentNotifierTestCase(
 
 class NecL3AgentSchedulerWithOpenFlowRouter(
     test_agent_scheduler.OvsAgentSchedulerTestCaseBase,
-    test_nec_plugin.NecPluginV2TestCaseBase):
+    test_plugin.NecPluginV2TestCaseBase):
 
-    plugin_str = test_nec_plugin.PLUGIN_NAME
+    plugin_str = test_plugin.PLUGIN_NAME
     l3_plugin = None
 
     def setUp(self):

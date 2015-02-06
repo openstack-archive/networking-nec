@@ -21,10 +21,10 @@ from neutron.common import constants as q_const
 
 from networking_nec.plugins.openflow.common import exceptions as nexc
 from networking_nec.plugins.openflow.db import api as ndb
-from networking_nec.tests.unit.openflow import test_nec_plugin
+from networking_nec.tests.unit.openflow import test_plugin
 
 
-class NECPluginV2DBTestBase(test_nec_plugin.NecPluginV2TestCase):
+class NECPluginV2DBTestBase(test_plugin.NecPluginV2TestCase):
     """Class conisting of NECPluginV2 DB unit tests."""
 
     def setUp(self):

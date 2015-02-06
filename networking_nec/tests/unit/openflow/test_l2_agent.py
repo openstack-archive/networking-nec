@@ -26,7 +26,7 @@ from neutron.agent.linux import ovs_lib
 from neutron.extensions import securitygroup as ext_sg
 from neutron.tests import base
 
-from networking_nec.plugins.openflow.agent import nec_neutron_agent
+from networking_nec.plugins.openflow.agent import l2_agent
 
 DAEMON_LOOP_COUNT = 10
 OVS_DPID = '00000629355b6943'
@@ -53,7 +53,7 @@ class TestNecAgentBase(base.BaseTestCase):
             kwargs = {'integ_br': 'integ_br',
                       'root_helper': 'dummy_wrapper',
                       'polling_interval': 1}
-            self.agent = nec_neutron_agent.NECNeutronAgent(**kwargs)
+            self.agent = l2_agent.NECNeutronAgent(**kwargs)
             self.loopingcall = loopingcall
             self.state_rpc_api = state_rpc_api
 
@@ -69,7 +69,7 @@ class TestNecAgent(TestNecAgentBase):
             ovs_lib.OVSBridge, 'get_vif_ports',
             return_value=vif_ports).start()
         self.update_ports = mock.patch.object(
-            nec_neutron_agent.NECPluginApi, 'update_ports').start()
+            l2_agent.NECPluginApi, 'update_ports').start()
         self.prepare_devices_filter = mock.patch.object(
             self.agent.sg_agent, 'prepare_devices_filter').start()
         self.remove_devices_filter = mock.patch.object(
@@ -157,7 +157,7 @@ class TestNecAgent(TestNecAgentBase):
         with contextlib.nested(
             mock.patch.object(time, 'sleep', side_effect=sleep_mock),
             mock.patch.object(ovs_lib.OVSBridge, 'get_vif_ports'),
-            mock.patch.object(nec_neutron_agent.NECPluginApi, 'update_ports'),
+            mock.patch.object(l2_agent.NECPluginApi, 'update_ports'),
             mock.patch.object(self.agent.sg_agent, 'prepare_devices_filter'),
             mock.patch.object(self.agent.sg_agent, 'remove_devices_filter')
         ) as (sleep, get_vif_potrs, update_ports,
@@ -214,7 +214,7 @@ class TestNecAgent(TestNecAgentBase):
         self.num_ports_hist.append(num_ports)
 
     def _test_report_state(self, fail_mode):
-        log_mocked = mock.patch.object(nec_neutron_agent, 'LOG')
+        log_mocked = mock.patch.object(l2_agent, 'LOG')
         log_patched = log_mocked.start()
 
         def record_state(*args, **kwargs):
@@ -332,15 +332,15 @@ class TestNecAgentPluginApi(TestNecAgentBase):
 class TestNecAgentMain(base.BaseTestCase):
     def test_main(self):
         with contextlib.nested(
-            mock.patch.object(nec_neutron_agent, 'NECNeutronAgent'),
-            mock.patch.object(nec_neutron_agent, 'common_config'),
-            mock.patch.object(nec_neutron_agent, 'config')
+            mock.patch.object(l2_agent, 'NECNeutronAgent'),
+            mock.patch.object(l2_agent, 'common_config'),
+            mock.patch.object(l2_agent, 'config')
         ) as (agent, common_config, cfg):
             cfg.OVS.integration_bridge = 'br-int-x'
             cfg.AGENT.root_helper = 'dummy-helper'
             cfg.AGENT.polling_interval = 10
 
-            nec_neutron_agent.main()
+            l2_agent.main()
 
             self.assertTrue(common_config.setup_logging.called)
             agent.assert_has_calls([

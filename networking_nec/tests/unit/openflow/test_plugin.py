@@ -27,14 +27,14 @@ from neutron.tests.unit import test_extension_allowedaddresspairs as test_pair
 
 from networking_nec.plugins.openflow.db import api as ndb
 from networking_nec.plugins.openflow import exceptions as nexc
-from networking_nec.plugins.openflow import nec_plugin
+from networking_nec.plugins.openflow import plugin as nec_plugin
 from networking_nec.tests.unit.openflow import fake_ofc_manager
 
 
 PLUGIN_BASE = 'networking_nec.plugins.openflow.'
-PLUGIN_NAME = PLUGIN_BASE + 'nec_plugin.NECPluginV2'
+PLUGIN_NAME = PLUGIN_BASE + 'plugin.NECPluginV2'
 OFC_MANAGER = PLUGIN_BASE + 'ofc_manager.OFCManager'
-NOTIFIER = PLUGIN_BASE + 'nec_plugin.NECPluginV2AgentNotifierApi'
+NOTIFIER = PLUGIN_BASE + 'plugin.NECPluginV2AgentNotifierApi'
 NEC_PLUGIN_INI = """
 [DEFAULT]
 api_extensions_path = networking_nec/plugins/openflow/extensions

@@ -23,12 +23,12 @@ from neutron import manager
 from neutron.tests.unit import test_extension_security_group as test_sg
 from neutron.tests.unit import test_security_groups_rpc as test_sg_rpc
 
-from networking_nec.tests.unit.openflow import test_nec_plugin
+from networking_nec.tests.unit.openflow import test_plugin
 
 
-PLUGIN_NAME = test_nec_plugin.PLUGIN_NAME
-OFC_MANAGER = 'networking_nec.plugins.openflow.nec_plugin.OFCManager'
-NOTIFIER = ('networking_nec.plugins.openflow.nec_plugin'
+PLUGIN_NAME = test_plugin.PLUGIN_NAME
+OFC_MANAGER = 'networking_nec.plugins.openflow.ofc_manager.OFCManager'
+NOTIFIER = ('networking_nec.plugins.openflow.plugin'
             '.NECPluginV2AgentNotifierApi')
 
 

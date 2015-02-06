@@ -23,11 +23,11 @@ from neutron.extensions import portbindings
 from neutron.tests.unit import _test_extension_portbindings as test_bindings
 from neutron.tests.unit import test_security_groups_rpc as test_sg_rpc
 
-from networking_nec.tests.unit.openflow import test_nec_plugin
+from networking_nec.tests.unit.openflow import test_plugin
 
 
 class TestNecPortBinding(test_bindings.PortBindingsTestCase,
-                         test_nec_plugin.NecPluginV2TestCase):
+                         test_plugin.NecPluginV2TestCase):
     VIF_TYPE = portbindings.VIF_TYPE_OVS
     VIF_DETAILS = {portbindings.CAP_PORT_FILTER: True,
                    portbindings.OVS_HYBRID_PLUG: True}
@@ -51,11 +51,11 @@ class TestNecPortBindingNoSG(TestNecPortBinding):
 
 class TestNecPortBindingHost(
     test_bindings.PortBindingsHostTestCaseMixin,
-    test_nec_plugin.NecPluginV2TestCase):
+    test_plugin.NecPluginV2TestCase):
     pass
 
 
-class TestNecPortBindingPortInfo(test_nec_plugin.NecPluginV2TestCase):
+class TestNecPortBindingPortInfo(test_plugin.NecPluginV2TestCase):
     def _get_portinfo(self, datapath_id=None, port_no=None):
         if datapath_id is None:
             datapath_id = '0xabc'
@@ -278,7 +278,7 @@ class TestNecPortBindingPortInfo(test_nec_plugin.NecPluginV2TestCase):
             pass
 
 
-class TestNecPortBindingValidatePortInfo(test_nec_plugin.NecPluginV2TestCase):
+class TestNecPortBindingValidatePortInfo(test_plugin.NecPluginV2TestCase):
 
     def test_validate_portinfo_ok(self):
         profile = {'datapath_id': '0x1234567890abcdef',

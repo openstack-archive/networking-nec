@@ -19,15 +19,15 @@ from neutron import manager
 from neutron.tests.unit import test_extension_extraroute as test_ext_route
 
 from networking_nec.plugins.openflow import config
-from networking_nec.tests.unit.openflow import test_nec_plugin
+from networking_nec.tests.unit.openflow import test_plugin
 
 
 class NecRouterL3AgentTestCase(test_ext_route.ExtraRouteDBIntTestCase):
 
-    _plugin_name = test_nec_plugin.PLUGIN_NAME
+    _plugin_name = test_plugin.PLUGIN_NAME
 
     def setUp(self):
-        mock.patch(test_nec_plugin.OFC_MANAGER).start()
+        mock.patch(test_plugin.OFC_MANAGER).start()
         super(NecRouterL3AgentTestCase, self).setUp(self._plugin_name)
 
         plugin = manager.NeutronManager.get_plugin()

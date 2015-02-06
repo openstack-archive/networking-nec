@@ -20,11 +20,11 @@ import webob.exc
 
 from neutron.api.v2 import attributes
 from neutron import context
-from neutron.tests.unit import test_db_plugin as test_plugin
+from neutron.tests.unit import test_db_plugin
 
 from networking_nec.plugins.openflow import exceptions as nexc
 from networking_nec.plugins.openflow.extensions import packetfilter as ext_pf
-from networking_nec.tests.unit.openflow import test_nec_plugin
+from networking_nec.tests.unit.openflow import test_plugin
 
 
 NEC_PLUGIN_PF_INI = """
@@ -49,7 +49,7 @@ class PacketfilterExtensionManager(ext_pf.Packetfilter):
         return super(PacketfilterExtensionManager, cls).get_resources()
 
 
-class TestNecPluginPacketFilterBase(test_nec_plugin.NecPluginV2TestCase):
+class TestNecPluginPacketFilterBase(test_plugin.NecPluginV2TestCase):
 
     _nec_ini = NEC_PLUGIN_PF_INI
 
@@ -95,7 +95,8 @@ class TestNecPluginPacketFilterBase(test_nec_plugin.NecPluginV2TestCase):
     @contextlib.contextmanager
     def packet_filter_on_network(self, network=None, fmt=None, do_delete=True,
                                  **kwargs):
-        with test_plugin.optional_ctx(network, self.network) as network_to_use:
+        with test_db_plugin.optional_ctx(network,
+                                         self.network) as network_to_use:
             net_id = network_to_use['network']['id']
             pf = self._make_packet_filter(fmt or self.fmt, net_id, **kwargs)
             yield pf
@@ -107,7 +108,7 @@ class TestNecPluginPacketFilterBase(test_nec_plugin.NecPluginV2TestCase):
     @contextlib.contextmanager
     def packet_filter_on_port(self, port=None, fmt=None, do_delete=True,
                               set_portinfo=True, **kwargs):
-        with test_plugin.optional_ctx(port, self.port) as port_to_use:
+        with test_db_plugin.optional_ctx(port, self.port) as port_to_use:
             net_id = port_to_use['port']['network_id']
             port_id = port_to_use['port']['id']
 
