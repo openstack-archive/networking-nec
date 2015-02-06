@@ -23,8 +23,8 @@ from neutron.common import log as call_log
 from neutron.common import utils
 
 from networking_nec.i18n import _LE, _LW
-from networking_nec.plugins.openflow.common import constants as nconst
-from networking_nec.plugins.openflow.common import exceptions as nexc
+from networking_nec.plugins.openflow import constants as nconst
+from networking_nec.plugins.openflow import exceptions as nexc
 
 LOG = logging.getLogger(__name__)
 

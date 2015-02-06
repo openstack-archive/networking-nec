@@ -24,11 +24,11 @@ from oslo_utils import uuidutils
 from neutron.common import constants
 from neutron.tests import base
 
-from networking_nec.plugins.openflow.common import ofc_client as ofc
 from networking_nec.plugins.openflow.db import models as nmodels
 from networking_nec.plugins.openflow import drivers
 from networking_nec.plugins.openflow.drivers import pfc
 from networking_nec.plugins.openflow.extensions import packetfilter as ext_pf
+from networking_nec.plugins.openflow import ofc_client as ofc
 
 
 class TestConfig(object):

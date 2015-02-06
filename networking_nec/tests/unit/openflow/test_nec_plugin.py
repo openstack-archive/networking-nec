@@ -25,8 +25,8 @@ from neutron import manager
 from neutron.tests.unit import test_db_plugin as test_plugin
 from neutron.tests.unit import test_extension_allowedaddresspairs as test_pair
 
-from networking_nec.plugins.openflow.common import exceptions as nexc
 from networking_nec.plugins.openflow.db import api as ndb
+from networking_nec.plugins.openflow import exceptions as nexc
 from networking_nec.plugins.openflow import nec_plugin
 from networking_nec.tests.unit.openflow import fake_ofc_manager
 

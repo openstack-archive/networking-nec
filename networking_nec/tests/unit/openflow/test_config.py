@@ -14,7 +14,7 @@
 
 from neutron.tests import base
 
-from networking_nec.plugins.openflow.common import config
+from networking_nec.plugins.openflow import config
 
 
 class ConfigurationTest(base.BaseTestCase):

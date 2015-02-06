@@ -19,9 +19,9 @@ import requests
 
 from neutron.tests import base
 
-from networking_nec.plugins.openflow.common import config
-from networking_nec.plugins.openflow.common import exceptions as nexc
-from networking_nec.plugins.openflow.common import ofc_client
+from networking_nec.plugins.openflow import config
+from networking_nec.plugins.openflow import exceptions as nexc
+from networking_nec.plugins.openflow import ofc_client
 
 
 class FakeResponse(requests.Response):

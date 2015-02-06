@@ -14,7 +14,7 @@
 
 from neutron.tests import base
 
-from networking_nec.plugins.openflow.common import utils
+from networking_nec.plugins.openflow import utils
 
 
 class NecUtilsTest(base.BaseTestCase):

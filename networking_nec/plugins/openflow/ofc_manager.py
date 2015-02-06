@@ -17,10 +17,10 @@ from oslo_log import log as logging
 
 from neutron.common import utils
 
-from networking_nec.plugins.openflow.common import config
-from networking_nec.plugins.openflow.common import exceptions as nexc
+from networking_nec.plugins.openflow import config
 from networking_nec.plugins.openflow.db import api as ndb
 from networking_nec.plugins.openflow import drivers
+from networking_nec.plugins.openflow import exceptions as nexc
 
 
 LOG = logging.getLogger(__name__)

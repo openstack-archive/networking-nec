@@ -14,9 +14,9 @@
 
 from oslo_utils import uuidutils
 
-from networking_nec.plugins.openflow.common import exceptions as nexc
-from networking_nec.plugins.openflow.common import ofc_client
 from networking_nec.plugins.openflow.db import api as ndb
+from networking_nec.plugins.openflow import exceptions as nexc
+from networking_nec.plugins.openflow import ofc_client
 from networking_nec.plugins.openflow import ofc_driver_base
 
 

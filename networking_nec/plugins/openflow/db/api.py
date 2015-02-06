@@ -22,9 +22,9 @@ from neutron.extensions import securitygroup as ext_sg
 from neutron import manager
 
 from networking_nec.i18n import _LW
-from networking_nec.plugins.openflow.common import config  # noqa
-from networking_nec.plugins.openflow.common import exceptions as nexc
+from networking_nec.plugins.openflow import config  # noqa
 from networking_nec.plugins.openflow.db import models as nmodels
+from networking_nec.plugins.openflow import exceptions as nexc
 
 
 LOG = logging.getLogger(__name__)

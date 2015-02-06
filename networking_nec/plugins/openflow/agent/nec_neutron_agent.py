@@ -39,7 +39,7 @@ from neutron.extensions import securitygroup as ext_sg
 
 from networking_nec.i18n import _LE, _LI
 from networking_nec.openstack.common import loopingcall
-from networking_nec.plugins.openflow.common import config
+from networking_nec.plugins.openflow import config
 
 
 LOG = logging.getLogger(__name__)

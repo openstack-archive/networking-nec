@@ -22,7 +22,7 @@ from neutron.api.v2 import attributes
 from neutron import context
 from neutron.tests.unit import test_db_plugin as test_plugin
 
-from networking_nec.plugins.openflow.common import exceptions as nexc
+from networking_nec.plugins.openflow import exceptions as nexc
 from networking_nec.plugins.openflow.extensions import packetfilter as ext_pf
 from networking_nec.tests.unit.openflow import test_nec_plugin
 

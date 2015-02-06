@@ -18,7 +18,7 @@ import mock
 from neutron import manager
 from neutron.tests.unit import test_extension_extraroute as test_ext_route
 
-from networking_nec.plugins.openflow.common import config
+from networking_nec.plugins.openflow import config
 from networking_nec.tests.unit.openflow import test_nec_plugin
 
 

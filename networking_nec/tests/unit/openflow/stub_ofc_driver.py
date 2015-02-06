@@ -18,7 +18,7 @@ from oslo_utils import uuidutils
 
 from neutron.common import log as call_log
 
-from networking_nec.plugins.openflow.common import exceptions as nexc
+from networking_nec.plugins.openflow import exceptions as nexc
 from networking_nec.plugins.openflow import ofc_driver_base
 
 

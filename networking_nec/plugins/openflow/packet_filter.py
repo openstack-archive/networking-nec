@@ -16,9 +16,9 @@ from oslo_log import log as logging
 from oslo_utils import excutils
 
 from networking_nec.i18n import _LE
-from networking_nec.plugins.openflow.common import config
-from networking_nec.plugins.openflow.common import exceptions as nexc
+from networking_nec.plugins.openflow import config
 from networking_nec.plugins.openflow.db import packetfilter as pf_db
+from networking_nec.plugins.openflow import exceptions as nexc
 
 
 LOG = logging.getLogger(__name__)

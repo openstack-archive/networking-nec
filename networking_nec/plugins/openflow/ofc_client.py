@@ -20,8 +20,8 @@ from oslo_utils import excutils
 import requests
 
 from networking_nec.i18n import _LI, _LW
-from networking_nec.plugins.openflow.common import config
-from networking_nec.plugins.openflow.common import exceptions as nexc
+from networking_nec.plugins.openflow import config
+from networking_nec.plugins.openflow import exceptions as nexc
 
 
 LOG = logging.getLogger(__name__)
