@@ -13,8 +13,9 @@
 #    under the License.
 
 import contextlib
-from oslo_utils import uuidutils
 import random
+
+from oslo_utils import uuidutils
 
 from neutron.common import constants as q_const
 
