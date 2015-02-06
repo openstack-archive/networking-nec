@@ -37,7 +37,7 @@ OFC_MANAGER = PLUGIN_BASE + 'ofc_manager.OFCManager'
 NOTIFIER = PLUGIN_BASE + 'plugin.NECPluginV2AgentNotifierApi'
 NEC_PLUGIN_INI = """
 [DEFAULT]
-api_extensions_path = networking_nec/plugins/openflow/extensions
+api_extensions_path = neutron/plugins/nec/extensions
 [OFC]
 driver = networking_nec.tests.unit.openflow.stub_ofc_driver.StubOFCDriver
 enable_packet_filter = False

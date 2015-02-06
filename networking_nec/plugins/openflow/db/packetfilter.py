@@ -19,8 +19,7 @@ from sqlalchemy import sql
 from neutron.api.v2 import attributes
 from neutron.plugins.nec.db import models as nmodels
 from neutron.plugins.nec.db import packetfilter as pf_model
-
-from networking_nec.plugins.openflow.extensions import packetfilter as ext_pf
+from neutron.plugins.nec.extensions import packetfilter as ext_pf
 
 
 PF_STATUS_ACTIVE = 'ACTIVE'
