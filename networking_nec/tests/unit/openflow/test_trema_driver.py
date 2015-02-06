@@ -18,9 +18,9 @@ import mock
 from oslo_utils import uuidutils
 from six import moves
 
+from neutron.plugins.nec.db import models as nmodels
 from neutron.tests import base
 
-from networking_nec.plugins.openflow.db import models as nmodels
 from networking_nec.plugins.openflow import drivers
 from networking_nec.plugins.openflow import exceptions as nexc
 from networking_nec.plugins.openflow import ofc_client
