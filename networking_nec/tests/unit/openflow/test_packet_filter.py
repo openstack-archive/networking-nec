@@ -28,8 +28,6 @@ from networking_nec.tests.unit.openflow import test_plugin
 
 
 NEC_PLUGIN_PF_INI = """
-[DEFAULT]
-api_extensions_path = neutron/plugins/nec/extensions
 [OFC]
 driver = networking_nec.tests.unit.openflow.stub_ofc_driver.StubOFCDriver
 enable_packet_filter = True
