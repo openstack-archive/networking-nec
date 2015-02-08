@@ -33,6 +33,7 @@ from neutron.agent import rpc as agent_rpc
 from neutron.agent import securitygroups_rpc as sg_rpc
 from neutron.common import config as common_config
 from neutron.common import constants as q_const
+from neutron.common import rpc as n_rpc
 from neutron.common import topics
 from neutron import context as q_context
 from neutron.extensions import securitygroup as ext_sg
@@ -44,7 +45,16 @@ from networking_nec.openstack.common import loopingcall
 LOG = logging.getLogger(__name__)
 
 
-class NECPluginApi(agent_rpc.PluginApi):
+class NECPluginApi(object):
+    '''Agent side of the RPC API.
+
+    API version history:
+        1.0 - Initial version.
+    '''
+
+    def __init__(self, topic):
+        target = oslo_messaging.Target(topic=topic, version='1.0')
+        self.client = n_rpc.get_client(target)
 
     def update_ports(self, context, agent_id, datapath_id,
                      port_added, port_removed):
