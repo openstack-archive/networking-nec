@@ -225,11 +225,7 @@ class NECNeutronAgent(object):
             time.sleep(self.polling_interval)
 
 
-def main():
-    nec_config.register_agent_opts()
-    common_config.init(sys.argv[1:])
-    common_config.setup_logging()
-
+def run():
     # Determine which agent type to use.
     integ_br = cfg.CONF.OVS.integration_bridge
     root_helper = cfg.CONF.AGENT.root_helper
@@ -239,3 +235,11 @@ def main():
 
     # Start everything.
     agent.daemon_loop()
+
+
+def main():
+    nec_config.register_agent_opts()
+    common_config.init(sys.argv[1:])
+    common_config.setup_logging()
+
+    run()
