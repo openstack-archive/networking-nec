@@ -37,6 +37,7 @@ from neutron.common import rpc as n_rpc
 from neutron.common import topics
 from neutron import context as q_context
 from neutron.extensions import securitygroup as ext_sg
+from neutron.plugins.nec.common import config as nec_config
 
 from networking_nec.i18n import _LE, _LI
 from networking_nec.openstack.common import loopingcall
@@ -225,8 +226,8 @@ class NECNeutronAgent(object):
 
 
 def main():
+    nec_config.register_agent_opts()
     common_config.init(sys.argv[1:])
-
     common_config.setup_logging()
 
     # Determine which agent type to use.
