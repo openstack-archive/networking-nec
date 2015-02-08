@@ -94,6 +94,8 @@ class NECPluginV2(db_base_plugin_v2.NeutronDbPluginV2,
     The port binding extension enables an external application relay
     information to and from the plugin.
     """
+
+    _vendor_extensions = ["packet-filter", "router_provider"]
     _supported_extension_aliases = ["agent",
                                     "allowed-address-pairs",
                                     "binding",
@@ -102,21 +104,22 @@ class NECPluginV2(db_base_plugin_v2.NeutronDbPluginV2,
                                     "ext-gw-mode",
                                     "extraroute",
                                     "l3_agent_scheduler",
-                                    "packet-filter",
                                     "quotas",
                                     "router",
-                                    "router_provider",
                                     "security-group",
-                                    ]
+                                    ] + _vendor_extensions
 
     @property
     def supported_extension_aliases(self):
         if not hasattr(self, '_aliases'):
             aliases = self._supported_extension_aliases[:]
             sg_rpc.disable_security_group_extension_by_config(aliases)
-            self.remove_packet_filter_extension_if_disabled(aliases)
+            self.vendor_extension_setup_hook(aliases)
             self._aliases = aliases
         return self._aliases
+
+    def vendor_extension_setup_hook(self, aliases):
+        self.remove_packet_filter_extension_if_disabled(aliases)
 
     def __init__(self):
         super(NECPluginV2, self).__init__()
