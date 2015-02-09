@@ -1,4 +1,4 @@
-NETWORKING_NEC_DIR=$(cd $(dirname ${BASH_SOURCE}/..) && pwd)
+NETWORKING_NEC_DIR=$(cd $(dirname $BASH_SOURCE)/.. && pwd)
 
 function install_networking_nec {
     setup_develop $NETWORKING_NEC_DIR
