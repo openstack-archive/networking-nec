@@ -2,6 +2,15 @@
 networking-nec
 ===============================
 
+SUPER EXPERIMENTAL
+-------------------
+
+This is an experimental repository to test the work of NEC OpenFlow plugin decomposition 
+as a part of Neutron vendor plugins/driver decomposition work in Kilo release cycle.
+
+About this
+------------
+
 Neutron plugins/drivers for NEC networking products
 
 * Free software: Apache license
