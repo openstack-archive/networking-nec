@@ -2,6 +2,5 @@
 Usage
 ========
 
-To use networking-nec in a project::
-
-    import networking_nec
+Please see https://wiki.openstack.org/wiki/Neutron/NEC_OpenFlow_Plugin
+for the detail usage of Neutron NEC OpenFlow plugin.
