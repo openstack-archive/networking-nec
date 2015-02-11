@@ -95,12 +95,12 @@ class NECPluginV2RPCCallbacks(object):
                 # NOTE: Make sure that packet filters on this port exist while
                 # the port is active to avoid unexpected packet transfer.
                 if portinfo:
-                    self.plugin.deactivate_port(rpc_context, port,
-                                                raise_exc=False)
+                    self.plugin.impl.deactivate_port(rpc_context, port,
+                                                     raise_exc=False)
                     self.plugin.deactivate_packet_filters_by_port(
                         rpc_context, id, raise_exc=False)
                 self.plugin.activate_packet_filters_by_port(rpc_context, id)
-                self.plugin.activate_port_if_ready(rpc_context, port)
+                self.plugin.impl.activate_port_if_ready(rpc_context, port)
         for id in kwargs.get('port_removed', []):
             portinfo = ndb.get_portinfo(session, id)
             if not portinfo:
@@ -119,7 +119,8 @@ class NECPluginV2RPCCallbacks(object):
             ndb.del_portinfo(session, id)
             port = self._get_port(rpc_context, id)
             if port:
-                self.plugin.deactivate_port(rpc_context, port, raise_exc=False)
+                self.plugin.impl.deactivate_port(rpc_context, port,
+                                                 raise_exc=False)
                 self.plugin.deactivate_packet_filters_by_port(
                     rpc_context, id, raise_exc=False)
 

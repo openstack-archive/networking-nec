@@ -95,7 +95,7 @@ class NecPluginV2TestCase(NecPluginV2TestCaseBase,
     def setUp(self, plugin=None, ext_mgr=None):
         super(NecPluginV2TestCase, self).setUp(plugin, ext_mgr=ext_mgr)
         self.plugin = manager.NeutronManager.get_plugin()
-        self.plugin.ofc = fake_ofc_manager.patch_ofc_manager()
+        self.plugin.impl.ofc = fake_ofc_manager.patch_ofc_manager()
         self.ofc = self.plugin.ofc
         self.callback_nec = rpc.NECPluginV2RPCCallbacks(self.plugin)
         self.context = context.get_admin_context()
@@ -304,7 +304,7 @@ class TestNecPluginDbTest(NecPluginV2TestCase):
             self.assertEqual("ACTIVE", network['network']['status'])
             net_id = network['network']['id']
             for status in ["DOWN", "BUILD", "ERROR", "ACTIVE"]:
-                self.plugin._update_resource_status(
+                self.plugin.impl._update_resource_status(
                     self.context, 'network', net_id,
                     getattr(constants, 'NET_STATUS_%s' % status))
                 n = self.plugin._get_network(self.context, net_id)
