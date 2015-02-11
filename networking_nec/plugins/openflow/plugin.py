@@ -48,9 +48,9 @@ from networking_nec.i18n import _LE, _LI, _LW
 from networking_nec.plugins.openflow.db import api as ndb
 from networking_nec.plugins.openflow.db import router as rdb
 from networking_nec.plugins.openflow import exceptions as nexc
-from networking_nec.plugins.openflow import nec_router
 from networking_nec.plugins.openflow import ofc_manager
 from networking_nec.plugins.openflow import packet_filter
+from networking_nec.plugins.openflow import router as router_plugin
 from networking_nec.plugins.openflow import rpc
 from networking_nec.plugins.openflow import utils as necutils
 
@@ -107,7 +107,7 @@ class BackendImpl(object):
             return True
 
         router_count = rdb.get_router_count_by_provider(
-            context.session, nec_router.PROVIDER_OPENFLOW, tenant_id)
+            context.session, router_plugin.PROVIDER_OPENFLOW, tenant_id)
         if deleting == 'router':
             router_count -= 1
         if router_count:
@@ -489,10 +489,10 @@ class PortBindingMixin(portbindings_db.PortBindingMixin):
 
 class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
                       external_net_db.External_net_db_mixin,
-                      nec_router.RouterMixin,
+                      router_plugin.RouterMixin,
                       rpc.SecurityGroupServerRpcMixin,
                       agentschedulers_db.DhcpAgentSchedulerDbMixin,
-                      nec_router.L3AgentSchedulerDbMixin,
+                      router_plugin.L3AgentSchedulerDbMixin,
                       packet_filter.PacketFilterMixin,
                       PortBindingMixin,
                       addr_pair_db.AllowedAddressPairsMixin):
@@ -512,7 +512,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
         neutron_extensions.append_api_extensions_path(extensions.__path__)
 
         self.setup_rpc()
-        self.l3_rpc_notifier = nec_router.L3AgentNotifyAPI()
+        self.l3_rpc_notifier = router_plugin.L3AgentNotifyAPI()
 
         self.network_scheduler = importutils.import_object(
             cfg.CONF.network_scheduler_driver
@@ -521,7 +521,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
             cfg.CONF.router_scheduler_driver
         )
 
-        nec_router.load_driver(self.safe_reference, self.ofc)
+        router_plugin.load_driver(self.safe_reference, self.ofc)
         self.start_periodic_dhcp_agent_status_check()
 
     @property
@@ -537,7 +537,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
             dhcp_rpc_agent_api.DhcpAgentNotifyAPI()
         )
         self.agent_notifiers[const.AGENT_TYPE_L3] = (
-            nec_router.L3AgentNotifyAPI()
+            router_plugin.L3AgentNotifyAPI()
         )
 
         # NOTE: callback_sg is referred to from the sg unit test.
