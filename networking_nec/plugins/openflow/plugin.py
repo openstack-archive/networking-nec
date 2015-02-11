@@ -16,7 +16,6 @@ from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_utils import excutils
 from oslo_utils import importutils
-from oslo_utils import uuidutils
 
 from neutron.agent import securitygroups_rpc as sg_rpc
 from neutron.api import extensions as neutron_extensions
@@ -28,6 +27,7 @@ from neutron.api.rpc.handlers import securitygroups_rpc
 from neutron.api.v2 import attributes as attrs
 from neutron.common import constants as const
 from neutron.common import exceptions as n_exc
+from neutron.common import log as call_log
 from neutron.common import rpc as n_rpc
 from neutron.common import topics
 from neutron.db import agents_db
@@ -57,85 +57,33 @@ from networking_nec.plugins.openflow import utils as necutils
 LOG = logging.getLogger(__name__)
 
 
-class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
-                      external_net_db.External_net_db_mixin,
-                      nec_router.RouterMixin,
-                      rpc.SecurityGroupServerRpcMixin,
-                      agentschedulers_db.DhcpAgentSchedulerDbMixin,
-                      nec_router.L3AgentSchedulerDbMixin,
-                      packet_filter.PacketFilterMixin,
-                      portbindings_db.PortBindingMixin,
-                      addr_pair_db.AllowedAddressPairsMixin):
+class BackendImpl(object):
 
-    _vendor_extensions = ["packet-filter", "router_provider"]
+    def __init__(self, plugin):
+        self._plugin = plugin
+        self.ofc = ofc_manager.OFCManager(plugin)
 
-    def setup_extension_aliases(self, aliases):
-        sg_rpc.disable_security_group_extension_by_config(aliases)
-        self.remove_packet_filter_extension_if_disabled(aliases)
-
-    def __init__(self):
-        super(NECPluginV2Impl, self).__init__()
-        self.ofc = ofc_manager.OFCManager(self.safe_reference)
-        self.base_binding_dict = self._get_base_binding_dict()
-        portbindings_base.register_port_dict_function()
-
-        neutron_extensions.append_api_extensions_path(extensions.__path__)
-
-        self.setup_rpc()
-        self.l3_rpc_notifier = nec_router.L3AgentNotifyAPI()
-
-        self.network_scheduler = importutils.import_object(
-            cfg.CONF.network_scheduler_driver
-        )
-        self.router_scheduler = importutils.import_object(
-            cfg.CONF.router_scheduler_driver
-        )
-
-        nec_router.load_driver(self.safe_reference, self.ofc)
         self.port_handlers = {
             'create': {
-                const.DEVICE_OWNER_ROUTER_GW: self.create_router_port,
-                const.DEVICE_OWNER_ROUTER_INTF: self.create_router_port,
+                const.DEVICE_OWNER_ROUTER_GW: self.plugin.create_router_port,
+                const.DEVICE_OWNER_ROUTER_INTF: self.plugin.create_router_port,
                 'default': self.activate_port_if_ready,
             },
             'delete': {
-                const.DEVICE_OWNER_ROUTER_GW: self.delete_router_port,
-                const.DEVICE_OWNER_ROUTER_INTF: self.delete_router_port,
+                const.DEVICE_OWNER_ROUTER_GW: self.plugin.delete_router_port,
+                const.DEVICE_OWNER_ROUTER_INTF: self.plugin.delete_router_port,
                 'default': self.deactivate_port,
             }
         }
-        self.start_periodic_dhcp_agent_status_check()
 
-    def setup_rpc(self):
-        self.service_topics = {svc_constants.CORE: topics.PLUGIN,
-                               svc_constants.L3_ROUTER_NAT: topics.L3PLUGIN}
-        self.conn = n_rpc.create_connection(new=True)
-        self.notifier = rpc.NECPluginV2AgentNotifierApi(topics.AGENT)
-        self.agent_notifiers[const.AGENT_TYPE_DHCP] = (
-            dhcp_rpc_agent_api.DhcpAgentNotifyAPI()
-        )
-        self.agent_notifiers[const.AGENT_TYPE_L3] = (
-            nec_router.L3AgentNotifyAPI()
-        )
-
-        # NOTE: callback_sg is referred to from the sg unit test.
-        self.callback_sg = securitygroups_rpc.SecurityGroupServerRpcCallback()
-        self.endpoints = [
-            rpc.NECPluginV2RPCCallbacks(self.safe_reference),
-            dhcp_rpc.DhcpRpcCallback(),
-            l3_rpc.L3RpcCallback(),
-            self.callback_sg,
-            agents_db.AgentExtRpcCallback(),
-            metadata_rpc.MetadataRpcCallback()]
-        for svc_topic in self.service_topics.values():
-            self.conn.create_consumer(svc_topic, self.endpoints, fanout=False)
-        # Consume from all consumers in threads
-        self.conn.consume_in_threads()
+    @property
+    def plugin(self):
+        return self._plugin
 
     def _update_resource_status(self, context, resource, id, status):
         """Update status of specified resource."""
         request = {'status': status}
-        obj_getter = getattr(self, '_get_%s' % resource)
+        obj_getter = getattr(self.plugin, '_get_%s' % resource)
         with context.session.begin(subtransactions=True):
             obj_db = obj_getter(context, id)
             obj_db.update(request)
@@ -148,20 +96,27 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
                                          new_status)
             resource_dict['status'] = new_status
 
-    def _check_ofc_tenant_in_use(self, context, tenant_id):
+    def _check_ofc_tenant_in_use(self, context, tenant_id, deleting=None):
         """Check if the specified tenant is used."""
         # All networks are created on OFC
         filters = {'tenant_id': [tenant_id]}
-        if self.get_networks_count(context, filters=filters):
+        net_count = self.plugin.get_networks_count(context, filters=filters)
+        if deleting == 'network':
+            net_count -= 1
+        if net_count:
             return True
-        if rdb.get_router_count_by_provider(context.session,
-                                            nec_router.PROVIDER_OPENFLOW,
-                                            tenant_id):
+
+        router_count = rdb.get_router_count_by_provider(
+            context.session, nec_router.PROVIDER_OPENFLOW, tenant_id)
+        if deleting == 'router':
+            router_count -= 1
+        if router_count:
             return True
+
         return False
 
-    def _cleanup_ofc_tenant(self, context, tenant_id):
-        if not self._check_ofc_tenant_in_use(context, tenant_id):
+    def _cleanup_ofc_tenant(self, context, tenant_id, deleting):
+        if not self._check_ofc_tenant_in_use(context, tenant_id, deleting):
             try:
                 if self.ofc.exists_ofc_tenant(context, tenant_id):
                     self.ofc.delete_ofc_tenant(context, tenant_id)
@@ -180,8 +135,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
             * portinfo are available (to identify port on OFC)
         """
         if not network:
-            network = super(NECPluginV2Impl,
-                            self).get_network(context, port['network_id'])
+            network = self.plugin.get_network(context, port['network_id'])
 
         if not port['admin_state_up']:
             LOG.debug("activate_port_if_ready(): skip, "
@@ -256,67 +210,44 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
         # NOTE: NEC Plugin accept admin_state_up. When it's False, this plugin
         # deactivate all ports on the network to drop all packet and show
         # status='DOWN' to users. But the network is kept defined on OFC.
-        if network['network']['admin_state_up']:
+        if network['admin_state_up']:
             return const.NET_STATUS_ACTIVE
         else:
             return const.NET_STATUS_DOWN
 
-    def create_network(self, context, network):
-        """Create a new network entry on DB, and create it on OFC."""
-        LOG.debug("NECPluginV2.create_network() called, "
-                  "network=%s .", network)
-        tenant_id = self._get_tenant_id_for_create(context, network['network'])
-        net_name = network['network']['name']
-        net_id = uuidutils.generate_uuid()
+    def _get_initial_net_status(self, network):
+        return self._net_status(network['network'])
+        # return const.NET_STATUS_BUILD
 
-        #set up default security groups
-        self._ensure_default_security_group(context, tenant_id)
+    def _get_initial_port_status(self, port):
+        return const.PORT_STATUS_DOWN
 
-        network['network']['id'] = net_id
-        network['network']['status'] = self._net_status(network)
-
+    def _create_network_backend(self, context, network):
+        tenant_id = network['tenant_id']
+        net_id = network['id']
+        net_name = network['name']
         try:
             if not self.ofc.exists_ofc_tenant(context, tenant_id):
                 self.ofc.create_ofc_tenant(context, tenant_id)
             self.ofc.create_ofc_network(context, tenant_id, net_id, net_name)
+            self._update_resource_status_if_changed(
+                context, "network", network, self._net_status(network))
         except (nexc.OFCException, nexc.OFCMappingNotFound) as exc:
             LOG.error(_LE("Failed to create network id=%(id)s on "
                           "OFC: %(exc)s"), {'id': net_id, 'exc': exc})
-            network['network']['status'] = const.NET_STATUS_ERROR
+            self._update_resource_status_if_changed(
+                context, "network", network, const.NET_STATUS_ERROR)
 
-        with context.session.begin(subtransactions=True):
-            new_net = super(NECPluginV2Impl, self).create_network(context,
-                                                                  network)
-            self._process_l3_create(context, new_net, network['network'])
-
-        return new_net
-
-    def update_network(self, context, id, network):
-        """Update network and handle resources associated with the network.
-
-        Update network entry on DB. If 'admin_state_up' was changed, activate
-        or deactivate ports and packetfilters associated with the network.
-        """
-        LOG.debug("NECPluginV2.update_network() called, "
-                  "id=%(id)s network=%(network)s .",
-                  {'id': id, 'network': network})
-
-        if 'admin_state_up' in network['network']:
-            network['network']['status'] = self._net_status(network)
-
-        session = context.session
-        with session.begin(subtransactions=True):
-            old_net = super(NECPluginV2Impl, self).get_network(context, id)
-            new_net = super(NECPluginV2Impl, self).update_network(context, id,
-                                                                  network)
-            self._process_l3_update(context, new_net, network['network'])
-
+    def _update_network_backend(self, context, id, old_net, new_net):
         changed = (old_net['admin_state_up'] != new_net['admin_state_up'])
+        if changed:
+            new_status = self._net_status(new_net)
+            self._update_resource_status_if_changed(
+                context, "network", new_net, new_status)
         if changed and not new_net['admin_state_up']:
             # disable all active ports of the network
             filters = dict(network_id=[id], status=[const.PORT_STATUS_ACTIVE])
-            ports = super(NECPluginV2Impl, self).get_ports(context,
-                                                           filters=filters)
+            ports = self.plugin.get_ports(context, filters=filters)
             for port in ports:
                 # If some error occurs, status of errored port is set to ERROR.
                 # This is avoids too many rollback.
@@ -327,37 +258,17 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
             # enable ports of the network
             filters = dict(network_id=[id], status=[const.PORT_STATUS_DOWN],
                            admin_state_up=[True])
-            ports = super(NECPluginV2Impl, self).get_ports(context,
-                                                           filters=filters)
+            ports = self.plugin.get_ports(context, filters=filters)
             for port in ports:
                 self.activate_port_if_ready(context, port, new_net)
 
-        return new_net
-
-    def delete_network(self, context, id):
-        """Delete network and packet_filters associated with the network.
-
-        Delete network entry from DB and OFC. Then delete packet_filters
-        associated with the network. If the network is the last resource
-        of the tenant, delete unnessary ofc_tenant.
-        """
-        LOG.debug("NECPluginV2.delete_network() called, id=%s .", id)
-        net_db = self._get_network(context, id)
+    def _delete_network_backend(self, context, id, ports=None):
+        net_db = self.plugin._get_network(context, id)
         tenant_id = net_db['tenant_id']
-        ports = self.get_ports(context, filters={'network_id': [id]})
 
-        # check if there are any tenant owned ports in-use;
-        # consider ports owned by floating ips as auto_delete as if there are
-        # no other tenant owned ports, those floating ips are disassociated
-        # and will be auto deleted with self._process_l3_delete()
-        only_auto_del = all(p['device_owner'] in
-                            db_base_plugin_v2.AUTO_DELETE_PORT_OWNERS or
-                            p['device_owner'] == const.DEVICE_OWNER_FLOATINGIP
-                            for p in ports)
-        if not only_auto_del:
-            raise n_exc.NetworkInUse(net_id=id)
-
-        self._process_l3_delete(context, id)
+        if ports is None:
+            ports = self.plugin.get_ports(context,
+                                          filters={'network_id': [id]})
 
         # Make sure auto-delete ports on OFC are deleted.
         # If an error occurs during port deletion,
@@ -380,9 +291,82 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
                         context, "network", net_db['id'],
                         const.NET_STATUS_ERROR)
 
-        super(NECPluginV2Impl, self).delete_network(context, id)
+        self._cleanup_ofc_tenant(context, tenant_id, deleting='network')
 
-        self._cleanup_ofc_tenant(context, tenant_id)
+    def _get_port_handler(self, operation, device_owner):
+        handlers = self.port_handlers[operation]
+        handler = handlers.get(device_owner)
+        if handler:
+            return handler
+        else:
+            return handlers['default']
+
+    def _create_port_backend(self, context, port):
+        handler = self._get_port_handler('create', port['device_owner'])
+        return handler(context, port)
+
+    def _update_ofc_port_if_required(self, context, old_port, new_port,
+                                     portinfo_changed):
+        def get_ofport_exist(port):
+            return (port['admin_state_up'] and
+                    bool(port.get(portbindings.PROFILE)))
+
+        # Determine it is required to update OFC port
+        need_add = False
+        need_del = False
+        need_packet_filter_update = False
+
+        old_ofport_exist = get_ofport_exist(old_port)
+        new_ofport_exist = get_ofport_exist(new_port)
+
+        if old_port['admin_state_up'] != new_port['admin_state_up']:
+            if new_port['admin_state_up']:
+                need_add |= new_ofport_exist
+            else:
+                need_del |= old_ofport_exist
+
+        if portinfo_changed:
+            if portinfo_changed in ['DEL', 'MOD']:
+                need_del |= old_ofport_exist
+            if portinfo_changed in ['ADD', 'MOD']:
+                need_add |= new_ofport_exist
+            need_packet_filter_update |= True
+
+        # Update OFC port if required
+        if need_del:
+            self.deactivate_port(context, new_port)
+            if need_packet_filter_update:
+                self.deactivate_packet_filters_by_port(context, id)
+        if need_add:
+            if need_packet_filter_update:
+                self.activate_packet_filters_by_port(context, id)
+            self.activate_port_if_ready(context, new_port)
+
+    def _update_port_backend(self, context, old_port, new_port,
+                             portinfo_changed):
+        self._update_ofc_port_if_required(context, old_port, new_port,
+                                          portinfo_changed)
+        return new_port
+
+    def _delete_port_backend(self, context, id):
+        # ext_sg.SECURITYGROUPS attribute for the port is required
+        # since notifier.security_groups_member_updated() need the attribute.
+        # Thus we need to call self.get_port() instead of super().get_port()
+        port_db = self.plugin._get_port(context, id)
+        port = self.plugin._make_port_dict(port_db)
+
+        handler = self._get_port_handler('delete', port['device_owner'])
+        # handler() raises an exception if an error occurs during processing.
+        port = handler(context, port)
+
+        # delete all packet_filters of the port from the controller
+        for pf in port_db['packetfilters']:
+            self.plugin.delete_packet_filter(context, pf['id'])
+
+        return port
+
+
+class PortBindingMixin(portbindings_db.PortBindingMixin):
 
     def _get_base_binding_dict(self):
         sg_enabled = sg_rpc.is_firewall_enabled()
@@ -486,104 +470,192 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
         return portinfo_changed
 
     def extend_port_dict_binding(self, port_res, port_db):
-        super(NECPluginV2Impl, self).extend_port_dict_binding(port_res,
-                                                              port_db)
+        super(PortBindingMixin, self).extend_port_dict_binding(port_res,
+                                                               port_db)
         self._extend_port_dict_binding_portinfo(port_res, port_db.portinfo)
 
     def _process_portbindings_create(self, context, port_data, port):
-        super(NECPluginV2Impl, self)._process_portbindings_create_and_update(
+        super(PortBindingMixin, self)._process_portbindings_create_and_update(
             context, port_data, port)
         self._process_portbindings_portinfo_create(context, port_data, port)
 
     def _process_portbindings_update(self, context, port_data, port):
-        super(NECPluginV2Impl, self)._process_portbindings_create_and_update(
+        super(PortBindingMixin, self)._process_portbindings_create_and_update(
             context, port_data, port)
         portinfo_changed = self._process_portbindings_portinfo_update(
             context, port_data, port)
         return portinfo_changed
 
-    def _get_port_handler(self, operation, device_owner):
-        handlers = self.port_handlers[operation]
-        handler = handlers.get(device_owner)
-        if handler:
-            return handler
-        else:
-            return handlers['default']
 
+class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
+                      external_net_db.External_net_db_mixin,
+                      nec_router.RouterMixin,
+                      rpc.SecurityGroupServerRpcMixin,
+                      agentschedulers_db.DhcpAgentSchedulerDbMixin,
+                      nec_router.L3AgentSchedulerDbMixin,
+                      packet_filter.PacketFilterMixin,
+                      PortBindingMixin,
+                      addr_pair_db.AllowedAddressPairsMixin):
+
+    _vendor_extensions = ["packet-filter", "router_provider"]
+
+    def setup_extension_aliases(self, aliases):
+        sg_rpc.disable_security_group_extension_by_config(aliases)
+        self.remove_packet_filter_extension_if_disabled(aliases)
+
+    def __init__(self):
+        super(NECPluginV2Impl, self).__init__()
+        self.impl = BackendImpl(self.safe_reference)
+        self.base_binding_dict = self._get_base_binding_dict()
+        portbindings_base.register_port_dict_function()
+
+        neutron_extensions.append_api_extensions_path(extensions.__path__)
+
+        self.setup_rpc()
+        self.l3_rpc_notifier = nec_router.L3AgentNotifyAPI()
+
+        self.network_scheduler = importutils.import_object(
+            cfg.CONF.network_scheduler_driver
+        )
+        self.router_scheduler = importutils.import_object(
+            cfg.CONF.router_scheduler_driver
+        )
+
+        nec_router.load_driver(self.safe_reference, self.ofc)
+        self.start_periodic_dhcp_agent_status_check()
+
+    @property
+    def ofc(self):
+        return self.impl.ofc
+
+    def setup_rpc(self):
+        self.service_topics = {svc_constants.CORE: topics.PLUGIN,
+                               svc_constants.L3_ROUTER_NAT: topics.L3PLUGIN}
+        self.conn = n_rpc.create_connection(new=True)
+        self.notifier = rpc.NECPluginV2AgentNotifierApi(topics.AGENT)
+        self.agent_notifiers[const.AGENT_TYPE_DHCP] = (
+            dhcp_rpc_agent_api.DhcpAgentNotifyAPI()
+        )
+        self.agent_notifiers[const.AGENT_TYPE_L3] = (
+            nec_router.L3AgentNotifyAPI()
+        )
+
+        # NOTE: callback_sg is referred to from the sg unit test.
+        self.callback_sg = securitygroups_rpc.SecurityGroupServerRpcCallback()
+        self.endpoints = [
+            rpc.NECPluginV2RPCCallbacks(self.safe_reference),
+            dhcp_rpc.DhcpRpcCallback(),
+            l3_rpc.L3RpcCallback(),
+            self.callback_sg,
+            agents_db.AgentExtRpcCallback(),
+            metadata_rpc.MetadataRpcCallback()]
+        for svc_topic in self.service_topics.values():
+            self.conn.create_consumer(svc_topic, self.endpoints, fanout=False)
+        # Consume from all consumers in threads
+        self.conn.consume_in_threads()
+
+    @call_log.log
+    def create_network(self, context, network):
+        """Create a new network entry on DB, and create it on OFC."""
+        tenant_id = self._get_tenant_id_for_create(context, network['network'])
+        #set up default security groups
+        self._ensure_default_security_group(context, tenant_id)
+        network['network']['status'] = self.impl._get_initial_net_status(
+            network)
+        with context.session.begin(subtransactions=True):
+            new_net = super(NECPluginV2Impl, self).create_network(context,
+                                                                  network)
+            self._process_l3_create(context, new_net, network['network'])
+
+        # NEC plugin specific
+        self.impl._create_network_backend(context, new_net)
+
+        return new_net
+
+    @call_log.log
+    def update_network(self, context, id, network):
+        """Update network and handle resources associated with the network.
+
+        Update network entry on DB. If 'admin_state_up' was changed, activate
+        or deactivate ports and packetfilters associated with the network.
+        """
+
+        session = context.session
+        with session.begin(subtransactions=True):
+            old_net = super(NECPluginV2Impl, self).get_network(context, id)
+            new_net = super(NECPluginV2Impl, self).update_network(context, id,
+                                                                  network)
+            self._process_l3_update(context, new_net, network['network'])
+
+        # NEC plugin specific
+        self.impl._update_network_backend(context, id, old_net, new_net)
+
+        return new_net
+
+    @call_log.log
+    def delete_network(self, context, id):
+        """Delete network and packet_filters associated with the network.
+
+        Delete network entry from DB and OFC. Then delete packet_filters
+        associated with the network. If the network is the last resource
+        of the tenant, delete unnessary ofc_tenant.
+        """
+        ports = self.get_ports(context, filters={'network_id': [id]})
+
+        # check if there are any tenant owned ports in-use;
+        # consider ports owned by floating ips as auto_delete as if there are
+        # no other tenant owned ports, those floating ips are disassociated
+        # and will be auto deleted with self._process_l3_delete()
+        only_auto_del = all(p['device_owner'] in
+                            db_base_plugin_v2.AUTO_DELETE_PORT_OWNERS or
+                            p['device_owner'] == const.DEVICE_OWNER_FLOATINGIP
+                            for p in ports)
+        if not only_auto_del:
+            raise n_exc.NetworkInUse(net_id=id)
+
+        self._process_l3_delete(context, id)
+
+        # NEC plugin specific
+        self.impl._delete_network_backend(context, id, ports)
+
+        super(NECPluginV2Impl, self).delete_network(context, id)
+
+    @call_log.log
     def create_port(self, context, port):
         """Create a new port entry on DB, then try to activate it."""
-        LOG.debug("NECPluginV2.create_port() called, port=%s .", port)
 
-        port['port']['status'] = const.PORT_STATUS_DOWN
-
+        port['port']['status'] = self.impl._get_initial_port_status(port)
         port_data = port['port']
         with context.session.begin(subtransactions=True):
             self._ensure_default_security_group_on_port(context, port)
             sgids = self._get_security_groups_on_port(context, port)
-            port = super(NECPluginV2Impl, self).create_port(context, port)
-            self._process_portbindings_create(context, port_data, port)
+            new_port = super(NECPluginV2Impl, self).create_port(context, port)
+            # NEC plugin specific
+            self._process_portbindings_create(context, port_data, new_port)
             self._process_port_create_security_group(
-                context, port, sgids)
-            port[addr_pair.ADDRESS_PAIRS] = (
+                context, new_port, sgids)
+            new_port[addr_pair.ADDRESS_PAIRS] = (
                 self._process_create_allowed_address_pairs(
-                    context, port,
+                    context, new_port,
                     port_data.get(addr_pair.ADDRESS_PAIRS)))
-        self.notify_security_groups_member_updated(context, port)
+        self.notify_security_groups_member_updated(context, new_port)
+        # NEC plugin specific
+        return self.impl._create_port_backend(context, new_port)
 
-        handler = self._get_port_handler('create', port['device_owner'])
-        return handler(context, port)
-
-    def _update_ofc_port_if_required(self, context, old_port, new_port,
-                                     portinfo_changed):
-        def get_ofport_exist(port):
-            return (port['admin_state_up'] and
-                    bool(port.get(portbindings.PROFILE)))
-
-        # Determine it is required to update OFC port
-        need_add = False
-        need_del = False
-        need_packet_filter_update = False
-
-        old_ofport_exist = get_ofport_exist(old_port)
-        new_ofport_exist = get_ofport_exist(new_port)
-
-        if old_port['admin_state_up'] != new_port['admin_state_up']:
-            if new_port['admin_state_up']:
-                need_add |= new_ofport_exist
-            else:
-                need_del |= old_ofport_exist
-
-        if portinfo_changed:
-            if portinfo_changed in ['DEL', 'MOD']:
-                need_del |= old_ofport_exist
-            if portinfo_changed in ['ADD', 'MOD']:
-                need_add |= new_ofport_exist
-            need_packet_filter_update |= True
-
-        # Update OFC port if required
-        if need_del:
-            self.deactivate_port(context, new_port)
-            if need_packet_filter_update:
-                self.deactivate_packet_filters_by_port(context, id)
-        if need_add:
-            if need_packet_filter_update:
-                self.activate_packet_filters_by_port(context, id)
-            self.activate_port_if_ready(context, new_port)
-
+    @call_log.log
     def update_port(self, context, id, port):
         """Update port, and handle packetfilters associated with the port.
 
         Update network entry on DB. If admin_state_up was changed, activate
         or deactivate the port and packetfilters associated with it.
         """
-        LOG.debug("NECPluginV2.update_port() called, "
-                  "id=%(id)s port=%(port)s .",
-                  {'id': id, 'port': port})
         need_port_update_notify = False
         with context.session.begin(subtransactions=True):
             old_port = super(NECPluginV2Impl, self).get_port(context, id)
             new_port = super(NECPluginV2Impl, self).update_port(context,
                                                                 id, port)
+            # NEC plugin specific
+            # TODO(amotoki): Move portinfo_changed to _update_network_backend
             portinfo_changed = self._process_portbindings_update(
                 context, port['port'], new_port)
             if addr_pair.ADDRESS_PAIRS in port['port']:
@@ -599,31 +671,24 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
         if need_port_update_notify:
             self.notifier.port_update(context, new_port)
 
-        self._update_ofc_port_if_required(context, old_port, new_port,
-                                          portinfo_changed)
+        # NEC plugin specific
+        # TODO(amotoki): Move portinfo_changed to _update_network_backend
+        # to remove portinfo_changed from the arguments.
+        self.impl._update_port_backend(context, old_port, new_port,
+                                       portinfo_changed)
         return new_port
 
+    @call_log.log
     def delete_port(self, context, id, l3_port_check=True):
         """Delete port and packet_filters associated with the port."""
-        LOG.debug("NECPluginV2.delete_port() called, id=%s .", id)
-        # ext_sg.SECURITYGROUPS attribute for the port is required
-        # since notifier.security_groups_member_updated() need the attribute.
-        # Thus we need to call self.get_port() instead of super().get_port()
-        port_db = self._get_port(context, id)
-        port = self._make_port_dict(port_db)
-
-        handler = self._get_port_handler('delete', port['device_owner'])
-        # handler() raises an exception if an error occurs during processing.
-        port = handler(context, port)
-
-        # delete all packet_filters of the port from the controller
-        for pf in port_db.packetfilters:
-            self.delete_packet_filter(context, pf['id'])
-
         # if needed, check to see if this is a port owned by
         # and l3-router.  If so, we should prevent deletion.
         if l3_port_check:
             self.prevent_l3_port_deletion(context, id)
+
+        # NEC plugin specific
+        port = self.impl._delete_port_backend(context, id)
+
         with context.session.begin(subtransactions=True):
             router_ids = self.disassociate_floatingips(
                 context, id, do_notify=False)
