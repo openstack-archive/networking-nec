@@ -123,8 +123,8 @@ class PacketFilterMixin(pf_db.PacketFilterDbMixin):
             self.ofc.update_ofc_packet_filter(context, pf_id, pf)
             new_status = pf_db.PF_STATUS_ACTIVE
             if new_status != prev_status:
-                self._update_resource_status(context, "packet_filter",
-                                             pf_id, new_status)
+                self.impl._update_resource_status(context, "packet_filter",
+                                                  pf_id, new_status)
                 new_pf['status'] = new_status
             return new_pf
         except Exception as exc:
@@ -136,8 +136,8 @@ class PacketFilterMixin(pf_db.PacketFilterDbMixin):
                               {'id': pf_id, 'exc': exc})
                 new_status = pf_db.PF_STATUS_ERROR
                 if new_status != prev_status:
-                    self._update_resource_status(context, "packet_filter",
-                                                 pf_id, new_status)
+                    self.impl._update_resource_status(context, "packet_filter",
+                                                      pf_id, new_status)
 
     def delete_packet_filter(self, context, id):
         """Deactivate and delete packet_filter."""
@@ -188,8 +188,8 @@ class PacketFilterMixin(pf_db.PacketFilterDbMixin):
                 pf_status = pf_db.PF_STATUS_ERROR
 
         if pf_status != current:
-            self._update_resource_status(context, "packet_filter", pf_id,
-                                         pf_status)
+            self.impl._update_resource_status(context, "packet_filter", pf_id,
+                                              pf_status)
             packet_filter.update({'status': pf_status})
 
         return packet_filter
@@ -210,7 +210,7 @@ class PacketFilterMixin(pf_db.PacketFilterDbMixin):
                   "deleting packet_filter id=%s from OFC.", pf_id)
         try:
             self.ofc.delete_ofc_packet_filter(context, pf_id)
-            self._update_resource_status_if_changed(
+            self.impl._update_resource_status_if_changed(
                 context, "packet_filter", packet_filter, pf_db.PF_STATUS_DOWN)
             return packet_filter
         except (nexc.OFCException, nexc.OFCMappingNotFound) as exc:
@@ -218,7 +218,7 @@ class PacketFilterMixin(pf_db.PacketFilterDbMixin):
                 LOG.error(_LE("Failed to delete packet_filter id=%(id)s "
                               "from OFC: %(exc)s"),
                           {'id': pf_id, 'exc': exc})
-                self._update_resource_status_if_changed(
+                self.impl._update_resource_status_if_changed(
                     context, "packet_filter", packet_filter,
                     pf_db.PF_STATUS_ERROR)
 

@@ -116,7 +116,7 @@ class RouterMixin(extraroute_db.ExtraRoute_db_mixin,
 
         super(RouterMixin, self).delete_router(context, router_id)
 
-        self._cleanup_ofc_tenant(context, tenant_id, deleting='router')
+        self.impl._cleanup_ofc_tenant(context, tenant_id, deleting='router')
 
     def add_router_interface(self, context, router_id, interface_info):
         LOG.debug("RouterMixin.add_router_interface() called, "

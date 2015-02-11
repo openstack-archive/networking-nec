@@ -80,11 +80,11 @@ class RouterL3AgentDriver(RouterDriverBase):
 
     @call_log.log
     def add_interface(self, context, router_id, port):
-        return self.plugin.activate_port_if_ready(context, port)
+        return self.plugin.impl.activate_port_if_ready(context, port)
 
     @call_log.log
     def delete_interface(self, context, router_id, port):
-        return self.plugin.deactivate_port(context, port)
+        return self.plugin.impl.deactivate_port(context, port)
 
 
 class RouterOpenFlowDriver(RouterDriverBase):
@@ -112,9 +112,9 @@ class RouterOpenFlowDriver(RouterDriverBase):
                 self.ofc.update_ofc_router_route(context, router_id,
                                                  added_routes, [])
             new_status = nconst.ROUTER_STATUS_ACTIVE
-            self.plugin._update_resource_status(context, "router",
-                                                router['id'],
-                                                new_status)
+            self.plugin.impl._update_resource_status(context, "router",
+                                                     router['id'],
+                                                     new_status)
             router['status'] = new_status
             return router
         except (nexc.OFCException, nexc.OFCMappingNotFound) as exc:
@@ -124,9 +124,9 @@ class RouterOpenFlowDriver(RouterDriverBase):
                     raise nexc.RouterOverLimit(provider=PROVIDER_OPENFLOW)
                 LOG.error(_LE("create_router() failed due to %s"), exc)
                 new_status = nconst.ROUTER_STATUS_ERROR
-                self._update_resource_status(context, "router",
-                                             router['id'],
-                                             new_status)
+                self.plugin.impl._update_resource_status(context, "router",
+                                                         router['id'],
+                                                         new_status)
 
     @call_log.log
     def update_router(self, context, router_id, old_router, new_router):
@@ -145,7 +145,7 @@ class RouterOpenFlowDriver(RouterDriverBase):
                 self.ofc.update_ofc_router_route(context, router_id,
                                                  new_routes)
                 new_status = nconst.ROUTER_STATUS_ACTIVE
-                self.plugin._update_resource_status(
+                self.plugin.impl._update_resource_status(
                     context, "router", router_id, new_status)
                 new_router['status'] = new_status
             except (nexc.OFCException, nexc.OFCMappingNotFound) as exc:
@@ -153,7 +153,7 @@ class RouterOpenFlowDriver(RouterDriverBase):
                     LOG.error(_LE("_update_ofc_routes() failed due to %s"),
                               exc)
                     new_status = nconst.ROUTER_STATUS_ERROR
-                    self.plugin._update_resource_status(
+                    self.plugin.impl._update_resource_status(
                         context, "router", router_id, new_status)
         return new_router
 
@@ -166,7 +166,7 @@ class RouterOpenFlowDriver(RouterDriverBase):
         except (nexc.OFCException, nexc.OFCMappingNotFound) as exc:
             with excutils.save_and_reraise_exception():
                 LOG.error(_LE("delete_router() failed due to %s"), exc)
-                self.plugin._update_resource_status(
+                self.plugin.impl._update_resource_status(
                     context, "router", router_id, nconst.ROUTER_STATUS_ERROR)
 
     @call_log.log
@@ -192,14 +192,14 @@ class RouterOpenFlowDriver(RouterDriverBase):
             self.ofc.add_ofc_router_interface(context, router_id,
                                               port_id, port_info)
             new_status = nconst.ROUTER_STATUS_ACTIVE
-            self.plugin._update_resource_status(
+            self.plugin.impl._update_resource_status(
                 context, "port", port_id, new_status)
             return port
         except (nexc.OFCException, nexc.OFCMappingNotFound) as exc:
             with excutils.save_and_reraise_exception():
                 LOG.error(_LE("add_router_interface() failed due to %s"), exc)
                 new_status = nconst.ROUTER_STATUS_ERROR
-                self.plugin._update_resource_status(
+                self.plugin.impl._update_resource_status(
                     context, "port", port_id, new_status)
 
     @call_log.log
@@ -208,8 +208,8 @@ class RouterOpenFlowDriver(RouterDriverBase):
         try:
             self.ofc.delete_ofc_router_interface(context, router_id, port_id)
             new_status = nconst.ROUTER_STATUS_ACTIVE
-            self.plugin._update_resource_status(context, "port", port_id,
-                                                new_status)
+            self.plugin.impl._update_resource_status(context, "port", port_id,
+                                                     new_status)
             port['status'] = new_status
             return port
         except (nexc.OFCException, nexc.OFCMappingNotFound) as exc:
@@ -217,5 +217,5 @@ class RouterOpenFlowDriver(RouterDriverBase):
                 LOG.error(_LE("delete_router_interface() failed due to %s"),
                           exc)
                 new_status = nconst.ROUTER_STATUS_ERROR
-                self.plugin._update_resource_status(context, "port", port_id,
-                                                    new_status)
+                self.plugin.impl._update_resource_status(
+                    context, "port", port_id, new_status)

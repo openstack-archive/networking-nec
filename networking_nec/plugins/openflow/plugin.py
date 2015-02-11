@@ -279,7 +279,7 @@ class BackendImpl(object):
 
         # delete all packet_filters of the network from the controller
         for pf in net_db.packetfilters:
-            self.delete_packet_filter(context, pf['id'])
+            self.plugin.delete_packet_filter(context, pf['id'])
 
         if self.ofc.exists_ofc_network(context, id):
             try:
@@ -336,10 +336,10 @@ class BackendImpl(object):
         if need_del:
             self.deactivate_port(context, new_port)
             if need_packet_filter_update:
-                self.deactivate_packet_filters_by_port(context, id)
+                self.plugin.deactivate_packet_filters_by_port(context, id)
         if need_add:
             if need_packet_filter_update:
-                self.activate_packet_filters_by_port(context, id)
+                self.plugin.activate_packet_filters_by_port(context, id)
             self.activate_port_if_ready(context, new_port)
 
     def _update_port_backend(self, context, old_port, new_port,
