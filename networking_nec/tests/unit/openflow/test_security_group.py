@@ -29,8 +29,7 @@ from networking_nec.tests.unit.openflow import test_plugin
 
 PLUGIN_NAME = test_plugin.PLUGIN_NAME
 OFC_MANAGER = 'networking_nec.plugins.openflow.ofc_manager.OFCManager'
-NOTIFIER = ('networking_nec.plugins.openflow.plugin'
-            '.NECPluginV2AgentNotifierApi')
+NOTIFIER = 'networking_nec.plugins.openflow.rpc.NECPluginV2AgentNotifierApi'
 
 
 class NecSecurityGroupsTestCase(test_sg.SecurityGroupDBTestCase):
