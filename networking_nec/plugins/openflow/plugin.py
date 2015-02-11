@@ -24,7 +24,6 @@ from neutron.api.rpc.handlers import dhcp_rpc
 from neutron.api.rpc.handlers import l3_rpc
 from neutron.api.rpc.handlers import metadata_rpc
 from neutron.api.rpc.handlers import securitygroups_rpc
-from neutron.api.v2 import attributes as attrs
 from neutron.common import constants as const
 from neutron.common import exceptions as n_exc
 from neutron.common import log as call_log
@@ -36,7 +35,6 @@ from neutron.db import allowedaddresspairs_db as addr_pair_db
 from neutron.db import db_base_plugin_v2
 from neutron.db import external_net_db
 from neutron.db import portbindings_base
-from neutron.db import portbindings_db
 from neutron.db import quota_db  # noqa
 from neutron.extensions import allowedaddresspairs as addr_pair
 from neutron.extensions import portbindings
@@ -50,9 +48,9 @@ from networking_nec.plugins.openflow.db import router as rdb
 from networking_nec.plugins.openflow import exceptions as nexc
 from networking_nec.plugins.openflow import ofc_manager
 from networking_nec.plugins.openflow import packet_filter
+from networking_nec.plugins.openflow import portbindings as bindings
 from networking_nec.plugins.openflow import router as router_plugin
 from networking_nec.plugins.openflow import rpc
-from networking_nec.plugins.openflow import utils as necutils
 
 LOG = logging.getLogger(__name__)
 
@@ -366,127 +364,6 @@ class BackendImpl(object):
         return port
 
 
-class PortBindingMixin(portbindings_db.PortBindingMixin):
-
-    def _get_base_binding_dict(self):
-        sg_enabled = sg_rpc.is_firewall_enabled()
-        vif_details = {portbindings.CAP_PORT_FILTER: sg_enabled,
-                       portbindings.OVS_HYBRID_PLUG: sg_enabled}
-        binding = {portbindings.VIF_TYPE: portbindings.VIF_TYPE_OVS,
-                   portbindings.VIF_DETAILS: vif_details}
-        return binding
-
-    def _extend_port_dict_binding_portinfo(self, port_res, portinfo):
-        if portinfo:
-            port_res[portbindings.PROFILE] = {
-                'datapath_id': portinfo['datapath_id'],
-                'port_no': portinfo['port_no'],
-            }
-        elif portbindings.PROFILE in port_res:
-            del port_res[portbindings.PROFILE]
-
-    def _validate_portinfo(self, profile):
-        key_specs = {
-            'datapath_id': {'type:string': None, 'required': True},
-            'port_no': {'type:non_negative': None, 'required': True,
-                        'convert_to': attrs.convert_to_int}
-        }
-        msg = attrs._validate_dict_or_empty(profile, key_specs=key_specs)
-        if msg:
-            raise n_exc.InvalidInput(error_message=msg)
-
-        datapath_id = profile.get('datapath_id')
-        port_no = profile.get('port_no')
-        try:
-            dpid = int(datapath_id, 16)
-        except ValueError:
-            raise nexc.ProfilePortInfoInvalidDataPathId()
-        if dpid > 0xffffffffffffffffL:
-            raise nexc.ProfilePortInfoInvalidDataPathId()
-        # Make sure dpid is a hex string beginning with 0x.
-        dpid = hex(dpid)
-
-        if int(port_no) > 65535:
-            raise nexc.ProfilePortInfoInvalidPortNo()
-
-        return {'datapath_id': dpid, 'port_no': port_no}
-
-    def _process_portbindings_portinfo_create(self, context, port_data, port):
-        """Add portinfo according to bindings:profile in create_port().
-
-        :param context: neutron api request context
-        :param port_data: port attributes passed in PUT request
-        :param port: port attributes to be returned
-        """
-        profile = port_data.get(portbindings.PROFILE)
-        # If portbindings.PROFILE is None, unspecified or an empty dict
-        # it is regarded that portbinding.PROFILE is not set.
-        profile_set = attrs.is_attr_set(profile) and profile
-        if profile_set:
-            portinfo = self._validate_portinfo(profile)
-            portinfo['mac'] = port['mac_address']
-            ndb.add_portinfo(context.session, port['id'], **portinfo)
-        else:
-            portinfo = None
-        self._extend_port_dict_binding_portinfo(port, portinfo)
-
-    def _process_portbindings_portinfo_update(self, context, port_data, port):
-        """Update portinfo according to bindings:profile in update_port().
-
-        :param context: neutron api request context
-        :param port_data: port attributes passed in PUT request
-        :param port: port attributes to be returned
-        :returns: 'ADD', 'MOD', 'DEL' or None
-        """
-        if portbindings.PROFILE not in port_data:
-            return
-        profile = port_data.get(portbindings.PROFILE)
-        # If binding:profile is None or an empty dict,
-        # it means binding:.profile needs to be cleared.
-        # TODO(amotoki): Allow Make None in binding:profile in
-        # the API layer. See LP bug #1220011.
-        profile_set = attrs.is_attr_set(profile) and profile
-        cur_portinfo = ndb.get_portinfo(context.session, port['id'])
-        if profile_set:
-            portinfo = self._validate_portinfo(profile)
-            portinfo_changed = 'ADD'
-            if cur_portinfo:
-                if (necutils.cmp_dpid(portinfo['datapath_id'],
-                                      cur_portinfo.datapath_id) and
-                    portinfo['port_no'] == cur_portinfo.port_no):
-                    return
-                ndb.del_portinfo(context.session, port['id'])
-                portinfo_changed = 'MOD'
-            portinfo['mac'] = port['mac_address']
-            ndb.add_portinfo(context.session, port['id'], **portinfo)
-        elif cur_portinfo:
-            portinfo_changed = 'DEL'
-            portinfo = None
-            ndb.del_portinfo(context.session, port['id'])
-        else:
-            portinfo = None
-            portinfo_changed = None
-        self._extend_port_dict_binding_portinfo(port, portinfo)
-        return portinfo_changed
-
-    def extend_port_dict_binding(self, port_res, port_db):
-        super(PortBindingMixin, self).extend_port_dict_binding(port_res,
-                                                               port_db)
-        self._extend_port_dict_binding_portinfo(port_res, port_db.portinfo)
-
-    def _process_portbindings_create(self, context, port_data, port):
-        super(PortBindingMixin, self)._process_portbindings_create_and_update(
-            context, port_data, port)
-        self._process_portbindings_portinfo_create(context, port_data, port)
-
-    def _process_portbindings_update(self, context, port_data, port):
-        super(PortBindingMixin, self)._process_portbindings_create_and_update(
-            context, port_data, port)
-        portinfo_changed = self._process_portbindings_portinfo_update(
-            context, port_data, port)
-        return portinfo_changed
-
-
 class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
                       external_net_db.External_net_db_mixin,
                       router_plugin.RouterMixin,
@@ -494,7 +371,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
                       agentschedulers_db.DhcpAgentSchedulerDbMixin,
                       router_plugin.L3AgentSchedulerDbMixin,
                       packet_filter.PacketFilterMixin,
-                      PortBindingMixin,
+                      bindings.PortBindingMixin,
                       addr_pair_db.AllowedAddressPairsMixin):
 
     _vendor_extensions = ["packet-filter", "router_provider"]
