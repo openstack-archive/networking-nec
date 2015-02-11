@@ -27,14 +27,14 @@ from neutron.tests.unit import test_extension_allowedaddresspairs as test_pair
 
 from networking_nec.plugins.openflow.db import api as ndb
 from networking_nec.plugins.openflow import exceptions as nexc
-from networking_nec.plugins.openflow import plugin as nec_plugin
+from networking_nec.plugins.openflow import rpc
 from networking_nec.tests.unit.openflow import fake_ofc_manager
 
 
 PLUGIN_BASE = 'networking_nec.plugins.openflow.'
 PLUGIN_NAME = PLUGIN_BASE + 'plugin.NECPluginV2'
 OFC_MANAGER = PLUGIN_BASE + 'ofc_manager.OFCManager'
-NOTIFIER = PLUGIN_BASE + 'plugin.NECPluginV2AgentNotifierApi'
+NOTIFIER = PLUGIN_BASE + 'rpc.NECPluginV2AgentNotifierApi'
 NEC_PLUGIN_INI = """
 [OFC]
 driver = networking_nec.tests.unit.openflow.stub_ofc_driver.StubOFCDriver
@@ -95,7 +95,7 @@ class NecPluginV2TestCase(NecPluginV2TestCaseBase,
         self.plugin = manager.NeutronManager.get_plugin()
         self.plugin.ofc = fake_ofc_manager.patch_ofc_manager()
         self.ofc = self.plugin.ofc
-        self.callback_nec = nec_plugin.NECPluginV2RPCCallbacks(self.plugin)
+        self.callback_nec = rpc.NECPluginV2RPCCallbacks(self.plugin)
         self.context = context.get_admin_context()
         self.net_create_status = 'ACTIVE'
         self.port_create_status = 'DOWN'
