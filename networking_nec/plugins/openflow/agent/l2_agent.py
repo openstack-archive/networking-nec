@@ -41,6 +41,7 @@ from neutron.plugins.nec.common import config as nec_config
 
 from networking_nec.i18n import _LE, _LI
 from networking_nec.openstack.common import loopingcall
+from networking_nec.plugins.openflow import constants as const
 
 
 LOG = logging.getLogger(__name__)
@@ -54,7 +55,8 @@ class NECPluginApi(object):
     '''
 
     def __init__(self, topic):
-        target = oslo_messaging.Target(topic=topic, version='1.0')
+        target = oslo_messaging.Target(topic=topic, version='1.0',
+                                       namespace=const.RPC_NAMESPACE_NEC_AGENT)
         self.client = n_rpc.get_client(target)
 
     def update_ports(self, context, agent_id, datapath_id,
@@ -73,7 +75,8 @@ class NECPluginApi(object):
 
 class NECAgentRpcCallback(object):
 
-    target = oslo_messaging.Target(version='1.0')
+    target = oslo_messaging.Target(version='1.0',
+                                   namespace=const.RPC_NAMESPACE_NEC_AGENT)
 
     def __init__(self, context, agent, sg_agent):
         super(NECAgentRpcCallback, self).__init__()

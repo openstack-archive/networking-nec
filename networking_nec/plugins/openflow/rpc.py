@@ -21,6 +21,7 @@ from neutron.common import rpc as n_rpc
 from neutron.common import topics
 from neutron.db import securitygroups_rpc_base as sg_db_rpc
 
+from networking_nec.plugins.openflow import constants as const
 from networking_nec.plugins.openflow.db import api as ndb
 from networking_nec.plugins.openflow import utils as necutils
 
@@ -48,7 +49,8 @@ class NECPluginV2AgentNotifierApi(sg_rpc.SecurityGroupAgentRpcApiMixin):
         self.topic = topic
         self.topic_port_update = topics.get_topic_name(
             topic, topics.PORT, topics.UPDATE)
-        target = oslo_messaging.Target(topic=topic, version='1.0')
+        target = oslo_messaging.Target(topic=topic, version='1.0',
+                                       namespace=const.RPC_NAMESPACE_NEC_AGENT)
         self.client = n_rpc.get_client(target)
 
     def port_update(self, context, port):
@@ -58,7 +60,8 @@ class NECPluginV2AgentNotifierApi(sg_rpc.SecurityGroupAgentRpcApiMixin):
 
 class NECPluginV2RPCCallbacks(object):
 
-    target = oslo_messaging.Target(version='1.0')
+    target = oslo_messaging.Target(version='1.0',
+                                   namespace=const.RPC_NAMESPACE_NEC_AGENT)
 
     def __init__(self, plugin):
         super(NECPluginV2RPCCallbacks, self).__init__()
