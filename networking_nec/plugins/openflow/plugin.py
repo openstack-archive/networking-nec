@@ -69,7 +69,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
     def __init__(self):
         super(NECPluginV2Impl, self).__init__()
         self.ofc = ofc_manager.OFCManager(self.safe_reference)
-        self.impl = l2manager.L2Manager(self.safe_reference)
+        self.l2mgr = l2manager.L2Manager(self.safe_reference)
         self.base_binding_dict = self._get_base_binding_dict()
         portbindings_base.register_port_dict_function()
 
@@ -120,7 +120,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
         tenant_id = self._get_tenant_id_for_create(context, network['network'])
         #set up default security groups
         self._ensure_default_security_group(context, tenant_id)
-        network['network']['status'] = self.impl.get_initial_net_status(
+        network['network']['status'] = self.l2mgr.get_initial_net_status(
             network)
         with context.session.begin(subtransactions=True):
             new_net = super(NECPluginV2Impl, self).create_network(context,
@@ -128,7 +128,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
             self._process_l3_create(context, new_net, network['network'])
 
         # NEC plugin specific
-        self.impl.create_network_backend(context, new_net)
+        self.l2mgr.create_network(context, new_net)
 
         return new_net
 
@@ -148,7 +148,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
             self._process_l3_update(context, new_net, network['network'])
 
         # NEC plugin specific
-        self.impl.update_network_backend(context, id, old_net, new_net)
+        self.l2mgr.update_network(context, id, old_net, new_net)
 
         return new_net
 
@@ -176,7 +176,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
         self._process_l3_delete(context, id)
 
         # NEC plugin specific
-        self.impl.delete_network_backend(context, id, ports)
+        self.l2mgr.delete_network(context, id, ports)
 
         super(NECPluginV2Impl, self).delete_network(context, id)
 
@@ -184,7 +184,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
     def create_port(self, context, port):
         """Create a new port entry on DB, then try to activate it."""
 
-        port['port']['status'] = self.impl.get_initial_port_status(port)
+        port['port']['status'] = self.l2mgr.get_initial_port_status(port)
         port_data = port['port']
         with context.session.begin(subtransactions=True):
             self._ensure_default_security_group_on_port(context, port)
@@ -200,7 +200,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
                     port_data.get(addr_pair.ADDRESS_PAIRS)))
         self.notify_security_groups_member_updated(context, new_port)
         # NEC plugin specific
-        return self.impl.create_port_backend(context, new_port)
+        return self.l2mgr.create_port(context, new_port)
 
     @call_log.log
     def update_port(self, context, id, port):
@@ -215,7 +215,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
             new_port = super(NECPluginV2Impl, self).update_port(context,
                                                                 id, port)
             # NEC plugin specific
-            # TODO(amotoki): Move portinfo_changed to _update_network_backend
+            # TODO(amotoki): Move portinfo_changed to l2mgr.update_network
             portinfo_changed = self._process_portbindings_update(
                 context, port['port'], new_port)
             if addr_pair.ADDRESS_PAIRS in port['port']:
@@ -232,10 +232,9 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
             self.notifier.port_update(context, new_port)
 
         # NEC plugin specific
-        # TODO(amotoki): Move portinfo_changed to _update_network_backend
+        # TODO(amotoki): Move portinfo_changed to l2mgr.update_network
         # to remove portinfo_changed from the arguments.
-        self.impl.update_port_backend(context, old_port, new_port,
-                                      portinfo_changed)
+        self.l2mgr.update_port(context, old_port, new_port, portinfo_changed)
         return new_port
 
     @call_log.log
@@ -247,7 +246,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
             self.prevent_l3_port_deletion(context, id)
 
         # NEC plugin specific
-        port = self.impl.delete_port_backend(context, id)
+        port = self.l2mgr.delete_port(context, id)
 
         with context.session.begin(subtransactions=True):
             router_ids = self.disassociate_floatingips(
