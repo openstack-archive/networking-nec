@@ -27,7 +27,6 @@ from networking_nec.i18n import _LE, _LI, _LW
 from networking_nec.plugins.openflow.db import api as ndb
 from networking_nec.plugins.openflow.db import router as rdb
 from networking_nec.plugins.openflow import exceptions as nexc
-from networking_nec.plugins.openflow import ofc_manager
 from networking_nec.plugins.openflow import router as router_plugin
 from networking_nec.plugins.openflow import utils
 
@@ -38,7 +37,6 @@ class L2Manager(object):
 
     def __init__(self, plugin):
         self._plugin = plugin
-        self.ofc = ofc_manager.OFCManager(plugin)
 
         self.port_handlers = {
             'create': {
@@ -56,6 +54,10 @@ class L2Manager(object):
     @property
     def plugin(self):
         return self._plugin
+
+    @property
+    def ofc(self):
+        return self._plugin.ofc
 
     def _check_ofc_tenant_in_use(self, context, tenant_id, deleting=None):
         """Check if the specified tenant is used."""
