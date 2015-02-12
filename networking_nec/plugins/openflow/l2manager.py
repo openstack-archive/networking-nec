@@ -29,6 +29,7 @@ from networking_nec.plugins.openflow.db import router as rdb
 from networking_nec.plugins.openflow import exceptions as nexc
 from networking_nec.plugins.openflow import ofc_manager
 from networking_nec.plugins.openflow import router as router_plugin
+from networking_nec.plugins.openflow import utils
 
 LOG = logging.getLogger(__name__)
 
@@ -55,22 +56,6 @@ class L2Manager(object):
     @property
     def plugin(self):
         return self._plugin
-
-    def _update_resource_status(self, context, resource, id, status):
-        """Update status of specified resource."""
-        request = {'status': status}
-        obj_getter = getattr(self.plugin, '_get_%s' % resource)
-        with context.session.begin(subtransactions=True):
-            obj_db = obj_getter(context, id)
-            obj_db.update(request)
-
-    def _update_resource_status_if_changed(self, context, resource_type,
-                                           resource_dict, new_status):
-        if resource_dict['status'] != new_status:
-            self._update_resource_status(context, resource_type,
-                                         resource_dict['id'],
-                                         new_status)
-            resource_dict['status'] = new_status
 
     def _check_ofc_tenant_in_use(self, context, tenant_id, deleting=None):
         """Check if the specified tenant is used."""
@@ -138,7 +123,7 @@ class L2Manager(object):
             port_status = const.PORT_STATUS_ERROR
 
         if port_status != port['status']:
-            self._update_resource_status(context, "port", port['id'],
+            utils.update_resource_status(context, "port", port['id'],
                                          port_status)
             port['status'] = port_status
 
@@ -153,7 +138,7 @@ class L2Manager(object):
 
         try:
             self.ofc.delete_ofc_port(context, port['id'], port)
-            self._update_resource_status_if_changed(
+            utils.update_resource_status_if_changed(
                 context, "port", port, const.PORT_STATUS_DOWN)
             return port
         except (nexc.OFCResourceNotFound, nexc.OFCMappingNotFound):
@@ -176,7 +161,7 @@ class L2Manager(object):
             with excutils.save_and_reraise_exception() as ctxt:
                 LOG.error(_LE("Failed to delete port=%(port)s from OFC: "
                               "%(exc)s"), {'port': port['id'], 'exc': exc})
-                self._update_resource_status_if_changed(
+                utils.update_resource_status_if_changed(
                     context, "port", port, const.PORT_STATUS_ERROR)
                 if not raise_exc:
                     ctxt.reraise = False
@@ -206,19 +191,19 @@ class L2Manager(object):
             if not self.ofc.exists_ofc_tenant(context, tenant_id):
                 self.ofc.create_ofc_tenant(context, tenant_id)
             self.ofc.create_ofc_network(context, tenant_id, net_id, net_name)
-            self._update_resource_status_if_changed(
+            utils.update_resource_status_if_changed(
                 context, "network", network, self._net_status(network))
         except (nexc.OFCException, nexc.OFCMappingNotFound) as exc:
             LOG.error(_LE("Failed to create network id=%(id)s on "
                           "OFC: %(exc)s"), {'id': net_id, 'exc': exc})
-            self._update_resource_status_if_changed(
+            utils.update_resource_status_if_changed(
                 context, "network", network, const.NET_STATUS_ERROR)
 
     def update_network_backend(self, context, id, old_net, new_net):
         changed = (old_net['admin_state_up'] != new_net['admin_state_up'])
         if changed:
             new_status = self._net_status(new_net)
-            self._update_resource_status_if_changed(
+            utils.update_resource_status_if_changed(
                 context, "network", new_net, new_status)
         if changed and not new_net['admin_state_up']:
             # disable all active ports of the network
@@ -263,7 +248,7 @@ class L2Manager(object):
             except (nexc.OFCException, nexc.OFCMappingNotFound) as exc:
                 with excutils.save_and_reraise_exception():
                     LOG.error(_LE("delete_network() failed due to %s"), exc)
-                    self._update_resource_status(
+                    utils.update_resource_status(
                         context, "network", net_db['id'],
                         const.NET_STATUS_ERROR)
 
