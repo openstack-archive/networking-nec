@@ -94,7 +94,7 @@ class NecPluginV2TestCase(NecPluginV2TestCaseBase,
         super(NecPluginV2TestCase, self).setUp(plugin, ext_mgr=ext_mgr)
 
         self.plugin = manager.NeutronManager.get_plugin()
-        self.plugin.impl.ofc = fake_ofc_manager.patch_ofc_manager()
+        self.plugin.ofc = fake_ofc_manager.patch_ofc_manager()
         self.ofc = self.plugin.ofc
         self.callback_nec = rpc.NECPluginV2RPCCallbacks(self.plugin)
         self.context = context.get_admin_context()

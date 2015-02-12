@@ -41,6 +41,7 @@ from neutron.plugins.nec.common import config as nec_config
 from neutron.plugins.nec import extensions
 
 from networking_nec.plugins.openflow import l2manager
+from networking_nec.plugins.openflow import ofc_manager
 from networking_nec.plugins.openflow import packet_filter
 from networking_nec.plugins.openflow import portbindings as bindings
 from networking_nec.plugins.openflow import router as router_plugin
@@ -67,6 +68,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
 
     def __init__(self):
         super(NECPluginV2Impl, self).__init__()
+        self.ofc = ofc_manager.OFCManager(self.safe_reference)
         self.impl = l2manager.L2Manager(self.safe_reference)
         self.base_binding_dict = self._get_base_binding_dict()
         portbindings_base.register_port_dict_function()
@@ -85,10 +87,6 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
 
         router_plugin.load_driver(self.safe_reference, self.ofc)
         self.start_periodic_dhcp_agent_status_check()
-
-    @property
-    def ofc(self):
-        return self.impl.ofc
 
     def setup_rpc(self):
         self.service_topics = {svc_constants.CORE: topics.PLUGIN,
