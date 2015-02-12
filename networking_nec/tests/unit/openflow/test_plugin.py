@@ -28,6 +28,7 @@ from neutron.tests.unit import test_extension_allowedaddresspairs as test_pair
 from networking_nec.plugins.openflow.db import api as ndb
 from networking_nec.plugins.openflow import exceptions as nexc
 from networking_nec.plugins.openflow import rpc
+from networking_nec.plugins.openflow import utils as necutils
 from networking_nec.tests import base
 from networking_nec.tests.unit.openflow import fake_ofc_manager
 
@@ -304,7 +305,7 @@ class TestNecPluginDbTest(NecPluginV2TestCase):
             self.assertEqual("ACTIVE", network['network']['status'])
             net_id = network['network']['id']
             for status in ["DOWN", "BUILD", "ERROR", "ACTIVE"]:
-                self.plugin.impl._update_resource_status(
+                necutils.update_resource_status(
                     self.context, 'network', net_id,
                     getattr(constants, 'NET_STATUS_%s' % status))
                 n = self.plugin._get_network(self.context, net_id)
