@@ -180,9 +180,13 @@ class L2Manager(object):
 
     def get_initial_net_status(self, network):
         return self._net_status(network['network'])
+        # TODO(amotoki): Set the network initial status to BUILD and
+        # update it to ACTIVE/ERROR after creating a network on OFC.
         # return const.NET_STATUS_BUILD
 
     def get_initial_port_status(self, port):
+        # NOTE(amotoki): Not sure the initial port status should be
+        # BUILD or DOWN. Both works with the current nova/neutron.
         return const.PORT_STATUS_DOWN
 
     def create_network(self, context, network):
