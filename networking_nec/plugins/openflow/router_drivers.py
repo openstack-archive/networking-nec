@@ -81,11 +81,11 @@ class RouterL3AgentDriver(RouterDriverBase):
 
     @call_log.log
     def add_interface(self, context, router_id, port):
-        return self.plugin.impl.activate_port_if_ready(context, port)
+        return self.plugin.l2mgr.activate_port_if_ready(context, port)
 
     @call_log.log
     def delete_interface(self, context, router_id, port):
-        return self.plugin.impl.deactivate_port(context, port)
+        return self.plugin.l2mgr.deactivate_port(context, port)
 
 
 class RouterOpenFlowDriver(RouterDriverBase):

@@ -185,7 +185,7 @@ class L2Manager(object):
     def get_initial_port_status(self, port):
         return const.PORT_STATUS_DOWN
 
-    def create_network_backend(self, context, network):
+    def create_network(self, context, network):
         tenant_id = network['tenant_id']
         net_id = network['id']
         net_name = network['name']
@@ -201,7 +201,7 @@ class L2Manager(object):
             utils.update_resource_status_if_changed(
                 context, "network", network, const.NET_STATUS_ERROR)
 
-    def update_network_backend(self, context, id, old_net, new_net):
+    def update_network(self, context, id, old_net, new_net):
         changed = (old_net['admin_state_up'] != new_net['admin_state_up'])
         if changed:
             new_status = self._net_status(new_net)
@@ -225,7 +225,7 @@ class L2Manager(object):
             for port in ports:
                 self.activate_port_if_ready(context, port, new_net)
 
-    def delete_network_backend(self, context, id, ports=None):
+    def delete_network(self, context, id, ports=None):
         net_db = self.plugin._get_network(context, id)
         tenant_id = net_db['tenant_id']
 
@@ -264,7 +264,7 @@ class L2Manager(object):
         else:
             return handlers['default']
 
-    def create_port_backend(self, context, port):
+    def create_port(self, context, port):
         handler = self._get_port_handler('create', port['device_owner'])
         return handler(context, port)
 
@@ -305,13 +305,12 @@ class L2Manager(object):
                 self.plugin.activate_packet_filters_by_port(context, id)
             self.activate_port_if_ready(context, new_port)
 
-    def update_port_backend(self, context, old_port, new_port,
-                            portinfo_changed):
+    def update_port(self, context, old_port, new_port, portinfo_changed):
         self._update_ofc_port_if_required(context, old_port, new_port,
                                           portinfo_changed)
         return new_port
 
-    def delete_port_backend(self, context, id):
+    def delete_port(self, context, id):
         # ext_sg.SECURITYGROUPS attribute for the port is required
         # since notifier.security_groups_member_updated() need the attribute.
         # Thus we need to call self.get_port() instead of super().get_port()
