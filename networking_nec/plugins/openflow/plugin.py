@@ -213,14 +213,14 @@ class BackendImpl(object):
         else:
             return const.NET_STATUS_DOWN
 
-    def _get_initial_net_status(self, network):
+    def get_initial_net_status(self, network):
         return self._net_status(network['network'])
         # return const.NET_STATUS_BUILD
 
-    def _get_initial_port_status(self, port):
+    def get_initial_port_status(self, port):
         return const.PORT_STATUS_DOWN
 
-    def _create_network_backend(self, context, network):
+    def create_network_backend(self, context, network):
         tenant_id = network['tenant_id']
         net_id = network['id']
         net_name = network['name']
@@ -236,7 +236,7 @@ class BackendImpl(object):
             self._update_resource_status_if_changed(
                 context, "network", network, const.NET_STATUS_ERROR)
 
-    def _update_network_backend(self, context, id, old_net, new_net):
+    def update_network_backend(self, context, id, old_net, new_net):
         changed = (old_net['admin_state_up'] != new_net['admin_state_up'])
         if changed:
             new_status = self._net_status(new_net)
@@ -260,7 +260,7 @@ class BackendImpl(object):
             for port in ports:
                 self.activate_port_if_ready(context, port, new_net)
 
-    def _delete_network_backend(self, context, id, ports=None):
+    def delete_network_backend(self, context, id, ports=None):
         net_db = self.plugin._get_network(context, id)
         tenant_id = net_db['tenant_id']
 
@@ -299,7 +299,7 @@ class BackendImpl(object):
         else:
             return handlers['default']
 
-    def _create_port_backend(self, context, port):
+    def create_port_backend(self, context, port):
         handler = self._get_port_handler('create', port['device_owner'])
         return handler(context, port)
 
@@ -340,13 +340,13 @@ class BackendImpl(object):
                 self.plugin.activate_packet_filters_by_port(context, id)
             self.activate_port_if_ready(context, new_port)
 
-    def _update_port_backend(self, context, old_port, new_port,
-                             portinfo_changed):
+    def update_port_backend(self, context, old_port, new_port,
+                            portinfo_changed):
         self._update_ofc_port_if_required(context, old_port, new_port,
                                           portinfo_changed)
         return new_port
 
-    def _delete_port_backend(self, context, id):
+    def delete_port_backend(self, context, id):
         # ext_sg.SECURITYGROUPS attribute for the port is required
         # since notifier.security_groups_member_updated() need the attribute.
         # Thus we need to call self.get_port() instead of super().get_port()
@@ -437,7 +437,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
         tenant_id = self._get_tenant_id_for_create(context, network['network'])
         #set up default security groups
         self._ensure_default_security_group(context, tenant_id)
-        network['network']['status'] = self.impl._get_initial_net_status(
+        network['network']['status'] = self.impl.get_initial_net_status(
             network)
         with context.session.begin(subtransactions=True):
             new_net = super(NECPluginV2Impl, self).create_network(context,
@@ -445,7 +445,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
             self._process_l3_create(context, new_net, network['network'])
 
         # NEC plugin specific
-        self.impl._create_network_backend(context, new_net)
+        self.impl.create_network_backend(context, new_net)
 
         return new_net
 
@@ -465,7 +465,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
             self._process_l3_update(context, new_net, network['network'])
 
         # NEC plugin specific
-        self.impl._update_network_backend(context, id, old_net, new_net)
+        self.impl.update_network_backend(context, id, old_net, new_net)
 
         return new_net
 
@@ -493,7 +493,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
         self._process_l3_delete(context, id)
 
         # NEC plugin specific
-        self.impl._delete_network_backend(context, id, ports)
+        self.impl.delete_network_backend(context, id, ports)
 
         super(NECPluginV2Impl, self).delete_network(context, id)
 
@@ -501,7 +501,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
     def create_port(self, context, port):
         """Create a new port entry on DB, then try to activate it."""
 
-        port['port']['status'] = self.impl._get_initial_port_status(port)
+        port['port']['status'] = self.impl.get_initial_port_status(port)
         port_data = port['port']
         with context.session.begin(subtransactions=True):
             self._ensure_default_security_group_on_port(context, port)
@@ -517,7 +517,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
                     port_data.get(addr_pair.ADDRESS_PAIRS)))
         self.notify_security_groups_member_updated(context, new_port)
         # NEC plugin specific
-        return self.impl._create_port_backend(context, new_port)
+        return self.impl.create_port_backend(context, new_port)
 
     @call_log.log
     def update_port(self, context, id, port):
@@ -551,8 +551,8 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
         # NEC plugin specific
         # TODO(amotoki): Move portinfo_changed to _update_network_backend
         # to remove portinfo_changed from the arguments.
-        self.impl._update_port_backend(context, old_port, new_port,
-                                       portinfo_changed)
+        self.impl.update_port_backend(context, old_port, new_port,
+                                      portinfo_changed)
         return new_port
 
     @call_log.log
@@ -564,7 +564,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
             self.prevent_l3_port_deletion(context, id)
 
         # NEC plugin specific
-        port = self.impl._delete_port_backend(context, id)
+        port = self.impl.delete_port_backend(context, id)
 
         with context.session.begin(subtransactions=True):
             router_ids = self.disassociate_floatingips(
