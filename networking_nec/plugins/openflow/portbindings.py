@@ -93,7 +93,6 @@ class PortBindingMixin(portbindings_db.PortBindingMixin):
         :param context: neutron api request context
         :param port_data: port attributes passed in PUT request
         :param port: port attributes to be returned
-        :returns: 'ADD', 'MOD', 'DEL' or None
         """
         if portbindings.PROFILE not in port_data:
             return
@@ -106,25 +105,20 @@ class PortBindingMixin(portbindings_db.PortBindingMixin):
         cur_portinfo = ndb.get_portinfo(context.session, port['id'])
         if profile_set:
             portinfo = self._validate_portinfo(profile)
-            portinfo_changed = 'ADD'
             if cur_portinfo:
                 if (necutils.cmp_dpid(portinfo['datapath_id'],
                                       cur_portinfo.datapath_id) and
                     portinfo['port_no'] == cur_portinfo.port_no):
                     return
                 ndb.del_portinfo(context.session, port['id'])
-                portinfo_changed = 'MOD'
             portinfo['mac'] = port['mac_address']
             ndb.add_portinfo(context.session, port['id'], **portinfo)
         elif cur_portinfo:
-            portinfo_changed = 'DEL'
             portinfo = None
             ndb.del_portinfo(context.session, port['id'])
         else:
             portinfo = None
-            portinfo_changed = None
         self._extend_port_dict_binding_portinfo(port, portinfo)
-        return portinfo_changed
 
     def extend_port_dict_binding(self, port_res, port_db):
         super(PortBindingMixin, self).extend_port_dict_binding(port_res,
@@ -139,6 +133,4 @@ class PortBindingMixin(portbindings_db.PortBindingMixin):
     def _process_portbindings_update(self, context, port_data, port):
         super(PortBindingMixin, self)._process_portbindings_create_and_update(
             context, port_data, port)
-        portinfo_changed = self._process_portbindings_portinfo_update(
-            context, port_data, port)
-        return portinfo_changed
+        self._process_portbindings_portinfo_update(context, port_data, port)
