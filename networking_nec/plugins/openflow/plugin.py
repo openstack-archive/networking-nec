@@ -207,9 +207,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
             old_port = super(NECPluginV2Impl, self).get_port(context, id)
             new_port = super(NECPluginV2Impl, self).update_port(context,
                                                                 id, port)
-            # TODO(amotoki): Move portinfo_changed to l2mgr.update_network
-            portinfo_changed = self._process_portbindings_update(
-                context, port['port'], new_port)
+            self._process_portbindings_update(context, port['port'], new_port)
             if addr_pair.ADDRESS_PAIRS in port['port']:
                 need_port_update_notify |= (
                     self.update_address_pairs_on_port(context, id, port,
@@ -223,9 +221,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
         if need_port_update_notify:
             self.notifier.port_update(context, new_port)
 
-        # TODO(amotoki): Move portinfo_changed to l2mgr.update_network
-        # to remove portinfo_changed from the arguments.
-        self.l2mgr.update_port(context, old_port, new_port, portinfo_changed)
+        self.l2mgr.update_port(context, old_port, new_port)
         return new_port
 
     @call_log.log
