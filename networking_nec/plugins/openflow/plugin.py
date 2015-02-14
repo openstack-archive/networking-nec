@@ -61,6 +61,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
                       addr_pair_db.AllowedAddressPairsMixin):
 
     def setup_extension_aliases(self, aliases):
+        neutron_extensions.append_api_extensions_path(extensions.__path__)
         sg_rpc.disable_security_group_extension_by_config(aliases)
         self.remove_packet_filter_extension_if_disabled(aliases)
 
@@ -70,11 +71,9 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
         self.l2mgr = l2manager.L2Manager(self.safe_reference)
         self.base_binding_dict = self._get_base_binding_dict()
         portbindings_base.register_port_dict_function()
-
-        neutron_extensions.append_api_extensions_path(extensions.__path__)
+        router_plugin.load_driver(self.safe_reference, self.ofc)
 
         self.setup_rpc()
-        self.l3_rpc_notifier = router_plugin.L3AgentNotifyAPI()
 
         self.network_scheduler = importutils.import_object(
             cfg.CONF.network_scheduler_driver
@@ -83,7 +82,6 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
             cfg.CONF.router_scheduler_driver
         )
 
-        router_plugin.load_driver(self.safe_reference, self.ofc)
         self.start_periodic_dhcp_agent_status_check()
 
     def setup_rpc(self):
@@ -91,6 +89,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
                                svc_constants.L3_ROUTER_NAT: topics.L3PLUGIN}
         self.conn = n_rpc.create_connection(new=True)
         self.notifier = rpc.NECPluginV2AgentNotifierApi(topics.AGENT)
+        self.l3_rpc_notifier = router_plugin.L3AgentNotifyAPI()
         self.agent_notifiers[const.AGENT_TYPE_DHCP] = (
             dhcp_rpc_agent_api.DhcpAgentNotifyAPI()
         )
