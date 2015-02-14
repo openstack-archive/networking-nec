@@ -272,19 +272,55 @@ class L2Manager(object):
         handler = self._get_port_handler('create', port['device_owner'])
         return handler(context, port)
 
-    def _update_ofc_port_if_required(self, context, old_port, new_port,
-                                     portinfo_changed):
-        def get_ofport_exist(port):
-            return (port['admin_state_up'] and
-                    bool(port.get(portbindings.PROFILE)))
+    @staticmethod
+    def get_portinfo(port):
+        profile = port.get(portbindings.PROFILE)
+        if not profile:
+            return
+        return {'datapath_id': profile['datapath_id'],
+                'port_no': profile['port_no']}
 
+    @staticmethod
+    def is_portinfo_changed(old_port, new_port):
+        """Check portinfo is changed or not.
+
+        :param old_port: old port information
+        :param new_port: new port information
+        :returns: 'ADD', 'MOD', 'DEL' or None
+        """
+        old_portinfo = L2Manager.get_portinfo(old_port)
+        new_portinfo = L2Manager.get_portinfo(new_port)
+
+        # portinfo has been validated, so we can assume
+        # portinfo is either None or a valid dict.
+        if not old_portinfo and not new_portinfo:
+            return
+        elif old_portinfo and not new_portinfo:
+            return 'DEL'
+        elif not old_portinfo and new_portinfo:
+            return 'ADD'
+        else:
+            if (utils.cmp_dpid(old_portinfo['datapath_id'],
+                               new_portinfo['datapath_id']) and
+                old_portinfo['port_no'] == new_portinfo['port_no']):
+                return
+            else:
+                return 'MOD'
+
+    @staticmethod
+    def get_ofport_exist(port):
+        return (port['admin_state_up'] and
+                bool(port.get(portbindings.PROFILE)))
+
+    def _update_ofc_port_if_required(self, context, old_port, new_port):
         # Determine it is required to update OFC port
         need_add = False
         need_del = False
         need_packet_filter_update = False
 
-        old_ofport_exist = get_ofport_exist(old_port)
-        new_ofport_exist = get_ofport_exist(new_port)
+        old_ofport_exist = self.get_ofport_exist(old_port)
+        new_ofport_exist = self.get_ofport_exist(new_port)
+        portinfo_changed = self.is_portinfo_changed(old_port, new_port)
 
         if old_port['admin_state_up'] != new_port['admin_state_up']:
             if new_port['admin_state_up']:
@@ -309,9 +345,8 @@ class L2Manager(object):
                 self.plugin.activate_packet_filters_by_port(context, id)
             self.activate_port_if_ready(context, new_port)
 
-    def update_port(self, context, old_port, new_port, portinfo_changed):
-        self._update_ofc_port_if_required(context, old_port, new_port,
-                                          portinfo_changed)
+    def update_port(self, context, old_port, new_port):
+        self._update_ofc_port_if_required(context, old_port, new_port)
         return new_port
 
     def delete_port(self, context, id):
