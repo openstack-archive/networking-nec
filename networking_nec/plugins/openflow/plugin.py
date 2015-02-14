@@ -60,8 +60,6 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
                       bindings.PortBindingMixin,
                       addr_pair_db.AllowedAddressPairsMixin):
 
-    _vendor_extensions = ["packet-filter", "router_provider"]
-
     def setup_extension_aliases(self, aliases):
         sg_rpc.disable_security_group_extension_by_config(aliases)
         self.remove_packet_filter_extension_if_disabled(aliases)
