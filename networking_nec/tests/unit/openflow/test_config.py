@@ -14,17 +14,14 @@
 
 from oslo_config import cfg
 
+from neutron.plugins.nec.common import config  # noqa
 from neutron.tests import base
-
-from networking_nec.plugins.openflow import config  # noqa
 
 
 class ConfigurationTest(base.BaseTestCase):
 
-    def test_defaults(self):
-        self.assertEqual('br-int', cfg.CONF.OVS.integration_bridge)
-        self.assertEqual(2, cfg.CONF.AGENT.polling_interval)
-        self.assertEqual('sudo', cfg.CONF.AGENT.root_helper)
+    def test_defaults_plugin_opts(self):
+        config.register_plugin_opts()
 
         self.assertEqual('127.0.0.1', cfg.CONF.OFC.host)
         self.assertEqual('8888', cfg.CONF.OFC.port)
@@ -36,3 +33,10 @@ class ConfigurationTest(base.BaseTestCase):
         self.assertFalse(cfg.CONF.OFC.use_ssl)
         self.assertIsNone(cfg.CONF.OFC.key_file)
         self.assertIsNone(cfg.CONF.OFC.cert_file)
+
+    def test_defaults_agent_opts(self):
+        config.register_agent_opts()
+
+        self.assertEqual('br-int', cfg.CONF.OVS.integration_bridge)
+        self.assertEqual(2, cfg.CONF.AGENT.polling_interval)
+        self.assertEqual('sudo', cfg.CONF.AGENT.root_helper)
