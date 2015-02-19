@@ -51,7 +51,6 @@ class TestNecAgentBase(base.BaseTestCase):
         ) as (get_datapath_id, gethostname,
               loopingcall, state_rpc_api):
             kwargs = {'integ_br': 'integ_br',
-                      'root_helper': 'dummy_wrapper',
                       'polling_interval': 1}
             self.agent = l2_agent.NECNeutronAgent(**kwargs)
             self.loopingcall = loopingcall
@@ -336,13 +335,12 @@ class TestNecAgentMain(base.BaseTestCase):
             mock.patch.object(l2_agent, 'common_config')
         ) as (agent, common_config):
             cfg.CONF.set_override('integration_bridge', 'br-int-x', 'OVS')
-            cfg.CONF.set_override('root_helper', 'dummy-helper', 'AGENT')
             cfg.CONF.set_override('polling_interval', 10, 'AGENT')
 
             l2_agent.main()
 
             self.assertTrue(common_config.setup_logging.called)
             agent.assert_has_calls([
-                mock.call('br-int-x', 'dummy-helper', 10),
+                mock.call('br-int-x', 10),
                 mock.call().daemon_loop()
             ])
