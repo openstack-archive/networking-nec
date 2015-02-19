@@ -28,6 +28,7 @@ from neutron.tests.unit import test_extension_allowedaddresspairs as test_pair
 from networking_nec.plugins.openflow.db import api as ndb
 from networking_nec.plugins.openflow import exceptions as nexc
 from networking_nec.plugins.openflow import plugin as nec_plugin
+from networking_nec.tests import base
 from networking_nec.tests.unit.openflow import fake_ofc_manager
 
 
@@ -43,6 +44,7 @@ enable_packet_filter = False
 
 
 class NecPluginV2TestCaseBase(object):
+    _plugin_name = PLUGIN_NAME
     _nec_ini = NEC_PLUGIN_INI
 
     def _set_nec_ini(self):
@@ -69,14 +71,18 @@ class NecPluginV2TestCaseBase(object):
         self.ofc_manager_p.start()
 
     def setup_nec_plugin_base(self):
+        base.override_nvalues()
         self._set_nec_ini()
         self.patch_remote_calls()
 
+    def setUp(self, plugin=None, ext_mgr=None):
+        plugin = plugin or self._plugin_name
+        self._set_nec_ini()
+        super(NecPluginV2TestCaseBase, self).setUp(plugin, ext_mgr=ext_mgr)
+
 
 class NecPluginV2TestCase(NecPluginV2TestCaseBase,
-                          test_plugin.NeutronDbPluginV2TestCase):
-
-    _plugin_name = PLUGIN_NAME
+                          base.NeutronDbPluginV2TestCase):
 
     def rpcapi_update_ports(self, agent_id='nec-q-agent.fake',
                             datapath_id="0xabc", added=[], removed=[]):
@@ -87,11 +93,7 @@ class NecPluginV2TestCase(NecPluginV2TestCaseBase,
         self.callback_nec.update_ports(self.context, **kwargs)
 
     def setUp(self, plugin=None, ext_mgr=None):
-
-        self._set_nec_ini()
-        plugin = plugin or self._plugin_name
         super(NecPluginV2TestCase, self).setUp(plugin, ext_mgr=ext_mgr)
-
         self.plugin = manager.NeutronManager.get_plugin()
         self.plugin.ofc = fake_ofc_manager.patch_ofc_manager()
         self.ofc = self.plugin.ofc

@@ -17,10 +17,10 @@ from oslo_config import cfg
 from oslo_utils import uuidutils
 
 from neutron import context
-from neutron.tests.unit import testlib_api
 
 from networking_nec.plugins.openflow.db import api as ndb
 from networking_nec.plugins.openflow import ofc_manager
+from networking_nec.tests import base
 
 
 class FakePortInfo(object):
@@ -36,10 +36,11 @@ class FakePortInfo(object):
             raise AttributeError(name)
 
 
-class OFCManagerTestBase(testlib_api.SqlTestCase):
+class OFCManagerTestBase(base.SqlTestCase):
     """Class conisting of OFCManager unit tests."""
 
     def setUp(self):
+        base.override_nvalues()
         super(OFCManagerTestBase, self).setUp()
         driver = ("networking_nec.tests.unit.openflow."
                   "stub_ofc_driver.StubOFCDriver")

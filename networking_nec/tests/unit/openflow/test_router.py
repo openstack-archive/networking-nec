@@ -19,6 +19,7 @@ from oslo_config import cfg
 from neutron import manager
 from neutron.tests.unit import test_extension_extraroute as test_ext_route
 
+from networking_nec.tests import base
 from networking_nec.tests.unit.openflow import test_plugin
 
 
@@ -27,6 +28,7 @@ class NecRouterL3AgentTestCase(test_ext_route.ExtraRouteDBIntTestCase):
     _plugin_name = test_plugin.PLUGIN_NAME
 
     def setUp(self):
+        base.override_nvalues()
         mock.patch(test_plugin.OFC_MANAGER).start()
         super(NecRouterL3AgentTestCase, self).setUp(self._plugin_name)
 
