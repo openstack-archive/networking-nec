@@ -14,9 +14,8 @@
 
 from oslo_config import cfg
 
+from neutron.plugins.nec.common import config  # noqa
 from neutron.tests import base
-
-from networking_nec.plugins.openflow import config  # noqa
 
 
 class ConfigurationTest(base.BaseTestCase):

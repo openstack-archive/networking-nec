@@ -19,7 +19,6 @@
 #    under the License.
 
 import socket
-import sys
 import time
 
 import eventlet
@@ -31,13 +30,11 @@ import oslo_messaging
 from neutron.agent.linux import ovs_lib
 from neutron.agent import rpc as agent_rpc
 from neutron.agent import securitygroups_rpc as sg_rpc
-from neutron.common import config as common_config
 from neutron.common import constants as q_const
 from neutron.common import rpc as n_rpc
 from neutron.common import topics
 from neutron import context as q_context
 from neutron.extensions import securitygroup as ext_sg
-from neutron.plugins.nec.common import config as nec_config
 
 from networking_nec.i18n import _LE, _LI
 from networking_nec.openstack.common import loopingcall
@@ -236,11 +233,3 @@ def run():
 
     # Start everything.
     agent.daemon_loop()
-
-
-def main():
-    nec_config.register_agent_opts()
-    common_config.init(sys.argv[1:])
-    common_config.setup_logging()
-
-    run()

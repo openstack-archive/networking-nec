@@ -24,9 +24,12 @@ import testtools
 
 from neutron.agent.linux import ovs_lib
 from neutron.extensions import securitygroup as ext_sg
+from neutron.plugins.nec.common import config as nec_config
+from neutron.plugins.nec.agent import nec_neutron_agent
 from neutron.tests import base
 
 from networking_nec.plugins.openflow.agent import l2_agent
+from networking_nec.tests import base as test_base
 
 DAEMON_LOOP_COUNT = 10
 OVS_DPID = '00000629355b6943'
@@ -36,7 +39,12 @@ OVS_DPID_0X = '0x' + OVS_DPID
 class TestNecAgentBase(base.BaseTestCase):
 
     def setUp(self):
+        # TODO(amotoki): It seems a bug of neutorn.context
+        # why does get_admin_context_without_session on agent side
+        # require policy.json?
+        test_base.override_nvalues()
         super(TestNecAgentBase, self).setUp()
+        nec_config.register_agent_opts()
         cfg.CONF.set_default('firewall_driver',
                              'neutron.agent.firewall.NoopFirewallDriver',
                              group='SECURITYGROUP')
@@ -330,14 +338,15 @@ class TestNecAgentPluginApi(TestNecAgentBase):
 
 class TestNecAgentMain(base.BaseTestCase):
     def test_main(self):
+        nec_config.register_agent_opts()
         with contextlib.nested(
             mock.patch.object(l2_agent, 'NECNeutronAgent'),
-            mock.patch.object(l2_agent, 'common_config')
+            mock.patch.object(nec_neutron_agent, 'common_config')
         ) as (agent, common_config):
             cfg.CONF.set_override('integration_bridge', 'br-int-x', 'OVS')
             cfg.CONF.set_override('polling_interval', 10, 'AGENT')
 
-            l2_agent.main()
+            nec_neutron_agent.main()
 
             self.assertTrue(common_config.setup_logging.called)
             agent.assert_has_calls([
