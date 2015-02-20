@@ -37,7 +37,6 @@ from neutron.db import portbindings_base
 from neutron.db import quota_db  # noqa
 from neutron.extensions import allowedaddresspairs as addr_pair
 from neutron.plugins.common import constants as svc_constants
-from neutron.plugins.nec.common import config as nec_config
 from neutron.plugins.nec import extensions
 
 from networking_nec.plugins.openflow import l2manager
@@ -242,33 +241,3 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
         # now that we've left db transaction, we are safe to notify
         self.notify_routers_updated(context, router_ids)
         self.notify_security_groups_member_updated(context, port)
-
-
-class NECPluginV2(NECPluginV2Impl):
-
-    _supported_extension_aliases = ["agent",
-                                    "allowed-address-pairs",
-                                    "binding",
-                                    "dhcp_agent_scheduler",
-                                    "external-net",
-                                    "ext-gw-mode",
-                                    "extraroute",
-                                    "l3_agent_scheduler",
-                                    "packet-filter",
-                                    "quotas",
-                                    "router",
-                                    "router_provider",
-                                    "security-group",
-                                    ]
-
-    @property
-    def supported_extension_aliases(self):
-        if not hasattr(self, '_aliases'):
-            aliases = self._supported_extension_aliases[:]
-            self.setup_extension_aliases(aliases)
-            self._aliases = aliases
-        return self._aliases
-
-    def __init__(self):
-        nec_config.register_plugin_opts()
-        super(NECPluginV2, self).__init__()
