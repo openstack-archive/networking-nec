@@ -14,7 +14,7 @@
 
 from oslo_config import cfg
 
-from neutron.plugins.nec.common import config
+from neutron.plugins.nec import config
 from neutron.tests import base
 
 
