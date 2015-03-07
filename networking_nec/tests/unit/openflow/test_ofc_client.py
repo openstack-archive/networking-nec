@@ -99,7 +99,7 @@ class OFCClientTest(base.BaseTestCase):
 
     def test_do_request_error_json_body(self):
         resbody = jsonutils.dumps({'err_code': 40022,
-                              'err_msg': 'This is an error.'})
+                                   'err_msg': 'This is an error.'})
         errmsg = _("An OFC exception has occurred: Operation on OFC failed")
         exc_checks = {'status': 400, 'err_code': 40022,
                       'err_msg': 'This is an error.'}

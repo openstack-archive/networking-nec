@@ -211,7 +211,7 @@ class PFCFilterDriverMixin(object):
             if (not filter_dict['protocol'] or
                 # In the case of ARP, ip_proto should be set to wildcard.
                 # eth_type is set during adding an entry to DB layer.
-                filter_dict['protocol'].lower() == ext_pf.PROTO_NAME_ARP):
+                    filter_dict['protocol'].lower() == ext_pf.PROTO_NAME_ARP):
                 if not create:
                     body['protocol'] = ""
             elif filter_dict['protocol'].lower() == constants.PROTO_NAME_ICMP:
@@ -243,7 +243,7 @@ class PFCFilterDriverMixin(object):
         # Currently PFC support only IPv4 CIDR.
         for field in ['src_cidr', 'dst_cidr']:
             if (not filter_dict.get(field) or
-                filter_dict[field] == attributes.ATTR_NOT_SPECIFIED):
+                    filter_dict[field] == attributes.ATTR_NOT_SPECIFIED):
                 continue
             net = netaddr.IPNetwork(filter_dict[field])
             if net.version != 4:

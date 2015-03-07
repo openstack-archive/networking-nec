@@ -108,7 +108,7 @@ class PortBindingMixin(portbindings_db.PortBindingMixin):
             if cur_portinfo:
                 if (necutils.cmp_dpid(portinfo['datapath_id'],
                                       cur_portinfo.datapath_id) and
-                    portinfo['port_no'] == cur_portinfo.port_no):
+                        portinfo['port_no'] == cur_portinfo.port_no):
                     return
                 ndb.del_portinfo(context.session, port['id'])
             portinfo['mac'] = port['mac_address']

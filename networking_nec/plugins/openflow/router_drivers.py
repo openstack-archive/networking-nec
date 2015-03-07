@@ -122,7 +122,7 @@ class RouterOpenFlowDriver(RouterDriverBase):
         except (nexc.OFCException, nexc.OFCMappingNotFound) as exc:
             with excutils.save_and_reraise_exception():
                 if (isinstance(exc, nexc.OFCException) and
-                    exc.status == httplib.CONFLICT):
+                        exc.status == httplib.CONFLICT):
                     raise nexc.RouterOverLimit(provider=PROVIDER_OPENFLOW)
                 LOG.error(_LE("create_router() failed due to %s"), exc)
                 new_status = nconst.ROUTER_STATUS_ERROR
