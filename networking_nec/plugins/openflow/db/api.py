@@ -101,7 +101,7 @@ def del_ofc_item(session, resource, neutron_id):
         return True
     except sa.orm.exc.NoResultFound:
         LOG.warning(_LW("del_ofc_item(): NotFound item "
-                      "(resource=%(resource)s, id=%(id)s) "),
+                        "(resource=%(resource)s, id=%(id)s) "),
                     {'resource': resource, 'id': neutron_id})
         return False
 
@@ -135,7 +135,7 @@ def del_portinfo(session, id):
             session.delete(portinfo)
     except sa.orm.exc.NoResultFound:
         LOG.warning(_LW("del_portinfo(): NotFound portinfo for "
-                      "port_id: %s"), id)
+                        "port_id: %s"), id)
 
 
 def get_active_ports_on_ofc(context, network_id, port_id=None):

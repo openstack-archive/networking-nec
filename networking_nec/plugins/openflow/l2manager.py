@@ -302,7 +302,7 @@ class L2Manager(object):
         else:
             if (utils.cmp_dpid(old_portinfo['datapath_id'],
                                new_portinfo['datapath_id']) and
-                old_portinfo['port_no'] == new_portinfo['port_no']):
+                    old_portinfo['port_no'] == new_portinfo['port_no']):
                 return
             else:
                 return 'MOD'

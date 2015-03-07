@@ -140,7 +140,7 @@ class NECNeutronAgent(object):
         self.state_rpc = agent_rpc.PluginReportStateAPI(topics.PLUGIN)
         self.sg_plugin_rpc = sg_rpc.SecurityGroupServerRpcApi(topics.PLUGIN)
         self.sg_agent = sg_rpc.SecurityGroupAgentRpc(self.context,
-                self.sg_plugin_rpc)
+                                                     self.sg_plugin_rpc)
 
         # RPC network init
         # Handle updates from service

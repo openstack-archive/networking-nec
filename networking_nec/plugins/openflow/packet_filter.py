@@ -131,7 +131,7 @@ class PacketFilterMixin(pf_db.PacketFilterDbMixin):
         except Exception as exc:
             with excutils.save_and_reraise_exception():
                 if (isinstance(exc, nexc.OFCException) or
-                    isinstance(exc, nexc.OFCConsistencyBroken)):
+                        isinstance(exc, nexc.OFCConsistencyBroken)):
                     LOG.error(_LE("Failed to create packet_filter id=%(id)s "
                                   "on OFC: %(exc)s"),
                               {'id': pf_id, 'exc': exc})

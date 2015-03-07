@@ -331,9 +331,9 @@ class TestNecAgentPluginApi(TestNecAgentBase):
                 port_added, port_removed)
 
             mock_call.assert_called_once_with(
-                    mock.sentinel.ctx, 'update_ports',
-                    agent_id=agent_id, datapath_id=OVS_DPID_0X,
-                    port_added=port_added, port_removed=port_removed)
+                mock.sentinel.ctx, 'update_ports',
+                agent_id=agent_id, datapath_id=OVS_DPID_0X,
+                port_added=port_added, port_removed=port_removed)
 
 
 class TestNecAgentMain(base.BaseTestCase):
