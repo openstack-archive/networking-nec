@@ -274,7 +274,7 @@ class L3AgentSchedulerDbMixin(l3_agentschedulers_db.L3AgentSchedulerDbMixin):
 
     def schedule_router(self, context, router, candidates=None):
         if (self._get_provider_by_router_id(context, router) ==
-            nconst.ROUTER_PROVIDER_L3AGENT):
+                nconst.ROUTER_PROVIDER_L3AGENT):
             return super(L3AgentSchedulerDbMixin, self).schedule_router(
                 context, router, candidates=candidates)
 
@@ -308,18 +308,18 @@ class L3AgentNotifyAPI(l3_rpc_agent_api.L3AgentNotifyAPI):
 def load_driver(plugin, ofc_manager):
 
     if (PROVIDER_OPENFLOW in ROUTER_DRIVER_MAP and
-        not ofc_manager.driver.router_supported):
+            not ofc_manager.driver.router_supported):
         LOG.warning(
             _LW('OFC does not support router with provider=%(provider)s, '
-              'so removed it from supported provider '
-              '(new router driver map=%(driver_map)s)'),
+                'so removed it from supported provider '
+                '(new router driver map=%(driver_map)s)'),
             {'provider': PROVIDER_OPENFLOW,
              'driver_map': ROUTER_DRIVER_MAP})
         del ROUTER_DRIVER_MAP[PROVIDER_OPENFLOW]
 
     if cfg.CONF.PROVIDER.default_router_provider not in ROUTER_DRIVER_MAP:
         LOG.error(_LE('default_router_provider %(default)s is supported! '
-                    'Please specify one of %(supported)s'),
+                      'Please specify one of %(supported)s'),
                   {'default': cfg.CONF.PROVIDER.default_router_provider,
                    'supported': ROUTER_DRIVER_MAP.keys()})
         raise SystemExit(1)

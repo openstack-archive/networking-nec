@@ -204,9 +204,9 @@ class TremaPortMACBaseDriver(TremaDriverBase, TremaFilterDriverMixin):
 
     def create_port(self, ofc_network_id, portinfo, port_id=None,
                     filters=None):
-        #NOTE: This Driver create slices with Port-MAC Based bindings on Trema
-        #      Sliceable.  It's REST API requires Port Based binding before you
-        #      define Port-MAC Based binding.
+        # NOTE: This Driver create slices with Port-MAC Based bindings on
+        # Trema Sliceable.  It's REST API requires Port Based binding
+        # before you define Port-MAC Based binding.
         ofc_port_id = port_id or uuidutils.generate_uuid()
         dummy_port_id = "dummy-%s" % ofc_port_id
 

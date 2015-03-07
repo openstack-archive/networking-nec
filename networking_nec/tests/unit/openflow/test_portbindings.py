@@ -50,8 +50,8 @@ class TestNecPortBindingNoSG(TestNecPortBinding):
 
 
 class TestNecPortBindingHost(
-    test_bindings.PortBindingsHostTestCaseMixin,
-    test_plugin.NecPluginV2TestCase):
+        test_bindings.PortBindingsHostTestCaseMixin,
+        test_plugin.NecPluginV2TestCase):
     pass
 
 

@@ -55,8 +55,8 @@ class NecSecurityGroupsTestCase(test_sg.SecurityGroupDBTestCase):
 
 
 class TestNecSGServerRpcCallBack(
-    test_sg_rpc.SGServerRpcCallBackTestCase,
-    NecSecurityGroupsTestCase):
+        test_sg_rpc.SGServerRpcCallBackTestCase,
+        NecSecurityGroupsTestCase):
     pass
 
 

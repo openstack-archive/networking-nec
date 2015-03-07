@@ -25,8 +25,8 @@ L3_HOSTB = test_agent_scheduler.L3_HOSTB
 
 
 class NecAgentSchedulerTestCase(
-    test_agent_scheduler.OvsAgentSchedulerTestCase,
-    test_plugin.NecPluginV2TestCaseBase):
+        test_agent_scheduler.OvsAgentSchedulerTestCase,
+        test_plugin.NecPluginV2TestCaseBase):
 
     plugin_str = test_plugin.PLUGIN_NAME
     l3_plugin = None
@@ -37,8 +37,8 @@ class NecAgentSchedulerTestCase(
 
 
 class NecDhcpAgentNotifierTestCase(
-    test_agent_scheduler.OvsDhcpAgentNotifierTestCase,
-    test_plugin.NecPluginV2TestCaseBase):
+        test_agent_scheduler.OvsDhcpAgentNotifierTestCase,
+        test_plugin.NecPluginV2TestCaseBase):
 
     plugin_str = test_plugin.PLUGIN_NAME
     l3_plugin = None
@@ -49,8 +49,8 @@ class NecDhcpAgentNotifierTestCase(
 
 
 class NecL3AgentNotifierTestCase(
-    test_agent_scheduler.OvsL3AgentNotifierTestCase,
-    test_plugin.NecPluginV2TestCaseBase):
+        test_agent_scheduler.OvsL3AgentNotifierTestCase,
+        test_plugin.NecPluginV2TestCaseBase):
 
     plugin_str = test_plugin.PLUGIN_NAME
     l3_plugin = None
@@ -61,8 +61,8 @@ class NecL3AgentNotifierTestCase(
 
 
 class NecL3AgentSchedulerWithOpenFlowRouter(
-    test_agent_scheduler.OvsAgentSchedulerTestCaseBase,
-    test_plugin.NecPluginV2TestCaseBase):
+        test_agent_scheduler.OvsAgentSchedulerTestCaseBase,
+        test_plugin.NecPluginV2TestCaseBase):
 
     plugin_str = test_plugin.PLUGIN_NAME
     l3_plugin = None

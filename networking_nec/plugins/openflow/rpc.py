@@ -86,7 +86,7 @@ class NECPluginV2RPCCallbacks(object):
             portinfo = ndb.get_portinfo(session, id)
             if portinfo:
                 if (necutils.cmp_dpid(portinfo.datapath_id, datapath_id) and
-                    portinfo.port_no == p['port_no']):
+                        portinfo.port_no == p['port_no']):
                     LOG.debug("update_ports(): ignore unchanged portinfo in "
                               "port_added message (port_id=%s).", id)
                     continue
