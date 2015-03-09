@@ -45,6 +45,8 @@ function _neutron_plugin_setup_bridge {
     if [[ "$SKIP_OVS_BRIDGE_SETUP" = "True" ]]; then
         return
     fi
+    # Increase debug level
+    sudo ovs-appctl vlog/set ANY:file:dbg
     # Set up integration bridge
     _neutron_ovs_base_setup_bridge $OVS_BRIDGE
     # Generate datapath ID from HOST_IP
