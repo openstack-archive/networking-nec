@@ -79,7 +79,7 @@ class OFCClient(object):
                   "%(method)s %(action)s [%(body)s]",
                   {'host': self.host, 'port': self.port,
                    'method': method, 'action': action, 'body': body})
-        if type(body) is dict:
+        if isinstance(body, dict):
             body = jsonutils.dumps(body)
         try:
             res = self._get_response(method, action, body)

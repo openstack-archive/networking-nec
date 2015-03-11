@@ -6,7 +6,7 @@ usage () {
   echo "Usage: $0 [OPTION]..."
   echo "Run Neutron's coding check(s)"
   echo ""
-  echo "  -Y, --pylint [<basecommit>] Run pylint check on the entire neutron module or just files changed in basecommit (e.g. HEAD~1)"
+  echo "  -Y, --pylint [<basecommit>] Run pylint check on the entire networking_nec module or just files changed in basecommit (e.g. HEAD~1)"
   echo "  -h, --help                  Print this usage message"
   echo
   exit 0
@@ -29,7 +29,7 @@ run_pylint () {
     local target="${scriptargs:-all}"
 
     if [ "$target" = "all" ]; then
-        files="neutron"
+        files="networking_nec"
     else
       case "$target" in
         *HEAD~[0-9]*) files=$(git diff --diff-filter=AM --name-only $target -- "*.py");;
