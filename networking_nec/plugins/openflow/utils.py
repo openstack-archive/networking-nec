@@ -16,6 +16,7 @@ from oslo_log import log as logging
 from oslo_utils import excutils
 from sqlalchemy.orm import exc as sa_exc
 
+from neutron.common import exceptions as n_exc
 from neutron import manager
 
 LOG = logging.getLogger(__name__)
@@ -30,12 +31,13 @@ def update_resource_status(context, resource, id, status, ignore_error=False):
         with context.session.begin(subtransactions=True):
             obj_db = obj_getter(context, id)
             obj_db.update(request)
-    except sa_exc.StaleDataError:
+    except (sa_exc.StaleDataError, n_exc.NotFound) as e:
         with excutils.save_and_reraise_exception() as ctxt:
             if ignore_error:
                 LOG.debug("deleting %(resource)s %(id)s is being executed "
-                          "concurrently. Ignoring StaleDataError.",
-                          {'resource': resource, 'id': id})
+                          "concurrently. Ignoring %(exc).",
+                          {'resource': resource, 'id': id,
+                           'exc': e.__class__.__name__})
                 ctxt.reraise = False
                 return
 
