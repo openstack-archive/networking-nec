@@ -31,7 +31,6 @@ def update_resource_status(context, resource, id, status, ignore_error=False):
             obj_db = obj_getter(context, id)
             obj_db.update(request)
     except sa_exc.StaleDataError:
-        LOG.debug('#### come here 1')
         with excutils.save_and_reraise_exception() as ctxt:
             if ignore_error:
                 LOG.debug("deleting %(resource)s %(id)s is being executed "
@@ -39,7 +38,6 @@ def update_resource_status(context, resource, id, status, ignore_error=False):
                           {'resource': resource, 'id': id})
                 ctxt.reraise = False
                 return
-            LOG.debug('#### come here 2')
 
 
 def update_resource_status_if_changed(context, resource_type,
