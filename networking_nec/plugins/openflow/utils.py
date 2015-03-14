@@ -12,25 +12,43 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from oslo_log import log as logging
+from oslo_utils import excutils
+from sqlalchemy.orm import exc as sa_exc
+
 from neutron import manager
 
+LOG = logging.getLogger(__name__)
 
-def update_resource_status(context, resource, id, status):
+
+def update_resource_status(context, resource, id, status, ignore_error=False):
     """Update status of specified resource."""
     request = {'status': status}
     plugin = manager.NeutronManager.get_plugin()
     obj_getter = getattr(plugin, '_get_%s' % resource)
-    with context.session.begin(subtransactions=True):
-        obj_db = obj_getter(context, id)
-        obj_db.update(request)
+    try:
+        with context.session.begin(subtransactions=True):
+            obj_db = obj_getter(context, id)
+            obj_db.update(request)
+    except sa_exc.StaleDataError:
+        LOG.debug('#### come here 1')
+        with excutils.save_and_reraise_exception() as ctxt:
+            if ignore_error:
+                LOG.debug("deleting %(resource)s %(id)s is being executed "
+                          "concurrently. Ignoring StaleDataError.",
+                          {'resource': resource, 'id': id})
+                ctxt.reraise = False
+                return
+            LOG.debug('#### come here 2')
 
 
 def update_resource_status_if_changed(context, resource_type,
-                                      resource_dict, new_status):
+                                      resource_dict, new_status,
+                                      ignore_error=False):
     if resource_dict['status'] != new_status:
         update_resource_status(context, resource_type,
                                resource_dict['id'],
-                               new_status)
+                               new_status, ignore_error)
         resource_dict['status'] = new_status
 
 

@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import mock
+from sqlalchemy.orm import exc as sa_exc
 import webob.exc
 
 from neutron.common import constants
@@ -310,6 +311,42 @@ class TestNecPluginDbTest(NecPluginV2TestCase):
                     getattr(constants, 'NET_STATUS_%s' % status))
                 n = self.plugin._get_network(self.context, net_id)
                 self.assertEqual(status, n.status)
+
+    def _test_update_resource_with_exception(self, exc=None,
+                                             ignore_error=False,
+                                             exc_expexted=True):
+        def _call_method():
+            necutils.update_resource_status(
+                self.context, 'network', net_id, "DOWN", ignore_error)
+
+        with self.network() as network:
+            self.assertEqual("ACTIVE", network['network']['status'])
+            net_id = network['network']['id']
+            plugin = manager.NeutronManager.get_plugin()
+            exc = exc or Exception
+            with mock.patch.object(plugin, '_get_network', side_effect=exc):
+                if exc_expexted:
+                    self.assertRaises(exc, _call_method)
+                else:
+                    _call_method()
+            n = self.plugin._get_network(self.context, net_id)
+            # Check the status is unchanged.
+            self.assertEqual("ACTIVE", n.status)
+
+    def test_update_resource_with_staledata_error_ignore_error(self):
+        self._test_update_resource_with_exception(sa_exc.StaleDataError,
+                                                  ignore_error=True,
+                                                  exc_expexted=False)
+
+    def test_update_resource_with_staledata_error(self):
+        self._test_update_resource_with_exception(sa_exc.StaleDataError,
+                                                  ignore_error=False)
+
+    def test_update_resource_with_general_exception_with_ignore_error(self):
+        self._test_update_resource_with_exception(ignore_error=True)
+
+    def test_update_resource_with_general_exception(self):
+        self._test_update_resource_with_exception(ignore_error=False)
 
 
 class TestNecPluginOfcManager(NecPluginV2TestCase):

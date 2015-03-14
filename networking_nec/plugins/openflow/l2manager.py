@@ -141,7 +141,8 @@ class L2Manager(object):
         try:
             self.ofc.delete_ofc_port(context, port['id'], port)
             utils.update_resource_status_if_changed(
-                context, "port", port, const.PORT_STATUS_DOWN)
+                context, "port", port, const.PORT_STATUS_DOWN,
+                ignore_error=True)
             return port
         except (nexc.OFCResourceNotFound, nexc.OFCMappingNotFound):
             # There is a case where multiple delete_port operation are
@@ -164,7 +165,8 @@ class L2Manager(object):
                 LOG.error(_LE("Failed to delete port=%(port)s from OFC: "
                               "%(exc)s"), {'port': port['id'], 'exc': exc})
                 utils.update_resource_status_if_changed(
-                    context, "port", port, const.PORT_STATUS_ERROR)
+                    context, "port", port, const.PORT_STATUS_ERROR,
+                    ignore_error=True)
                 if not raise_exc:
                     ctxt.reraise = False
                     return port
