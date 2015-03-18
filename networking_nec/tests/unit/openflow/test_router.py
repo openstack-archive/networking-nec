@@ -46,3 +46,6 @@ class NecRouterOpenFlowTestCase(NecRouterL3AgentTestCase):
         cfg.CONF.set_override('default_router_provider',
                               'openflow', 'PROVIDER')
         super(NecRouterOpenFlowTestCase, self).setUp()
+
+    def test_router_add_gateway_no_subnet(self):
+        self.skipTest('Need investigation to support IPv6 router. blueprint ipv6-router')
