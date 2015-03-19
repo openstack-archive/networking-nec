@@ -14,6 +14,7 @@
 
 import time
 
+from oslo_concurrency import lockutils
 from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_serialization import jsonutils
@@ -143,14 +144,18 @@ class OFCClient(object):
                         ctxt.reraise = False
                         continue
 
+    @lockutils.synchronized('backend-api', 'networking-nec-')
+    def do_request_synchronized(self, method, action, **kwargs):
+        return self.do_request(method, action, **kwargs)
+
     def get(self, action):
         return self.do_request("GET", action)
 
     def post(self, action, body=None):
-        return self.do_request("POST", action, body=body)
+        return self.do_request_synchronized("POST", action, body=body)
 
     def put(self, action, body=None):
-        return self.do_request("PUT", action, body=body)
+        return self.do_request_synchronized("PUT", action, body=body)
 
     def delete(self, action):
-        return self.do_request("DELETE", action)
+        return self.do_request_synchronized("DELETE", action)
