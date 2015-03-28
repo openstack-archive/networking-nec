@@ -189,6 +189,8 @@ class L2Manager(object):
     def get_initial_port_status(self, port):
         # NOTE(amotoki): Not sure the initial port status should be
         # BUILD or DOWN. Both works with the current nova/neutron.
+        if port['port'].get('status'):
+            return port['port'].get('status')
         return const.PORT_STATUS_DOWN
 
     def create_network(self, context, network):
