@@ -19,7 +19,7 @@ import os
 from oslo_config import cfg
 
 import neutron
-from neutron.tests.unit import test_db_plugin
+from neutron.tests.unit.db import test_db_base_plugin_v2 as test_db_plugin
 from neutron.tests.unit import testlib_api
 
 

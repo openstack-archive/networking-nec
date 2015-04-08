@@ -17,7 +17,7 @@ import mock
 from oslo_config import cfg
 
 from neutron import manager
-from neutron.tests.unit import test_extension_extraroute as test_ext_route
+from neutron.tests.unit.extensions import test_extraroute as test_ext_route
 
 from networking_nec.tests import base
 from networking_nec.tests.unit.openflow import test_plugin
