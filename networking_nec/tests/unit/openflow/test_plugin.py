@@ -22,8 +22,8 @@ from neutron.common import topics
 from neutron import context
 from neutron.db import db_base_plugin_v2
 from neutron import manager
-from neutron.tests.unit import test_db_plugin as test_plugin
-from neutron.tests.unit import test_extension_allowedaddresspairs as test_pair
+from neutron.tests.unit.db import test_db_base_plugin_v2 as test_plugin
+from neutron.tests.unit.db import test_allowedaddresspairs_db as test_pair
 
 from networking_nec.plugins.openflow.db import api as ndb
 from networking_nec.plugins.openflow import exceptions as nexc

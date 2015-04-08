@@ -20,8 +20,8 @@ import mock
 from neutron.api.v2 import attributes
 from neutron.extensions import securitygroup as ext_sg
 from neutron import manager
-from neutron.tests.unit import test_extension_security_group as test_sg
-from neutron.tests.unit import test_security_groups_rpc as test_sg_rpc
+from neutron.tests.unit.extensions import test_securitygroup as test_sg
+from neutron.tests.unit.agent import test_securitygroups_rpc as test_sg_rpc
 
 from networking_nec.tests import base
 from networking_nec.tests.unit.openflow import test_plugin
