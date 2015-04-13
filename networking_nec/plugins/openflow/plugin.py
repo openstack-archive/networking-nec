@@ -13,6 +13,7 @@
 #    under the License.
 
 from oslo_config import cfg
+from oslo_log import helpers as log_helpers
 from oslo_log import log as logging
 from oslo_utils import importutils
 
@@ -25,7 +26,6 @@ from neutron.api.rpc.handlers import metadata_rpc
 from neutron.api.rpc.handlers import securitygroups_rpc
 from neutron.common import constants as const
 from neutron.common import exceptions as n_exc
-from neutron.common import log as call_log
 from neutron.common import rpc as n_rpc
 from neutron.common import topics
 from neutron.db import agents_db
@@ -111,7 +111,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
         # Consume from all consumers in threads
         self.conn.consume_in_threads()
 
-    @call_log.log
+    @log_helpers.log_method_call
     def create_network(self, context, network):
         """Create a new network entry on DB, and create it on OFC."""
         tenant_id = self._get_tenant_id_for_create(context, network['network'])
@@ -128,7 +128,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
 
         return new_net
 
-    @call_log.log
+    @log_helpers.log_method_call
     def update_network(self, context, id, network):
         """Update network and handle resources associated with the network.
 
@@ -147,7 +147,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
 
         return new_net
 
-    @call_log.log
+    @log_helpers.log_method_call
     def delete_network(self, context, id):
         """Delete network and packet_filters associated with the network.
 
@@ -174,7 +174,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
 
         super(NECPluginV2Impl, self).delete_network(context, id)
 
-    @call_log.log
+    @log_helpers.log_method_call
     def create_port(self, context, port):
         """Create a new port entry on DB, then try to activate it."""
 
@@ -194,7 +194,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
         self.notify_security_groups_member_updated(context, new_port)
         return self.l2mgr.create_port(context, new_port)
 
-    @call_log.log
+    @log_helpers.log_method_call
     def update_port(self, context, id, port):
         """Update port, and handle packetfilters associated with the port.
 
@@ -223,7 +223,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
         self.l2mgr.update_port(context, old_port, new_port)
         return new_port
 
-    @call_log.log
+    @log_helpers.log_method_call
     def delete_port(self, context, id, l3_port_check=True):
         """Delete port and packet_filters associated with the port."""
         # if needed, check to see if this is a port owned by

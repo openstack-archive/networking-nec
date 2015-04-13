@@ -15,12 +15,12 @@
 import abc
 import httplib
 
+from oslo_log import helpers as log_helpers
 from oslo_log import log as logging
 from oslo_utils import excutils
 import six
 
 from neutron.common import constants
-from neutron.common import log as call_log
 from neutron.common import utils
 
 from networking_nec.i18n import _LE, _LW
@@ -68,23 +68,23 @@ class RouterL3AgentDriver(RouterDriverBase):
 
     need_gw_info = False
 
-    @call_log.log
+    @log_helpers.log_method_call
     def create_router(self, context, tenant_id, router):
         return router
 
-    @call_log.log
+    @log_helpers.log_method_call
     def update_router(self, context, router_id, old_router, new_router):
         return new_router
 
-    @call_log.log
+    @log_helpers.log_method_call
     def delete_router(self, context, router_id, router):
         pass
 
-    @call_log.log
+    @log_helpers.log_method_call
     def add_interface(self, context, router_id, port):
         return self.plugin.l2mgr.activate_port_if_ready(context, port)
 
-    @call_log.log
+    @log_helpers.log_method_call
     def delete_interface(self, context, router_id, port):
         return self.plugin.l2mgr.deactivate_port(context, port)
 
@@ -101,7 +101,7 @@ class RouterOpenFlowDriver(RouterDriverBase):
             routes.append({'destination': constants.IPv4_ANY,
                            'nexthop': gw_info['gateway_ip']})
 
-    @call_log.log
+    @log_helpers.log_method_call
     def create_router(self, context, tenant_id, router):
         try:
             router_id = router['id']
@@ -130,7 +130,7 @@ class RouterOpenFlowDriver(RouterDriverBase):
                                                 router['id'],
                                                 new_status)
 
-    @call_log.log
+    @log_helpers.log_method_call
     def update_router(self, context, router_id, old_router, new_router):
         old_routes = old_router['routes'][:]
         new_routes = new_router['routes'][:]
@@ -159,7 +159,7 @@ class RouterOpenFlowDriver(RouterDriverBase):
                         context, "router", router_id, new_status)
         return new_router
 
-    @call_log.log
+    @log_helpers.log_method_call
     def delete_router(self, context, router_id, router):
         if not self.ofc.exists_ofc_router(context, router_id):
             return
@@ -171,7 +171,7 @@ class RouterOpenFlowDriver(RouterDriverBase):
                 necutils.update_resource_status(
                     context, "router", router_id, nconst.ROUTER_STATUS_ERROR)
 
-    @call_log.log
+    @log_helpers.log_method_call
     def add_interface(self, context, router_id, port):
         port_id = port['id']
         # port['fixed_ips'] may be empty if ext_net has no subnet.
@@ -204,7 +204,7 @@ class RouterOpenFlowDriver(RouterDriverBase):
                 necutils.update_resource_status(
                     context, "port", port_id, new_status)
 
-    @call_log.log
+    @log_helpers.log_method_call
     def delete_interface(self, context, router_id, port):
         port_id = port['id']
         try:

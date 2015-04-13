@@ -13,10 +13,9 @@
 #    under the License.
 
 import netaddr
+from oslo_log import helpers as log_helpers
 from oslo_log import log as logging
 from oslo_utils import uuidutils
-
-from neutron.common import log as call_log
 
 from networking_nec.plugins.openflow import exceptions as nexc
 from networking_nec.plugins.openflow import ofc_driver_base
@@ -57,7 +56,7 @@ class StubOFCDriver(ofc_driver_base.OFCDriverBase):
     def disable_autocheck(self):
         self.autocheck = False
 
-    @call_log.log
+    @log_helpers.log_method_call
     def create_tenant(self, description, tenant_id=None):
         ofc_id = "ofc-" + tenant_id[:-4]
         if self.autocheck:
@@ -68,7 +67,7 @@ class StubOFCDriver(ofc_driver_base.OFCDriverBase):
                                         'description': description}
         return ofc_id
 
-    @call_log.log
+    @log_helpers.log_method_call
     def delete_tenant(self, ofc_tenant_id):
         if ofc_tenant_id in self.ofc_tenant_dict:
             del self.ofc_tenant_dict[ofc_tenant_id]
@@ -78,7 +77,7 @@ class StubOFCDriver(ofc_driver_base.OFCDriverBase):
                                 % ofc_tenant_id)
         LOG.debug('delete_tenant: SUCCEED')
 
-    @call_log.log
+    @log_helpers.log_method_call
     def create_network(self, ofc_tenant_id, description, network_id=None):
         ofc_id = "ofc-" + network_id[:-4]
         if self.autocheck:
@@ -93,7 +92,7 @@ class StubOFCDriver(ofc_driver_base.OFCDriverBase):
                                          'description': description}
         return ofc_id
 
-    @call_log.log
+    @log_helpers.log_method_call
     def update_network(self, ofc_network_id, description):
         if self.autocheck:
             if ofc_network_id not in self.ofc_network_dict:
@@ -103,7 +102,7 @@ class StubOFCDriver(ofc_driver_base.OFCDriverBase):
         self.ofc_network_dict[ofc_network_id].update(data)
         LOG.debug('update_network: SUCCEED')
 
-    @call_log.log
+    @log_helpers.log_method_call
     def delete_network(self, ofc_network_id):
         if ofc_network_id in self.ofc_network_dict:
             del self.ofc_network_dict[ofc_network_id]
@@ -113,7 +112,7 @@ class StubOFCDriver(ofc_driver_base.OFCDriverBase):
                                 % ofc_network_id)
         LOG.debug('delete_network: SUCCEED')
 
-    @call_log.log
+    @log_helpers.log_method_call
     def create_port(self, ofc_network_id, info, port_id=None, filters=None):
         ofc_id = "ofc-" + port_id[:-4]
         if self.autocheck:
@@ -129,7 +128,7 @@ class StubOFCDriver(ofc_driver_base.OFCDriverBase):
             self.ofc_port_dict[ofc_id]['filters'] = filters
         return ofc_id
 
-    @call_log.log
+    @log_helpers.log_method_call
     def delete_port(self, ofc_port_id):
         if ofc_port_id in self.ofc_port_dict:
             del self.ofc_port_dict[ofc_port_id]
@@ -164,7 +163,7 @@ class StubOFCDriver(ofc_driver_base.OFCDriverBase):
     router_supported = True
     router_nat_supported = True
 
-    @call_log.log
+    @log_helpers.log_method_call
     def create_router(self, ofc_tenant_id, router_id, description):
         ofc_id = "ofc-" + router_id[:-4]
         if self.autocheck:
@@ -183,7 +182,7 @@ class StubOFCDriver(ofc_driver_base.OFCDriverBase):
                                         'description': description}
         return ofc_id
 
-    @call_log.log
+    @log_helpers.log_method_call
     def delete_router(self, ofc_router_id):
         if ofc_router_id in self.ofc_router_dict:
             del self.ofc_router_dict[ofc_router_id]
@@ -193,7 +192,7 @@ class StubOFCDriver(ofc_driver_base.OFCDriverBase):
                                 % ofc_router_id)
         LOG.debug('delete_router: SUCCEED')
 
-    @call_log.log
+    @log_helpers.log_method_call
     def add_router_interface(self, ofc_router_id, ofc_net_id,
                              ip_address=None, mac_address=None):
         if_id = "ofc-" + uuidutils.generate_uuid()[:-4]
@@ -217,7 +216,7 @@ class StubOFCDriver(ofc_driver_base.OFCDriverBase):
         LOG.debug('add_router_interface: SUCCEED (if_id=%s)', if_id)
         return if_id
 
-    @call_log.log
+    @log_helpers.log_method_call
     def update_router_interface(self, ofc_router_inf_id,
                                 ip_address=None, mac_address=None):
         if ofc_router_inf_id not in self.ofc_router_inf_dict:
@@ -233,7 +232,7 @@ class StubOFCDriver(ofc_driver_base.OFCDriverBase):
             inf.update({'mac_address': mac_address})
         LOG.debug('update_router_route: SUCCEED')
 
-    @call_log.log
+    @log_helpers.log_method_call
     def delete_router_interface(self, ofc_router_inf_id):
         if ofc_router_inf_id in self.ofc_router_inf_dict:
             del self.ofc_router_inf_dict[ofc_router_inf_id]
@@ -244,7 +243,7 @@ class StubOFCDriver(ofc_driver_base.OFCDriverBase):
                                 % ofc_router_inf_id)
         LOG.debug('delete_router_interface: SUCCEED')
 
-    @call_log.log
+    @log_helpers.log_method_call
     def add_router_route(self, ofc_router_id, destination, nexthop):
         route_id = "ofc-" + uuidutils.generate_uuid()[:-4]
         # IP address format check
@@ -265,7 +264,7 @@ class StubOFCDriver(ofc_driver_base.OFCDriverBase):
         LOG.debug('add_router_route: SUCCEED (route_id=%s)', route_id)
         return route_id
 
-    @call_log.log
+    @log_helpers.log_method_call
     def delete_router_route(self, ofc_router_route_id):
         if ofc_router_route_id in self.ofc_router_route_dict:
             del self.ofc_router_route_dict[ofc_router_route_id]
@@ -275,7 +274,7 @@ class StubOFCDriver(ofc_driver_base.OFCDriverBase):
                                   'not found') % ofc_router_route_id)
         LOG.debug('delete_router_route: SUCCEED')
 
-    @call_log.log
+    @log_helpers.log_method_call
     def list_router_routes(self, ofc_router_id):
         if self.autocheck:
             if ofc_router_id not in self.ofc_router_dict:

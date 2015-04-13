@@ -17,11 +17,11 @@ import uuid
 
 import netaddr
 from oslo_config import cfg
+from oslo_log import helpers as log_helpers
 
 from neutron.api.v2 import attributes
 from neutron.common import constants
 from neutron.common import exceptions as qexc
-from neutron.common import log as call_log
 from neutron import manager
 from neutron.plugins.nec.extensions import packetfilter as ext_pf
 
@@ -275,7 +275,7 @@ class PFCFilterDriverMixin(object):
                 raise ext_pf.PacketFilterUpdateNotSupported(field=field)
         self._validate_filter_common(filter_dict)
 
-    @call_log.log
+    @log_helpers.log_method_call
     def create_filter(self, context, filter_dict, filter_id=None):
         in_port_id = filter_dict.get('in_port')
         apply_ports = ndb.get_active_ports_on_ofc(
@@ -289,12 +289,12 @@ class PFCFilterDriverMixin(object):
         ofc_filter_id = res['id']
         return self.filter_path % ofc_filter_id
 
-    @call_log.log
+    @log_helpers.log_method_call
     def update_filter(self, ofc_filter_id, filter_dict):
         body = self._generate_body(filter_dict, create=False)
         self.client.put(ofc_filter_id, body)
 
-    @call_log.log
+    @log_helpers.log_method_call
     def delete_filter(self, ofc_filter_id):
         return self.client.delete(ofc_filter_id)
 
