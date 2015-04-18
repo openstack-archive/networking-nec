@@ -22,7 +22,7 @@ from oslo_config import cfg
 from six import moves
 import testtools
 
-from neutron.agent.linux import ovs_lib
+from neutron.agent.common import ovs_lib
 from neutron.cmd.eventlet.plugins import nec_neutron_agent
 from neutron.extensions import securitygroup as ext_sg
 from neutron.plugins.nec import config as nec_config
