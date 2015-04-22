@@ -17,7 +17,7 @@ import random
 
 from oslo_utils import uuidutils
 
-from neutron.common import constants as q_const
+from neutron.plugins.common import constants as p_const
 
 from networking_nec.plugins.openflow.db import api as ndb
 from networking_nec.plugins.openflow import exceptions as nexc
@@ -45,8 +45,8 @@ class NECPluginV2DBTestBase(test_plugin.NecPluginV2TestCase):
             params = {'port_id': port['port']['id'],
                       'datapath_id': hex(random.randint(0, 0xffffffff)),
                       'port_no': random.randint(1, 100),
-                      'vlan_id': random.randint(q_const.MIN_VLAN_TAG,
-                                                q_const.MAX_VLAN_TAG),
+                      'vlan_id': random.randint(p_const.MIN_VLAN_TAG,
+                                                p_const.MAX_VLAN_TAG),
                       'mac': ':'.join(["%02x" % random.randint(0, 0xff)
                                        for x in range(6)])
                       }
