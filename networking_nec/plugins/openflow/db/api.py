@@ -153,10 +153,10 @@ def get_active_ports_on_ofc(context, network_id, port_id=None):
     return [(p['neutron_id'], p['ofc_id']) for p in query]
 
 
-def get_port_from_device(port_id):
+def get_port_from_device(context, port_id):
     """Get port from database."""
     LOG.debug("get_port_with_securitygroups() called:port_id=%s", port_id)
-    session = db.get_session()
+    session = context.session
     sg_binding_port = sg_db.SecurityGroupPortBinding.port_id
 
     query = session.query(models_v2.Port,

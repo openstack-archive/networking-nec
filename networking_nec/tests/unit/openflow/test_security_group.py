@@ -18,6 +18,7 @@ import contextlib
 import mock
 
 from neutron.api.v2 import attributes
+from neutron import context
 from neutron.extensions import securitygroup as ext_sg
 from neutron import manager
 from neutron.tests.unit.agent import test_securitygroups_rpc as test_sg_rpc
@@ -64,6 +65,10 @@ class TestNecSecurityGroups(NecSecurityGroupsTestCase,
                             test_sg.TestSecurityGroups,
                             test_sg_rpc.SGNotificationTestMixin):
 
+    def setUp(self):
+        super(TestNecSecurityGroups, self).setUp()
+        self.ctx = context.get_admin_context()
+
     def test_security_group_get_port_from_device(self):
         with contextlib.nested(self.network(),
                                self.security_group()) as (n, sg):
@@ -82,7 +87,7 @@ class TestNecSecurityGroups(NecSecurityGroupsTestCase,
                                        req.get_response(self.api))
 
                 plugin = manager.NeutronManager.get_plugin()
-                port_dict = plugin.get_port_from_device(port_id)
+                port_dict = plugin.get_port_from_device(self.ctx, port_id)
                 self.assertEqual(port_id, port_dict['id'])
                 self.assertEqual([sg_id],
                                  port_dict[ext_sg.SECURITYGROUPS])
