@@ -31,8 +31,8 @@ LOG = logging.getLogger(__name__)
 class SecurityGroupServerRpcMixin(sg_db_rpc.SecurityGroupServerRpcMixin):
 
     @staticmethod
-    def get_port_from_device(device):
-        port = ndb.get_port_from_device(device)
+    def get_port_from_device(context, device):
+        port = ndb.get_port_from_device(context, device)
         if port:
             port['device'] = device
         LOG.debug("NECPluginV2.get_port_from_device() called, "
