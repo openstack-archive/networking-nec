@@ -16,7 +16,8 @@
 import contextlib
 from neutron.api.rpc.handlers import l3_rpc
 from neutron.common import constants
-from neutron.tests.unit.plugins.openvswitch import test_agent_scheduler
+from neutron.tests.unit.plugins.ml2.drivers.openvswitch.agent \
+    import test_agent_scheduler
 
 from networking_nec.tests.unit.openflow import test_plugin
 
