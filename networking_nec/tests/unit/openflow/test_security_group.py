@@ -13,8 +13,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import contextlib
-
 import mock
 
 from neutron.api.v2 import attributes
@@ -68,8 +66,8 @@ class TestNecSecurityGroups(NecSecurityGroupsTestCase,
         self.ctx = context.get_admin_context()
 
     def test_security_group_get_port_from_device(self):
-        with contextlib.nested(self.network(),
-                               self.security_group()) as (n, sg):
+        with self.network() as n, \
+                self.security_group() as sg:
             with self.subnet(n):
                 res = self._create_port(self.fmt, n['network']['id'])
                 port = self.deserialize(self.fmt, res)

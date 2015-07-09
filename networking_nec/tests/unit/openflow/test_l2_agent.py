@@ -12,7 +12,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import contextlib
 import copy
 import itertools
 import time
@@ -47,15 +46,14 @@ class TestNecAgentBase(base.BaseTestCase):
                              'neutron.agent.firewall.NoopFirewallDriver',
                              group='SECURITYGROUP')
         cfg.CONF.set_override('host', 'dummy-host')
-        with contextlib.nested(
-            mock.patch.object(ovs_lib.OVSBridge, 'get_datapath_id',
-                              return_value=OVS_DPID),
-            mock.patch('socket.gethostname', return_value='dummy-host'),
-            mock.patch('networking_nec.openstack.common.loopingcall.'
-                       'FixedIntervalLoopingCall'),
-            mock.patch('neutron.agent.rpc.PluginReportStateAPI')
-        ) as (get_datapath_id, gethostname,
-              loopingcall, state_rpc_api):
+        with mock.patch.object(ovs_lib.OVSBridge, 'get_datapath_id',
+                               return_value=OVS_DPID), \
+                mock.patch('socket.gethostname',
+                           return_value='dummy-host'), \
+                mock.patch('networking_nec.openstack.common.loopingcall.'
+                           'FixedIntervalLoopingCall') as loopingcall, \
+                mock.patch('neutron.agent.rpc.PluginReportStateAPI'
+                           ) as state_rpc_api:
             kwargs = {'integ_br': 'integ_br',
                       'polling_interval': 1}
             self.agent = l2_agent.NECNeutronAgent(**kwargs)
@@ -159,15 +157,19 @@ class TestNecAgent(TestNecAgentBase):
                 [] for _i in moves.xrange(DAEMON_LOOP_COUNT -
                                           len(self.vif_ports_scenario)))
 
-        with contextlib.nested(
-            mock.patch.object(time, 'sleep', side_effect=sleep_mock),
-            mock.patch.object(ovs_lib.OVSBridge, 'get_vif_ports'),
-            mock.patch.object(l2_agent.NECPluginApi, 'update_ports'),
-            mock.patch.object(self.agent.sg_agent, 'prepare_devices_filter'),
-            mock.patch.object(self.agent.sg_agent, 'remove_devices_filter')
-        ) as (sleep, get_vif_potrs, update_ports,
-              prepare_devices_filter, remove_devices_filter):
-            get_vif_potrs.side_effect = self.vif_ports_scenario
+        with mock.patch.object(time, 'sleep',
+                               side_effect=sleep_mock) as sleep, \
+                mock.patch.object(ovs_lib.OVSBridge,
+                                  'get_vif_ports') as get_vif_ports, \
+                mock.patch.object(l2_agent.NECPluginApi,
+                                  'update_ports') as update_ports, \
+                mock.patch.object(self.agent.sg_agent,
+                                  'prepare_devices_filter'
+                                  ) as prepare_devices_filter, \
+                mock.patch.object(self.agent.sg_agent,
+                                  'remove_devices_filter'
+                                  ) as remove_devices_filter:
+            get_vif_ports.side_effect = self.vif_ports_scenario
 
             with testtools.ExpectedException(RuntimeError):
                 self.agent.daemon_loop()
@@ -272,10 +274,10 @@ class TestNecAgent(TestNecAgentBase):
 class TestNecAgentCallback(TestNecAgentBase):
 
     def test_port_update(self):
-        with contextlib.nested(
-            mock.patch.object(ovs_lib.OVSBridge, 'get_vif_port_by_id'),
-            mock.patch.object(self.agent.sg_agent, 'refresh_firewall')
-        ) as (get_vif_port_by_id, refresh_firewall):
+        with mock.patch.object(ovs_lib.OVSBridge,
+                               'get_vif_port_by_id') as get_vif_port_by_id, \
+                mock.patch.object(self.agent.sg_agent,
+                                  'refresh_firewall') as refresh_firewall:
             context = mock.Mock()
             vifport = ovs_lib.VifPort('port1', '1', 'id-1', 'mac-1',
                                       self.agent.int_br)
@@ -313,10 +315,10 @@ class TestNecAgentCallback(TestNecAgentBase):
 class TestNecAgentPluginApi(TestNecAgentBase):
 
     def test_plugin_api(self):
-        with contextlib.nested(
-            mock.patch.object(self.agent.plugin_rpc.client, 'prepare'),
-            mock.patch.object(self.agent.plugin_rpc.client, 'call'),
-        ) as (mock_prepare, mock_call):
+        with mock.patch.object(self.agent.plugin_rpc.client,
+                               'prepare') as mock_prepare, \
+                mock.patch.object(self.agent.plugin_rpc.client,
+                                  'call') as mock_call:
             mock_prepare.return_value = self.agent.plugin_rpc.client
 
             agent_id = 'nec-q-agent.dummy-host'
@@ -337,10 +339,9 @@ class TestNecAgentPluginApi(TestNecAgentBase):
 class TestNecAgentMain(base.BaseTestCase):
     def test_main(self):
         nec_config.register_agent_opts()
-        with contextlib.nested(
-            mock.patch.object(l2_agent, 'NECNeutronAgent'),
-            mock.patch.object(nec_neutron_agent, 'common_config')
-        ) as (agent, common_config):
+        with mock.patch.object(l2_agent, 'NECNeutronAgent') as agent, \
+                mock.patch.object(nec_neutron_agent,
+                                  'common_config') as common_config:
             cfg.CONF.set_override('integration_bridge', 'br-int-x', 'OVS')
             cfg.CONF.set_override('polling_interval', 10, 'AGENT')
 

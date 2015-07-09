@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import contextlib
 from neutron.api.rpc.handlers import l3_rpc
 from neutron.common import constants
 from neutron.tests.unit.plugins.ml2.drivers.openvswitch.agent \
@@ -73,11 +72,9 @@ class NecL3AgentSchedulerWithOpenFlowRouter(
         super(NecL3AgentSchedulerWithOpenFlowRouter, self).setUp()
 
     def test_router_auto_schedule_with_l3agent_and_openflow(self):
-        with contextlib.nested(
-            self.router(),
-            self.router(arg_list=('provider',),
-                        provider='openflow'
-                        )) as (r1, r2):
+        with self.router() as r1, \
+                self.router(arg_list=('provider',),
+                            provider='openflow') as r2:
             l3_rpc_cb = l3_rpc.L3RpcCallback()
             self._register_agent_states()
             ret_a = l3_rpc_cb.sync_routers(self.adminContext, host=L3_HOSTA)
@@ -92,10 +89,8 @@ class NecL3AgentSchedulerWithOpenFlowRouter(
         self.assertEqual(L3_HOSTA, l3_agents['agents'][0]['host'])
 
     def test_router_auto_schedule_only_with_openflow_router(self):
-        with contextlib.nested(
-            self.router(arg_list=('provider',), provider='openflow'),
-            self.router(arg_list=('provider',), provider='openflow')
-        ) as (r1, r2):
+        with self.router(arg_list=('provider',), provider='openflow') as r1, \
+                self.router(arg_list=('provider',), provider='openflow') as r2:
             l3_rpc_cb = l3_rpc.L3RpcCallback()
             self._register_agent_states()
             ret_a = l3_rpc_cb.sync_routers(self.adminContext, host=L3_HOSTA)
