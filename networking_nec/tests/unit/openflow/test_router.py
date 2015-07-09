@@ -28,7 +28,6 @@ class NecRouterL3AgentTestCase(test_ext_route.ExtraRouteDBIntTestCase):
     _plugin_name = test_plugin.PLUGIN_NAME
 
     def setUp(self):
-        base.override_nvalues()
         mock.patch(test_plugin.OFC_MANAGER).start()
         super(NecRouterL3AgentTestCase, self).setUp(self._plugin_name)
 

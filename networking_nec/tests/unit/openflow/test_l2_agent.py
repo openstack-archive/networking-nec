@@ -42,7 +42,6 @@ class TestNecAgentBase(base.BaseTestCase):
         # TODO(amotoki): It seems a bug of neutorn.context
         # why does get_admin_context_without_session on agent side
         # require policy.json?
-        test_base.override_nvalues()
         super(TestNecAgentBase, self).setUp()
         nec_config.register_agent_opts()
         cfg.CONF.set_default('firewall_driver',

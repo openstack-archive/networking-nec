@@ -71,7 +71,6 @@ class NecPluginV2TestCaseBase(object):
         self.ofc_manager_p.start()
 
     def setup_nec_plugin_base(self):
-        base.override_nvalues()
         self._set_nec_ini()
         self.patch_remote_calls()
 

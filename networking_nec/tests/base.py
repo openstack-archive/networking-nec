@@ -23,23 +23,9 @@ from neutron.tests.unit.db import test_db_base_plugin_v2 as test_db_plugin
 from neutron.tests.unit import testlib_api
 
 
-def override_nvalues():
-    neutron_path = os.path.abspath(
-        os.path.join(os.path.dirname(neutron.__file__), os.pardir))
-    neutron_policy = os.path.join(neutron_path, 'etc/policy.json')
-    cfg.CONF.set_override('policy_file', neutron_policy)
-
-
 class NeutronDbPluginV2TestCase(test_db_plugin.NeutronDbPluginV2TestCase):
-
-    def setUp(self, plugin=None, service_plugins=None, ext_mgr=None):
-        override_nvalues()
-        super(NeutronDbPluginV2TestCase, self).setUp(
-            plugin=plugin, ext_mgr=ext_mgr)
+    pass
 
 
 class SqlTestCase(testlib_api.SqlTestCase):
-
-    def setUp(self):
-        override_nvalues()
-        super(SqlTestCase, self).setUp()
+    pass

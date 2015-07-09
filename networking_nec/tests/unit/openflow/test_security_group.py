@@ -36,7 +36,6 @@ NOTIFIER = 'networking_nec.plugins.openflow.rpc.NECPluginV2AgentNotifierApi'
 class NecSecurityGroupsTestCase(test_sg.SecurityGroupDBTestCase):
 
     def setUp(self, plugin=None):
-        base.override_nvalues()
         test_sg_rpc.set_firewall_driver(test_sg_rpc.FIREWALL_HYBRID_DRIVER)
         mock.patch(NOTIFIER).start()
         mock.patch(OFC_MANAGER).start()
