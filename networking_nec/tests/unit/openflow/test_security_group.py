@@ -24,7 +24,6 @@ from neutron import manager
 from neutron.tests.unit.agent import test_securitygroups_rpc as test_sg_rpc
 from neutron.tests.unit.extensions import test_securitygroup as test_sg
 
-from networking_nec.tests import base
 from networking_nec.tests.unit.openflow import test_plugin
 
 
@@ -36,7 +35,6 @@ NOTIFIER = 'networking_nec.plugins.openflow.rpc.NECPluginV2AgentNotifierApi'
 class NecSecurityGroupsTestCase(test_sg.SecurityGroupDBTestCase):
 
     def setUp(self, plugin=None):
-        base.override_nvalues()
         test_sg_rpc.set_firewall_driver(test_sg_rpc.FIREWALL_HYBRID_DRIVER)
         mock.patch(NOTIFIER).start()
         mock.patch(OFC_MANAGER).start()

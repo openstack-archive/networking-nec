@@ -29,7 +29,6 @@ from neutron.plugins.nec import config as nec_config
 from neutron.tests import base
 
 from networking_nec.plugins.openflow.agent import l2_agent
-from networking_nec.tests import base as test_base
 
 DAEMON_LOOP_COUNT = 10
 OVS_DPID = '00000629355b6943'
@@ -42,7 +41,6 @@ class TestNecAgentBase(base.BaseTestCase):
         # TODO(amotoki): It seems a bug of neutorn.context
         # why does get_admin_context_without_session on agent side
         # require policy.json?
-        test_base.override_nvalues()
         super(TestNecAgentBase, self).setUp()
         nec_config.register_agent_opts()
         cfg.CONF.set_default('firewall_driver',

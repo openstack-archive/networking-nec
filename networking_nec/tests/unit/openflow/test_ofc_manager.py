@@ -40,7 +40,6 @@ class OFCManagerTestBase(base.SqlTestCase):
     """Class conisting of OFCManager unit tests."""
 
     def setUp(self):
-        base.override_nvalues()
         super(OFCManagerTestBase, self).setUp()
         driver = ("networking_nec.tests.unit.openflow."
                   "stub_ofc_driver.StubOFCDriver")
