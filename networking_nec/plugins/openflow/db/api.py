@@ -87,7 +87,7 @@ def add_ofc_item(session, resource, neutron_id, ofc_id):
             session.flush()
     except Exception as exc:
         LOG.exception(exc)
-        raise nexc.NECDBException(reason=exc.message)
+        raise nexc.NECDBException(reason=exc)
     return item
 
 
@@ -123,7 +123,7 @@ def add_portinfo(session, id, datapath_id='', port_no=0,
             session.add(portinfo)
     except Exception as exc:
         LOG.exception(exc)
-        raise nexc.NECDBException(reason=exc.message)
+        raise nexc.NECDBException(reason=exc)
     return portinfo
 
 
