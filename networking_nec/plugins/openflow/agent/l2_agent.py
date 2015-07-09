@@ -26,6 +26,7 @@ eventlet.monkey_patch()
 from oslo_config import cfg
 from oslo_log import log as logging
 import oslo_messaging
+from oslo_service import loopingcall
 
 from neutron.agent.common import ovs_lib
 from neutron.agent import rpc as agent_rpc
@@ -37,7 +38,6 @@ from neutron import context as q_context
 from neutron.extensions import securitygroup as ext_sg
 
 from networking_nec.i18n import _LE, _LI
-from networking_nec.openstack.common import loopingcall
 
 
 LOG = logging.getLogger(__name__)
