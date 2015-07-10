@@ -14,14 +14,15 @@
 # limitations under the License.
 
 import mock
+from oslo_config import cfg
 import webob.exc
 
 from neutron.common import constants
-from neutron.common import test_lib
 from neutron.common import topics
 from neutron import context
 from neutron.db import db_base_plugin_v2
 from neutron import manager
+from neutron.plugins.nec import config as nec_config
 from neutron.tests.unit.db import test_allowedaddresspairs_db as test_pair
 from neutron.tests.unit.db import test_db_base_plugin_v2 as test_plugin
 
@@ -36,33 +37,17 @@ PLUGIN_NAME = 'neutron.plugins.nec.nec_plugin.NECPluginV2'
 PLUGIN_BASE = 'networking_nec.plugins.openflow.'
 OFC_MANAGER = PLUGIN_BASE + 'ofc_manager.OFCManager'
 NOTIFIER = PLUGIN_BASE + 'rpc.NECPluginV2AgentNotifierApi'
-NEC_PLUGIN_INI = """
-[OFC]
-driver = networking_nec.tests.unit.openflow.stub_ofc_driver.StubOFCDriver
-enable_packet_filter = False
-"""
+STUB_OFC_DRIVER = ('networking_nec.tests.unit.openflow.'
+                   'stub_ofc_driver.StubOFCDriver')
 
 
 class NecPluginV2TestCaseBase(object):
     _plugin_name = PLUGIN_NAME
-    _nec_ini = NEC_PLUGIN_INI
 
     def _set_nec_ini(self):
-        self.nec_ini_file = self.get_temp_file_path('nec.ini')
-        with open(self.nec_ini_file, 'w') as f:
-            f.write(self._nec_ini)
-        if 'config_files' in test_lib.test_config.keys():
-            for c in test_lib.test_config['config_files']:
-                if c.rfind("/nec.ini") > -1:
-                    test_lib.test_config['config_files'].remove(c)
-            test_lib.test_config['config_files'].append(self.nec_ini_file)
-        else:
-            test_lib.test_config['config_files'] = [self.nec_ini_file]
-        self.addCleanup(self._clean_nec_ini)
-
-    def _clean_nec_ini(self):
-        test_lib.test_config['config_files'].remove(self.nec_ini_file)
-        self.nec_ini_file = None
+        nec_config.register_plugin_opts()
+        cfg.CONF.set_override('driver', STUB_OFC_DRIVER, group='OFC')
+        cfg.CONF.set_override('enable_packet_filter', False, group='OFC')
 
     def patch_remote_calls(self):
         self.plugin_notifier_p = mock.patch(NOTIFIER)

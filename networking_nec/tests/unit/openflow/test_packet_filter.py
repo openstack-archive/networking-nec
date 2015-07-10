@@ -16,6 +16,7 @@
 import contextlib
 
 import mock
+from oslo_config import cfg
 import webob.exc
 
 from neutron.api.v2 import attributes
@@ -25,13 +26,6 @@ from neutron.tests.unit.db import test_db_base_plugin_v2 as test_db_plugin
 
 from networking_nec.plugins.openflow import exceptions as nexc
 from networking_nec.tests.unit.openflow import test_plugin
-
-
-NEC_PLUGIN_PF_INI = """
-[OFC]
-driver = networking_nec.tests.unit.openflow.stub_ofc_driver.StubOFCDriver
-enable_packet_filter = True
-"""
 
 
 class PacketfilterExtensionManager(ext_pf.Packetfilter):
@@ -49,7 +43,9 @@ class PacketfilterExtensionManager(ext_pf.Packetfilter):
 
 class TestNecPluginPacketFilterBase(test_plugin.NecPluginV2TestCase):
 
-    _nec_ini = NEC_PLUGIN_PF_INI
+    def _set_nec_ini(self):
+        super(TestNecPluginPacketFilterBase, self)._set_nec_ini()
+        cfg.CONF.set_override('enable_packet_filter', True, group='OFC')
 
     def setUp(self):
         ext_mgr = PacketfilterExtensionManager()
