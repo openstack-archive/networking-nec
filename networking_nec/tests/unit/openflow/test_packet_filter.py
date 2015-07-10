@@ -20,10 +20,10 @@ import webob.exc
 
 from neutron.api.v2 import attributes
 from neutron import context
-from neutron.plugins.nec.extensions import packetfilter as ext_pf
 from neutron.tests.unit.db import test_db_base_plugin_v2 as test_db_plugin
 
 from networking_nec.plugins.openflow import exceptions as nexc
+from networking_nec.plugins.openflow.extensions import packetfilter as ext_pf
 from networking_nec.tests.unit.openflow import test_plugin
 
 

@@ -32,7 +32,7 @@ from networking_nec.tests import base
 from networking_nec.tests.unit.openflow import fake_ofc_manager
 
 
-PLUGIN_NAME = 'neutron.plugins.nec.nec_plugin.NECPluginV2'
+PLUGIN_NAME = 'networking_nec.plugins.openflow.plugin.NECPluginV2'
 PLUGIN_BASE = 'networking_nec.plugins.openflow.'
 OFC_MANAGER = PLUGIN_BASE + 'ofc_manager.OFCManager'
 NOTIFIER = PLUGIN_BASE + 'rpc.NECPluginV2AgentNotifierApi'

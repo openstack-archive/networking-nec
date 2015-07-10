@@ -37,8 +37,9 @@ from neutron.db import portbindings_base
 from neutron.db import quota_db  # noqa
 from neutron.extensions import allowedaddresspairs as addr_pair
 from neutron.plugins.common import constants as svc_constants
-from neutron.plugins.nec import extensions
 
+from networking_nec.plugins.openflow import config as nec_config
+from networking_nec.plugins.openflow import extensions
 from networking_nec.plugins.openflow import l2manager
 from networking_nec.plugins.openflow import ofc_manager
 from networking_nec.plugins.openflow import packet_filter
@@ -49,22 +50,46 @@ from networking_nec.plugins.openflow import rpc
 LOG = logging.getLogger(__name__)
 
 
-class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
-                      external_net_db.External_net_db_mixin,
-                      router_plugin.RouterMixin,
-                      rpc.SecurityGroupServerRpcMixin,
-                      agentschedulers_db.DhcpAgentSchedulerDbMixin,
-                      router_plugin.L3AgentSchedulerDbMixin,
-                      packet_filter.PacketFilterMixin,
-                      bindings.PortBindingMixin,
-                      addr_pair_db.AllowedAddressPairsMixin):
+class NECPluginV2(db_base_plugin_v2.NeutronDbPluginV2,
+                  external_net_db.External_net_db_mixin,
+                  router_plugin.RouterMixin,
+                  rpc.SecurityGroupServerRpcMixin,
+                  agentschedulers_db.DhcpAgentSchedulerDbMixin,
+                  router_plugin.L3AgentSchedulerDbMixin,
+                  packet_filter.PacketFilterMixin,
+                  bindings.PortBindingMixin,
+                  addr_pair_db.AllowedAddressPairsMixin):
+
+    _supported_extension_aliases = ["agent",
+                                    "allowed-address-pairs",
+                                    "binding",
+                                    "dhcp_agent_scheduler",
+                                    "external-net",
+                                    "ext-gw-mode",
+                                    "extraroute",
+                                    "l3_agent_scheduler",
+                                    "packet-filter",
+                                    "quotas",
+                                    "router",
+                                    "router_provider",
+                                    "security-group",
+                                    ]
+
+    @property
+    def supported_extension_aliases(self):
+        if not hasattr(self, '_aliases'):
+            aliases = self._supported_extension_aliases[:]
+            self.setup_extension_aliases(aliases)
+            self._aliases = aliases
+        return self._aliases
 
     def setup_extension_aliases(self, aliases):
         sg_rpc.disable_security_group_extension_by_config(aliases)
         self.remove_packet_filter_extension_if_disabled(aliases)
 
     def __init__(self):
-        super(NECPluginV2Impl, self).__init__()
+        nec_config.register_plugin_opts()
+        super(NECPluginV2, self).__init__()
         self.ofc = ofc_manager.OFCManager(self.safe_reference)
         self.l2mgr = l2manager.L2Manager(self.safe_reference)
         self.base_binding_dict = self._get_base_binding_dict()
@@ -120,8 +145,8 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
         network['network']['status'] = self.l2mgr.get_initial_net_status(
             network)
         with context.session.begin(subtransactions=True):
-            new_net = super(NECPluginV2Impl, self).create_network(context,
-                                                                  network)
+            new_net = super(NECPluginV2, self).create_network(context,
+                                                              network)
             self._process_l3_create(context, new_net, network['network'])
 
         self.l2mgr.create_network(context, new_net)
@@ -138,9 +163,9 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
 
         session = context.session
         with session.begin(subtransactions=True):
-            old_net = super(NECPluginV2Impl, self).get_network(context, id)
-            new_net = super(NECPluginV2Impl, self).update_network(context, id,
-                                                                  network)
+            old_net = super(NECPluginV2, self).get_network(context, id)
+            new_net = super(NECPluginV2, self).update_network(context, id,
+                                                              network)
             self._process_l3_update(context, new_net, network['network'])
 
         self.l2mgr.update_network(context, id, old_net, new_net)
@@ -172,7 +197,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
 
         self.l2mgr.delete_network(context, id, ports)
 
-        super(NECPluginV2Impl, self).delete_network(context, id)
+        super(NECPluginV2, self).delete_network(context, id)
 
     @log_helpers.log_method_call
     def create_port(self, context, port):
@@ -183,7 +208,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
         with context.session.begin(subtransactions=True):
             self._ensure_default_security_group_on_port(context, port)
             sgids = self._get_security_groups_on_port(context, port)
-            new_port = super(NECPluginV2Impl, self).create_port(context, port)
+            new_port = super(NECPluginV2, self).create_port(context, port)
             self._process_portbindings_create(context, port_data, new_port)
             self._process_port_create_security_group(
                 context, new_port, sgids)
@@ -203,9 +228,9 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
         """
         need_port_update_notify = False
         with context.session.begin(subtransactions=True):
-            old_port = super(NECPluginV2Impl, self).get_port(context, id)
-            new_port = super(NECPluginV2Impl, self).update_port(context,
-                                                                id, port)
+            old_port = super(NECPluginV2, self).get_port(context, id)
+            new_port = super(NECPluginV2, self).update_port(context,
+                                                            id, port)
             self._process_portbindings_update(context, port['port'], new_port)
             if addr_pair.ADDRESS_PAIRS in port['port']:
                 need_port_update_notify |= (
@@ -236,7 +261,7 @@ class NECPluginV2Impl(db_base_plugin_v2.NeutronDbPluginV2,
         with context.session.begin(subtransactions=True):
             router_ids = self.disassociate_floatingips(
                 context, id, do_notify=False)
-            super(NECPluginV2Impl, self).delete_port(context, id)
+            super(NECPluginV2, self).delete_port(context, id)
 
         # now that we've left db transaction, we are safe to notify
         self.notify_routers_updated(context, router_ids)
