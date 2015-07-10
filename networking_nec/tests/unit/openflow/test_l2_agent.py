@@ -50,7 +50,7 @@ class TestNecAgentBase(base.BaseTestCase):
                                return_value=OVS_DPID), \
                 mock.patch('socket.gethostname',
                            return_value='dummy-host'), \
-                mock.patch('networking_nec.openstack.common.loopingcall.'
+                mock.patch('oslo_service.loopingcall.'
                            'FixedIntervalLoopingCall') as loopingcall, \
                 mock.patch('neutron.agent.rpc.PluginReportStateAPI'
                            ) as state_rpc_api:
