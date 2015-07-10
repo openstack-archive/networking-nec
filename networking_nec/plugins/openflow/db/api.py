@@ -19,9 +19,9 @@ from neutron.db import models_v2
 from neutron.db import securitygroups_db as sg_db
 from neutron.extensions import securitygroup as ext_sg
 from neutron import manager
-from neutron.plugins.nec.db import models as nmodels
 
 from networking_nec.i18n import _LW
+from networking_nec.plugins.openflow.db import models as nmodels
 from networking_nec.plugins.openflow import exceptions as nexc
 
 

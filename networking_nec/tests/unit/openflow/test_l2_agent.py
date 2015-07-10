@@ -22,12 +22,12 @@ from six import moves
 import testtools
 
 from neutron.agent.common import ovs_lib
-from neutron.cmd.eventlet.plugins import nec_neutron_agent
 from neutron.extensions import securitygroup as ext_sg
-from neutron.plugins.nec import config as nec_config
 from neutron.tests import base
 
+from networking_nec.cmd.eventlet.plugins import nec_neutron_agent
 from networking_nec.plugins.openflow.agent import l2_agent
+from networking_nec.plugins.openflow import config as nec_config
 
 DAEMON_LOOP_COUNT = 10
 OVS_DPID = '00000629355b6943'
