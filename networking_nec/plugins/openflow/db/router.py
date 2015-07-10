@@ -16,7 +16,8 @@ from oslo_log import log as logging
 from sqlalchemy.orm import exc as sa_exc
 
 from neutron.db import l3_db
-from neutron.plugins.nec.db import models as nmodels
+
+from networking_nec.plugins.openflow.db import models as nmodels
 
 
 LOG = logging.getLogger(__name__)

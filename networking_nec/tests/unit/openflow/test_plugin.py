@@ -22,10 +22,10 @@ from neutron.common import topics
 from neutron import context
 from neutron.db import db_base_plugin_v2
 from neutron import manager
-from neutron.plugins.nec import config as nec_config
 from neutron.tests.unit.db import test_allowedaddresspairs_db as test_pair
 from neutron.tests.unit.db import test_db_base_plugin_v2 as test_plugin
 
+from networking_nec.plugins.openflow import config as nec_config
 from networking_nec.plugins.openflow.db import api as ndb
 from networking_nec.plugins.openflow import exceptions as nexc
 from networking_nec.plugins.openflow import rpc
@@ -33,7 +33,7 @@ from networking_nec.tests import base
 from networking_nec.tests.unit.openflow import fake_ofc_manager
 
 
-PLUGIN_NAME = 'neutron.plugins.nec.nec_plugin.NECPluginV2'
+PLUGIN_NAME = 'networking_nec.plugins.openflow.plugin.NECPluginV2'
 PLUGIN_BASE = 'networking_nec.plugins.openflow.'
 OFC_MANAGER = PLUGIN_BASE + 'ofc_manager.OFCManager'
 NOTIFIER = PLUGIN_BASE + 'rpc.NECPluginV2AgentNotifierApi'

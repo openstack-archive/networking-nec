@@ -22,12 +22,12 @@ from oslo_config import cfg
 from oslo_utils import uuidutils
 
 from neutron.common import constants
-from neutron.plugins.nec.db import models as nmodels
-from neutron.plugins.nec.extensions import packetfilter as ext_pf
 from neutron.tests import base
 
+from networking_nec.plugins.openflow.db import models as nmodels
 from networking_nec.plugins.openflow import drivers
 from networking_nec.plugins.openflow.drivers import pfc
+from networking_nec.plugins.openflow.extensions import packetfilter as ext_pf
 from networking_nec.plugins.openflow import ofc_client as ofc
 
 
