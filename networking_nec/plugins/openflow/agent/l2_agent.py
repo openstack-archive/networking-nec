@@ -41,6 +41,7 @@ from networking_nec.i18n import _LE, _LI
 
 
 LOG = logging.getLogger(__name__)
+AGENT_TYPE_NEC = 'NEC plugin agent'
 
 
 class NECPluginApi(object):
@@ -120,7 +121,7 @@ class NECNeutronAgent(object):
             'host': cfg.CONF.host,
             'topic': q_const.L2_AGENT_TOPIC,
             'configurations': {},
-            'agent_type': q_const.AGENT_TYPE_NEC,
+            'agent_type': AGENT_TYPE_NEC,
             'start_flag': True}
 
         self.setup_rpc()
