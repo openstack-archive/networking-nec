@@ -3,17 +3,17 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Neutron NEC OpenFlow plugins and drivers
-========================================================
+.. include:: ../../README.rst
 
 Contents:
 
 .. toctree::
    :maxdepth: 2
 
-   readme
+   Introduction <readme>
    installation
-   usage
+   configurations
+   DevStack support <devstack>
    contributing
 
 Indices and tables

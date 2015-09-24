@@ -1,4 +1,6 @@
-# devstack-plugins for NEC OpenFlow Neutron plugin integration
+===========================================================
+DevStack plugin for NEC OpenFlow Neutron plugin integration
+===========================================================
 
 As a part of vendor plugins/drivers decomposition work in Kilo,
 NEC plugin decomposition has been done.
@@ -13,9 +15,10 @@ To use this devstack plugin, add the following to your local.conf::
 When you use stable branches, `branch` needs to be specified to **stable/xxxx**
 such as **stable/kilo**.
 
-## Examples (minimum)
+Examples
+========
 
-Sample local.conf::
+Minimum sample local.conf::
 
     [[local|localrc]]
     disable_service n-net
@@ -39,6 +42,9 @@ Sample local.conf::
     # ProgrammableFlow controller
     #OFC_DRIVER=pfc
 
-## References
+References
+==========
 
-http://docs.openstack.org/developer/devstack/plugins.html#externally-hosted-plugins
+* `DevStack externally hosted plugins`_
+
+.. _DevStack externally hosted plugins: http://docs.openstack.org/developer/devstack/plugins.html#externally-hosted-plugins
