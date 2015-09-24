@@ -17,10 +17,14 @@ User Guide
    DevStack support <devstack>
    contributing
 
-Indices and tables
-==================
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+Source Code Reference
+---------------------
 
+Auto-generated reference for the complete source code.
+
+.. toctree::
+   :maxdepth: 1
+
+   source_code
+   code/modules

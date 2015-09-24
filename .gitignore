@@ -15,6 +15,7 @@ dist/
 
 # Sphinx
 doc/build
+doc/source/sourcecode/
 
 # pbr generates these
 AUTHORS
