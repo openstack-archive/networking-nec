@@ -2,6 +2,14 @@
 Neutron plugins/drivers for NEC networking products
 ===================================================
 
+.. warning::
+
+   The current plugin, NEC OpenFlow plugin, is deprecated in
+   OpenStack Liberty release (2015.2).
+   A new driver for NEC NWA (Network Automation) product is coming.
+   Note that the production support will be continued based
+   on the production support policy.
+
 ``networking-nec`` library provides Neutron plugins/drivers
 for `NEC SDN`_ networking products` (mainly OpenFlow related at now)
 and `Trema`_ `Sliceable Switch`_ (reference implementation).
