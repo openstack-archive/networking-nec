@@ -12,7 +12,7 @@ so that Neutron NEC OpenFlow plugin can be enabled.
 
 To use this devstack plugin, add the following to your local.conf::
 
-    enable_plugin networking-nec https://git.openstack.org/stackforge/networking-nec [<branch>]
+    enable_plugin networking-nec https://git.openstack.org/openstack/networking-nec [<branch>]
 
 When you use stable branches, `branch` needs to be specified to **stable/xxxx**
 such as **stable/kilo**.
@@ -34,7 +34,7 @@ Minimum sample local.conf::
 
     # NEC plugin
     Q_PLUGIN=nec
-    enable_plugin networking-nec https://git.openstack.org/stackforge/networking-nec
+    enable_plugin networking-nec https://git.openstack.org/openstack/networking-nec
 
     # Trema Sliceable Switch (the following three lines are required at least)
     OFC_DRIVER=trema

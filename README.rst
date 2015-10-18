@@ -22,8 +22,8 @@ maintained in a separate module.
 * Documentation: https://wiki.openstack.org/wiki/Neutron/NEC_OpenFlow_Plugin
 * Source:
 
-  * http://git.openstack.org/cgit/stackforge/networking-nec
-  * https://github.com/stackforge/networking-nec
+  * http://git.openstack.org/cgit/openstack/networking-nec
+  * https://github.com/openstack/networking-nec
 
 * Bugs: http://bugs.launchpad.net/networking-nec
 * Free software: Apache license

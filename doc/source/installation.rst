@@ -31,7 +31,7 @@ After the core/vendor decomposition work, the main code is provided
 as a separate python module called **networking-nec***,
 and the shim code and configuration exist in the Neutron code tree.
 
-The code is maintained at stackforge https://github.com/stackforge/networking-nec
+The code is maintained at http://git.openstack.org/cgit/openstack/networking-nec
 
 The released versions of Python module is available at https://pypi.python.org/pypi/networking-nec.
 To install::
@@ -45,4 +45,4 @@ match the corresponding OpenStack release version
 Of course, make sure to install Neutron itself.
 
 From Folsom to Juno, NEC OpenFlow plugin was maintained
-in the main repo of Neutron https://github.com/openstack/neutron.
+in the main repo of Neutron http://git.openstack.org/cgit/openstack/neutron.
