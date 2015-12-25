@@ -32,6 +32,9 @@ class NecAgentSchedulerTestCase(
     l3_plugin = None
 
     def setUp(self):
+        if '_dvr_' in self._testMethodName:
+            self.skipTest("NEC OpenFlow Plugin does not support "
+                          "DVR agent scheduler.")
         self.setup_nec_plugin_base()
         super(NecAgentSchedulerTestCase, self).setUp()
 
