@@ -20,7 +20,7 @@ from neutron.db import securitygroups_db as sg_db
 from neutron.extensions import securitygroup as ext_sg
 from neutron import manager
 
-from networking_nec.i18n import _LW
+from networking_nec._i18n import _LW
 from networking_nec.plugins.openflow.db import models as nmodels
 from networking_nec.plugins.openflow import exceptions as nexc
 

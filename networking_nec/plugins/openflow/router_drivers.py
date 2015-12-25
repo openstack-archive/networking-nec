@@ -23,7 +23,7 @@ import six
 from neutron.common import constants
 from neutron.common import utils
 
-from networking_nec.i18n import _LE, _LW
+from networking_nec._i18n import _LE, _LW
 from networking_nec.plugins.openflow import constants as nconst
 from networking_nec.plugins.openflow import exceptions as nexc
 from networking_nec.plugins.openflow import utils as necutils

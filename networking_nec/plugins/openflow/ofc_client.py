@@ -20,7 +20,7 @@ from oslo_serialization import jsonutils
 from oslo_utils import excutils
 import requests
 
-from networking_nec.i18n import _, _LI, _LW
+from networking_nec._i18n import _, _LI, _LW
 from networking_nec.plugins.openflow import exceptions as nexc
 
 

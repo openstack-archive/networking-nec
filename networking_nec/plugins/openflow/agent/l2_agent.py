@@ -37,7 +37,7 @@ from neutron.common import topics
 from neutron import context as q_context
 from neutron.extensions import securitygroup as ext_sg
 
-from networking_nec.i18n import _LE, _LI
+from networking_nec._i18n import _LE, _LI
 
 
 LOG = logging.getLogger(__name__)
