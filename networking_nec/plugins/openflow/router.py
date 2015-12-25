@@ -191,7 +191,7 @@ class RouterMixin(extraroute_db.ExtraRoute_db_mixin,
 
         OpenFlow vrouter does not support NAT, so we need to exclude them
         from candidate routers for floating IP association.
-        This method is called in l3_db.get_assoc_data().
+        This method is called in l3_db._get_assoc_data().
         """
         subnet_db = self._get_subnet(context, internal_subnet_id)
         if not subnet_db['gateway_ip']:
