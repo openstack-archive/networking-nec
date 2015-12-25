@@ -22,6 +22,7 @@ from six import moves
 import testtools
 
 from neutron.agent.common import ovs_lib
+from neutron.agent import securitygroups_rpc as sg_rpc
 from neutron.extensions import securitygroup as ext_sg
 from neutron.tests import base
 
@@ -41,7 +42,6 @@ class TestNecAgentBase(base.BaseTestCase):
         # why does get_admin_context_without_session on agent side
         # require policy.json?
         super(TestNecAgentBase, self).setUp()
-        nec_config.register_agent_opts()
         cfg.CONF.set_default('firewall_driver',
                              'neutron.agent.firewall.NoopFirewallDriver',
                              group='SECURITYGROUP')
@@ -338,6 +338,10 @@ class TestNecAgentPluginApi(TestNecAgentBase):
 
 class TestNecAgentMain(base.BaseTestCase):
     def test_main(self):
+        # NOTE: I am not sure why register_agent_opts is already called with
+        # a different *Opt object, but it causes register_agent_opts to fail.
+        # Resetting cfg.CONF to a fresh ConfigOpts helps us.
+        self.patch(cfg, 'CONF', cfg.ConfigOpts())
         nec_config.register_agent_opts()
         with mock.patch.object(l2_agent, 'NECNeutronAgent') as agent, \
                 mock.patch.object(nec_neutron_agent,

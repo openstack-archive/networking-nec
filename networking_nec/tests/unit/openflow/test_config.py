@@ -15,10 +15,21 @@
 from neutron.tests import base
 from oslo_config import cfg
 
+from neutron.agent.common import config as agent_config
+
 from networking_nec.plugins.openflow import config
 
 
 class ConfigurationTest(base.BaseTestCase):
+
+    def setUp(self):
+        super(ConfigurationTest, self).setUp()
+        # NOTE: I am not sure why register_agent_opts is already called
+        # with a different *Opt object, but it causes register_*_opts to fail.
+        # Resetting cfg.CONF to a fresh ConfigOpts helps us.
+        # This test class tests the default value loaded by register_*_opts,
+        # so I believe it is good to reset loaded options before the tests.
+        self.patch(cfg, 'CONF', cfg.ConfigOpts())
 
     def test_defaults_plugin_opts(self):
         config.register_plugin_opts()
@@ -36,6 +47,7 @@ class ConfigurationTest(base.BaseTestCase):
 
     def test_defaults_agent_opts(self):
         config.register_agent_opts()
+        agent_config.register_root_helper(cfg.CONF)
 
         self.assertEqual('br-int', cfg.CONF.OVS.integration_bridge)
         self.assertEqual(2, cfg.CONF.AGENT.polling_interval)

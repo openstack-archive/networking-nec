@@ -247,8 +247,9 @@ class PacketFilterMixin(pf_db.PacketFilterDbMixin):
             except (nexc.OFCException, nexc.OFCMappingNotFound):
                 error = True
         if raise_exc and error:
-            raise nexc.OFCException(_('Error occurred while disabling packet '
-                                      'filter(s) for port %s'), port_id)
+            raise nexc.OFCException(
+                reason=_('Error occurred while disabling packet '
+                         'filter(s) for port %s') % port_id)
 
     def get_packet_filters_for_port(self, context, port):
         if self.packet_filter_enabled:

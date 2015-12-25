@@ -62,10 +62,7 @@ def get_ofc_id(session, resource, neutron_id):
 
 
 def exists_ofc_item(session, resource, neutron_id):
-    if get_ofc_item(session, resource, neutron_id):
-        return True
-    else:
-        return False
+    return bool(get_ofc_item(session, resource, neutron_id))
 
 
 def find_ofc_item(session, resource, ofc_id):
