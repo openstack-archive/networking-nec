@@ -23,7 +23,7 @@ from neutron.common import constants as const
 from neutron.db import db_base_plugin_v2
 from neutron.extensions import portbindings
 
-from networking_nec.i18n import _LE, _LI, _LW
+from networking_nec._i18n import _LE, _LI, _LW
 from networking_nec.plugins.openflow.db import api as ndb
 from networking_nec.plugins.openflow.db import router as rdb
 from networking_nec.plugins.openflow import exceptions as nexc

@@ -28,7 +28,7 @@ from neutron.db import l3_gwmode_db
 from neutron.db import models_v2
 from neutron.extensions import l3
 
-from networking_nec.i18n import _LE, _LI, _LW
+from networking_nec._i18n import _LE, _LI, _LW
 from networking_nec.plugins.openflow import constants as nconst
 from networking_nec.plugins.openflow.db import router as rdb
 from networking_nec.plugins.openflow import exceptions as nexc
