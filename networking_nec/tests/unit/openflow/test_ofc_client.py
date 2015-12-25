@@ -19,6 +19,7 @@ import requests
 
 from neutron.tests import base
 
+from networking_nec.i18n import _
 from networking_nec.plugins.openflow import exceptions as nexc
 from networking_nec.plugins.openflow import ofc_client
 

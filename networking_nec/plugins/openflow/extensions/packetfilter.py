@@ -24,6 +24,8 @@ from neutron import manager
 from neutron.quota import resource as quota_resource
 from neutron.quota import resource_registry
 
+from networking_nec.i18n import _
+
 
 quota_packet_filter_opts = [
     cfg.IntOpt('quota_packet_filter',
