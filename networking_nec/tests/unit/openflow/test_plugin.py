@@ -69,11 +69,12 @@ class NecPluginV2TestCase(NecPluginV2TestCaseBase,
                           base.NeutronDbPluginV2TestCase):
 
     def rpcapi_update_ports(self, agent_id='nec-q-agent.fake',
-                            datapath_id="0xabc", added=[], removed=[]):
+                            datapath_id="0xabc", added=None, removed=None):
         kwargs = {'topic': topics.AGENT,
                   'agent_id': agent_id,
                   'datapath_id': datapath_id,
-                  'port_added': added, 'port_removed': removed}
+                  'port_added': added or [],
+                  'port_removed': removed or []}
         self.callback_nec.update_ports(self.context, **kwargs)
 
     def setUp(self, plugin=None, ext_mgr=None):

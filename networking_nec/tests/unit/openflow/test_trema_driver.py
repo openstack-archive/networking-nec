@@ -16,7 +16,6 @@ import random
 
 import mock
 from oslo_utils import uuidutils
-from six import moves
 
 from neutron.tests import base
 
@@ -48,7 +47,7 @@ class TremaDriverTestBase(base.BaseTestCase):
         network_id = uuidutils.generate_uuid()
         port_id = uuidutils.generate_uuid()
         mac = ':'.join(['%x' % random.randint(0, 255)
-                        for i in moves.xrange(6)])
+                        for i in range(6)])
         portinfo = nmodels.PortInfo(id=port_id, datapath_id="0x123456789",
                                     port_no=1234, vlan_id=321,
                                     mac=mac)
@@ -187,7 +186,7 @@ class TremaFilterDriverTest(TremaDriverTestBase):
                             filter_wildcards=None, no_portinfo=False):
         t, n, p = self.get_ofc_item_random_params()
         src_mac = ':'.join(['%x' % random.randint(0, 255)
-                            for i in moves.xrange(6)])
+                            for i in range(6)])
         if filter_wildcards is None:
             filter_wildcards = []
 
@@ -301,7 +300,7 @@ class TremaFilterDriverTest(TremaDriverTestBase):
 
     def test_create_filter_dst_mac(self):
         dst_mac = ':'.join(['%x' % random.randint(0, 255)
-                            for i in moves.xrange(6)])
+                            for i in range(6)])
         self._test_create_filter(filter_dict={'dst_mac': dst_mac},
                                  filter_post={'dl_dst': dst_mac})
 
