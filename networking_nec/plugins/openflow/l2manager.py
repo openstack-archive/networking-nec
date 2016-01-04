@@ -87,7 +87,7 @@ class L2Manager(object):
                     LOG.debug('_cleanup_ofc_tenant: No OFC tenant for %s',
                               tenant_id)
             except (nexc.OFCException, nexc.OFCMappingNotFound) as exc:
-                LOG.warn(_LW("delete_ofc_tenant() failed due to %s"), exc)
+                LOG.warning(_LW("delete_ofc_tenant() failed due to %s"), exc)
 
     def activate_port_if_ready(self, context, port, network=None):
         """Activate port by creating port on OFC if ready.
