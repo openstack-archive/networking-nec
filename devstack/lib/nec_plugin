@@ -25,8 +25,17 @@ function neutron_plugin_install_agent_packages {
 
 function neutron_plugin_configure_common {
     Q_PLUGIN_CONF_PATH=etc/neutron/plugins/nec
-    Q_PLUGIN_CONF_FILENAME=nec.ini
-    Q_PLUGIN_CLASS="networking_nec.plugins.openflow.plugin.NECPluginV2"
+    if [[ "$NEC_Q_PLUGIN_DRIVER" == "necnwa" ]]; then
+	Q_PLUGIN_CONF_FILENAME=necnwa.ini
+	Q_PLUGIN_CLASS="networking_nec.plugins.necnwa.necnwa_core_plugin.NECNWACorePlugin"
+	Q_SERVICE_PLUGIN_CLASSES="networking_nec.plugins.necnwa.necnwa_plugin.NECNWAServicePlugin"
+	cp $NETWORKING_NEC_DIR/etc/neutron/plugins/nec/${Q_PLUGIN_CONF_FILENAME} \
+	   /${Q_PLUGIN_CONF_PATH}/${Q_PLUGIN_CONF_FILENAME}
+	chmod 0644 /${Q_PLUGIN_CONF_PATH}/${Q_PLUGIN_CONF_FILENAME}
+    else
+	Q_PLUGIN_CONF_FILENAME=nec.ini
+	Q_PLUGIN_CLASS="networking_nec.plugins.openflow.plugin.NECPluginV2"
+    fi
 }
 
 function neutron_plugin_configure_debug_command {
@@ -42,8 +51,11 @@ function neutron_plugin_configure_l3_agent {
 }
 
 function _neutron_plugin_setup_bridge {
-    if [[ "$SKIP_OVS_BRIDGE_SETUP" = "True" ]]; then
+    if [[ "$SKIP_OVS_BRIDGE_SETUP" == "True" ]]; then
         return
+    fi
+    if [[ "$NEC_Q_PLUGIN_DRIVER" == "necnwa" ]]; then
+	return
     fi
     # Increase debug level
     sudo ovs-appctl vlog/set ANY:file:dbg
@@ -63,20 +75,28 @@ function _neutron_plugin_setup_bridge {
 function neutron_plugin_configure_plugin_agent {
     _neutron_plugin_setup_bridge
 
-    AGENT_BINARY="$NEUTRON_BIN_DIR/neutron-nec-agent"
-
-    _neutron_ovs_base_configure_firewall_driver
+    if [[ "$NEC_Q_PLUGIN_DRIVER" == "necnwa" ]]; then
+	AGENT_BINARY="$NEUTRON_BIN_DIR/neutron-necnwa-agent"
+    else
+	AGENT_BINARY="$NEUTRON_BIN_DIR/neutron-nec-agent"
+	_neutron_ovs_base_configure_firewall_driver
+    fi
 }
 
 function neutron_plugin_configure_service {
     iniset $NEUTRON_CONF DEFAULT api_extensions_path neutron/plugins/nec/extensions/
-    iniset /$Q_PLUGIN_CONF_FILE ofc host $OFC_API_HOST
-    iniset /$Q_PLUGIN_CONF_FILE ofc port $OFC_API_PORT
-    iniset /$Q_PLUGIN_CONF_FILE ofc driver $OFC_DRIVER
-    iniset /$Q_PLUGIN_CONF_FILE ofc api_retry_max OFC_RETRY_MAX
-    iniset /$Q_PLUGIN_CONF_FILE ofc api_retry_interval OFC_RETRY_INTERVAL
-
-    _neutron_ovs_base_configure_firewall_driver
+    if [[ "$NEC_Q_PLUGIN_DRIVER" == "necnwa" ]]; then
+	iniset /$Q_PLUGIN_CONF_FILE NWA ServerURL $NECNWA_SERVER_URL
+	iniset /$Q_PLUGIN_CONF_FILE NWA AccessKeyId $NECNWA_ACCESS_KEY_ID
+	iniset /$Q_PLUGIN_CONF_FILE NWA SecretAccessKey $NECNWA_SECRET_ACCESS_KEY
+    else
+	iniset /$Q_PLUGIN_CONF_FILE ofc host $OFC_API_HOST
+	iniset /$Q_PLUGIN_CONF_FILE ofc port $OFC_API_PORT
+	iniset /$Q_PLUGIN_CONF_FILE ofc driver $OFC_DRIVER
+	iniset /$Q_PLUGIN_CONF_FILE ofc api_retry_max OFC_RETRY_MAX
+	iniset /$Q_PLUGIN_CONF_FILE ofc api_retry_interval OFC_RETRY_INTERVAL
+	_neutron_ovs_base_configure_firewall_driver
+    fi
 }
 
 function neutron_plugin_setup_interface_driver {
