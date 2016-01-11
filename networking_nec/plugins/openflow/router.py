@@ -16,9 +16,11 @@ from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_utils import excutils
 from oslo_utils import importutils
+from sqlalchemy import orm
 
 from neutron.api.rpc.agentnotifiers import l3_rpc_agent_api
 from neutron.api.v2 import attributes as attr
+from neutron.common import constants as l3_constants
 from neutron.common import exceptions as n_exc
 from neutron.db import db_base_plugin_v2
 from neutron.db import extraroute_db
@@ -199,23 +201,35 @@ class RouterMixin(extraroute_db.ExtraRoute_db_mixin,
                      'which has no gateway_ip') % internal_subnet_id)
             raise n_exc.BadRequest(resource='floatingip', msg=msg)
 
-        # find router interface ports on this network
-        router_intf_qry = context.session.query(models_v2.Port)
-        router_intf_ports = router_intf_qry.filter_by(
-            network_id=internal_port['network_id'],
-            device_owner=l3_db.DEVICE_OWNER_ROUTER_INTF)
+        # Find routers(with router_id and interface address) that
+        # connect given internal subnet and the external network.
+        # Among them, if the router's interface address matches
+        # with subnet's gateway-ip, return that router.
+        # Otherwise return the first router.
+        gw_port = orm.aliased(models_v2.Port, name="gw_port")
+        routerport_qry = context.session.query(
+            l3_db.RouterPort.router_id,
+            models_v2.IPAllocation.ip_address).join(
+            models_v2.Port, models_v2.IPAllocation).filter(
+            models_v2.Port.network_id == internal_port['network_id'],
+            l3_db.RouterPort.port_type.in_(
+                l3_constants.ROUTER_INTERFACE_OWNERS),
+            models_v2.IPAllocation.subnet_id == internal_subnet_id
+        ).join(gw_port, gw_port.device_id ==
+               l3_db.RouterPort.router_id).filter(
+            gw_port.network_id == external_network_id).distinct()
 
-        for intf_p in router_intf_ports:
-            if intf_p['fixed_ips'][0]['subnet_id'] == internal_subnet_id:
-                router_id = intf_p['device_id']
-                router_gw_qry = context.session.query(models_v2.Port)
-                has_gw_port = router_gw_qry.filter_by(
-                    network_id=external_network_id,
-                    device_id=router_id,
-                    device_owner=l3_db.DEVICE_OWNER_ROUTER_GW).count()
-                driver = self._get_router_driver_by_id(context, router_id)
-                if (has_gw_port and driver.floating_ip_support()):
-                    return router_id
+        first_router_id = None
+        for router_id, interface_ip in routerport_qry:
+            driver = self._get_router_driver_by_id(context, router_id)
+            if not driver.floating_ip_support():
+                continue
+            if interface_ip == subnet_db['gateway_ip']:
+                return router_id
+            if not first_router_id:
+                first_router_id = router_id
+        if first_router_id:
+            return first_router_id
 
         raise l3.ExternalGatewayForFloatingIPNotFound(
             subnet_id=internal_subnet_id,
