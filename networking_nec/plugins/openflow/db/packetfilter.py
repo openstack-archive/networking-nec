@@ -105,7 +105,7 @@ class PacketFilterDbMixin(object):
 
     def create_packet_filter(self, context, packet_filter):
         pf_dict = packet_filter['packet_filter']
-        tenant_id = self._get_tenant_id_for_create(context, pf_dict)
+        tenant_id = pf_dict['tenant_id']
 
         if pf_dict['in_port'] == attributes.ATTR_NOT_SPECIFIED:
             # validate network ownership

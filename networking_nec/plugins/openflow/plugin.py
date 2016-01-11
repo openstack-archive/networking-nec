@@ -139,7 +139,7 @@ class NECPluginV2(db_base_plugin_v2.NeutronDbPluginV2,
     @log_helpers.log_method_call
     def create_network(self, context, network):
         """Create a new network entry on DB, and create it on OFC."""
-        tenant_id = self._get_tenant_id_for_create(context, network['network'])
+        tenant_id = network['network']['tenant_id']
         # set up default security groups
         self._ensure_default_security_group(context, tenant_id)
         network['network']['status'] = self.l2mgr.get_initial_net_status(

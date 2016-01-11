@@ -60,7 +60,7 @@ class RouterMixin(extraroute_db.ExtraRoute_db_mixin,
         """Create a new router entry on DB, and create it on OFC."""
         LOG.debug("RouterMixin.create_router() called, "
                   "router=%s .", router)
-        tenant_id = self._get_tenant_id_for_create(context, router['router'])
+        tenant_id = router['router']['tenant_id']
 
         provider = get_provider_with_default(
             router['router'].get(router_provider.ROUTER_PROVIDER))
