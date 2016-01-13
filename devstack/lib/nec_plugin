@@ -105,11 +105,6 @@ function _neutron_setup_ovs_tunnels {
     fi
 }
 
-function has_neutron_plugin_security_group {
-    # 0 means True here
-    return 0
-}
-
 function neutron_plugin_check_adv_test_requirements {
     is_service_enabled q-agt && is_service_enabled q-dhcp && return 0
 }
