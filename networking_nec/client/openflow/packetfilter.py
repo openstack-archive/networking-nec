@@ -17,8 +17,9 @@ from neutronclient.common import exceptions
 from neutronclient.common import extension
 from neutronclient.common import utils
 from neutronclient.common import validators
-from neutronclient.i18n import _
 from neutronclient.neutron import v2_0 as neutronV20
+
+from networking_nec._i18n import _
 
 
 class PacketFilter(extension.NeutronClientExtension):
