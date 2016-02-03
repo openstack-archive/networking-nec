@@ -12,17 +12,13 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import mock
 from mock import MagicMock
 from mock import patch
-import requests
 
 from neutron.tests import base
 
-from networking_nec.plugins.necnwa.common.config import cfg
 from networking_nec.plugins.necnwa.nwalib import client
 from networking_nec.plugins.necnwa.nwalib import exceptions as nwa_exc
-from networking_nec.plugins.necnwa.nwalib import restclient
 from networking_nec.plugins.necnwa.nwalib import semaphore as nwa_sem
 from networking_nec.plugins.necnwa.nwalib import workflow
 
@@ -37,81 +33,6 @@ DC_RESOURCE_GROUP_POD2 = 'OpenStack/DC1/Common/Pod2Grp/Pod2'
 DC_RESOURCE_GROUP_APP1 = 'OpenStack/DC1/Common/App1Grp/App1'
 
 RESULTS = {}
-
-CONFIG_FILE_CONTENTS = """
-#
-[OpenStack]
-NeutronDBid = neutron
-NeutronDBpw = password
-NeutronDBtable = neutron
-
-[NWA]
-server_url = http://127.0.0.1:12081
-access_key_id = 5g2ZMAdMwZ1gQqZagNqbJSrlopQUAUHILcP2nmxVs28=
-secret_access_key = JE35Lup5CvI68lneFS4EtSGCh1DnG8dBtTRycPQ83QA=
-resource_group_name = OpenStack/DC1/Common/App1Grp/App1
-scenario_polling_timer =5
-resource_group = [
-   {
-       "physical_network": "physnet1",
-       "device_owner":"compute:None",
-       "ResourceGroupName":"OpenStack/DC1/Common/Pod1Grp/Pod1"
-   },
-   {
-       "physical_network": "physnet1",
-       "device_owner":"network:dhcp",
-       "ResourceGroupNliame":"OpenStack/DC1/Common/Pod1Grp/Pod1"
-   },
-   {
-       "physical_network": "physnet2",
-       "device_owner":"network:dhcp",
-       "ResourceGroupName":"OpenStack/DC1/Common/Pod2Grp/Pod2"
-   },
-   {
-       "physical_network": "physnet1",
-       "device_owner":"compute:AZ1",
-       "ResourceGroupName":"OpenStack/DC1/Common/Pod1Grp/Pod1"
-   },
-   {
-       "physical_network": "physnet2",
-       "device_owner":"compute:AZ2",
-       "ResourceGroupName":"OpenStack/DC1/Common/Pod2Grp/Pod2"
-   },
-   {
-       "physical_network": "physnet3",
-       "device_owner":"network:router_gateway",
-       "ResourceGroupName":"OpenStack/DC1/Common/App1"
-   },
-   {
-       "physical_network": "physnet3",
-       "device_owner":"network:router_interface",
-       "ResourceGroupName":"OpenStack/DC1/Common/App1"
-   },
-   {
-       "physical_network":"",
-       "device_owner":"Stopper",
-       "ResourceGroupName":"Stopper"
-   }]
-"""
-
-DEFAULT_NAMEID = {
-    'CreateTenantNW': '40030001',
-    'DeleteTenantNW': '40030016',
-    'CreateVLAN': '40030002',
-    'DeleteVLAN': '40030018',
-    'CreateGeneralDev': '40030021',
-    'DeleteGeneralDev': '40030022',
-    'CreateTenantFW': '40030019',
-    'UpdateTenantFW': '40030009',
-    'DeleteTenantFW': '40030020',
-    'SettingNAT': '40030005',
-    'DeleteNAT': '40030011',
-    'SettingFWPolicy': '40030081',
-    'SettingLBPolicy': '40030091',
-    'CreateTenantLB': '40030092',
-    'UpdateTenantLB': '40030093',
-    'DeleteTenantLB': '40030094',
-}
 
 
 def ok1(ctx, http_status, rj, *args, **kwargs):
@@ -135,310 +56,6 @@ def ng1(ctx, http_status, rj, *args, **kwargs):
 def init_async():
     global RESULTS
     RESULTS = {}
-
-
-class TestNwaException(base.BaseTestCase):
-    def test___str__(self):
-        exc = nwa_exc.NwaException(200, 'msg1', MagicMock())
-        self.assertEqual(str(exc), 'http status: 200, msg1')
-
-
-class TestNwaWorkflow(base.BaseTestCase):
-    def test_strerror(self):
-        em = workflow.NwaWorkflow.strerror('1')
-        self.assertEqual(em, 'Unknown parent node')
-        em = workflow.NwaWorkflow.strerror('299')
-        self.assertEqual(em, 'Unknown error')
-
-    def test_get_errno_from_resultdata(self):
-        geterrno = workflow.NwaWorkflow.get_errno_from_resultdata
-        rc = geterrno({})
-        self.assertIsNone(rc)
-
-        rc = geterrno({
-            'resultdata': {}
-        })
-        self.assertIsNone(rc)
-
-        rc = geterrno({
-            'resultdata': {
-                'ErrorMessage': ''
-            }
-        })
-        self.assertIsNone(rc)
-
-        rc = geterrno({
-            'resultdata': {
-                'ErrorMessage': 'ErrorNumber=100'
-            }
-        })
-        self.assertEqual(rc, '100')
-
-        rc = geterrno({
-            'resultdata': {
-                'ErrorMessage': 'ReservationErrorCode = 101'
-            }
-        })
-        self.assertEqual(rc, '101')
-
-    def test_update_nameid(self):
-        with patch.object(workflow.NwaWorkflow, '_nameid',
-                          new_callable=mock.PropertyMock) as nameid, \
-                patch.object(workflow.NwaWorkflow, '_nameid_initialized',
-                             new_callable=mock.PropertyMock):
-
-            # When nameid is initialized, nameid will be unchanged.
-            workflow.NwaWorkflow._nameid_initialized = True
-            nameid.return_value = mock.sentinel.nameid
-            workflow.NwaWorkflow.update_nameid({'foo': '1'})
-            self.assertTrue(workflow.NwaWorkflow._nameid_initialized)
-            self.assertIs(mock.sentinel.nameid, workflow.NwaWorkflow._nameid)
-
-            # If passed nameid is empty, nameid will be unchanged.
-            workflow.NwaWorkflow._nameid_initialized = False
-            nameid.return_value = mock.sentinel.nameid
-            workflow.NwaWorkflow.update_nameid({})
-            self.assertFalse(workflow.NwaWorkflow._nameid_initialized)
-            self.assertIs(mock.sentinel.nameid, workflow.NwaWorkflow._nameid)
-
-            # If nameid is not initialized and passed nameid is not empty,
-            # nameid will be initialized.
-            workflow.NwaWorkflow._nameid_initialized = False
-            workflow.NwaWorkflow.update_nameid({'foo': '1'})
-            self.assertTrue(workflow.NwaWorkflow._nameid_initialized)
-            self.assertDictEqual({'foo': '1'}, workflow.NwaWorkflow._nameid)
-
-
-class TestRestClient(base.BaseTestCase):
-    def setUp(self):
-        super(TestRestClient, self).setUp()
-        self.rcl = restclient.RestClient()
-
-    def test__init_default(self):
-        kwargs = {}
-        url = 'http://127.0.0.1:8080'
-        auth = 'auth'
-        self.rcl._init_default(kwargs, url, auth)
-        self.assertEqual(kwargs['host'], '127.0.0.1')
-        self.assertEqual(kwargs['port'], 8080)
-        self.assertFalse(kwargs['use_ssl'])
-        self.assertEqual(kwargs['auth'], auth)
-
-        url = 'https://127.0.0.1:8080'
-        self.rcl._init_default(kwargs, url, auth)
-        self.assertTrue(kwargs['use_ssl'])
-
-    def test_url(self):
-        rcl = restclient.RestClient('127.0.0.2', 8081, True)
-        path = '/path'
-        u = rcl.url(path)
-        self.assertEqual(u, 'https://127.0.0.2:8081' + path)
-
-    def test__make_headers(self):
-        pass
-
-    @patch('requests.request')
-    def test__send_receive(self, rr):
-        def myauth(a, b):
-            pass
-
-        rcl = restclient.RestClient('127.0.0.3', 8083, True, myauth)
-        rcl._send_receive('GET', '/path')
-        self.assertEqual(rr.call_count, 1)
-
-    @patch('requests.request')
-    def test_rest_api(self, rr):
-        def myauth(a, b):
-            pass
-
-        rcl = restclient.RestClient('127.0.0.4', 8084, True, myauth)
-        body = {}
-        url = 'http://127.0.0.4:8084/path'
-        rr.side_effect = requests.exceptions.RequestException
-        self.assertRaises(
-            nwa_exc.NwaException,
-            rcl.rest_api, 'GET', url, body
-        )
-
-    def test___report_workflow_error(self):
-        self.rcl._report_workflow_error(None, 0)
-
-    @patch('networking_nec.plugins.necnwa.nwalib.restclient.RestClient.'
-           'rest_api')
-    def test_rest_api_return_check(self, ra):
-        body = {'a': 1}
-        url = 'http://127.0.0.5:8085/path'
-        ra.return_value = (200, None)
-        hst, rd = self.rcl.rest_api_return_check('GET', url, body)
-        self.assertEqual(hst, 200)
-        self.assertIsNone(rd)
-
-        failed = {
-            'status': 'FAILED', 'progress': '100'
-        }
-        ra.return_value = (200, failed)
-        self.rcl.post_data = url, body
-        hst, rd = self.rcl.rest_api_return_check('GET', url, body)
-        self.assertEqual(hst, 200)
-        self.assertEqual(rd, failed)
-
-        ra.side_effect = nwa_exc.NwaException(200, 'msg1', None)
-        hst, rd = self.rcl.rest_api_return_check('GET', url, body)
-        self.assertEqual(hst, 200)
-        self.assertIsNone(rd)
-
-    @patch('requests.request')
-    def test_rest_api_return_check_raise(self, rr):
-        def myauth(a, b):
-            pass
-
-        rr.side_effect = OSError
-        rcl = restclient.RestClient('127.0.0.3', 8083, True, myauth)
-        body = {'a': 1}
-        url = 'http://127.0.0.5:8085/path'
-        self.assertRaises(
-            OSError,
-            rcl.rest_api_return_check, 'GET', url, body
-        )
-
-    @patch('networking_nec.plugins.necnwa.nwalib.restclient.RestClient.'
-           'rest_api_return_check')
-    def test_get(self, rarc):
-        self.rcl.get('')
-        self.assertEqual(rarc.call_count, 1)
-
-    @patch('networking_nec.plugins.necnwa.nwalib.restclient.RestClient.'
-           'rest_api_return_check')
-    def test_post(self, rarc):
-        self.rcl.post('')
-        self.assertEqual(rarc.call_count, 1)
-
-    @patch('networking_nec.plugins.necnwa.nwalib.restclient.RestClient.'
-           'rest_api_return_check')
-    def test_put(self, rarc):
-        self.rcl.put('')
-        self.assertEqual(rarc.call_count, 1)
-
-    @patch('networking_nec.plugins.necnwa.nwalib.restclient.RestClient.'
-           'rest_api_return_check')
-    def test_delete(self, rarc):
-        self.rcl.delete('')
-        self.assertEqual(rarc.call_count, 1)
-
-
-class TestThread(base.BaseTestCase):
-    def test_stop(self):
-        t1 = nwa_sem.Thread(MagicMock())
-        t1.stop()
-
-    def test_wait(self):
-        t1 = nwa_sem.Thread(MagicMock())
-        t1.wait()
-
-
-class TestSemaphore(base.BaseTestCase):
-    def test_get_tenant_semaphore(self):
-        sem1 = nwa_sem.Semaphore.get_tenant_semaphore('T1')
-        sem2 = nwa_sem.Semaphore.get_tenant_semaphore('T1')
-        self.assertEqual(sem1, sem2)
-
-        sem3 = nwa_sem.Semaphore.get_tenant_semaphore('T2')
-        self.assertTrue(sem1 != sem3)
-
-        nwa_sem.Semaphore.delete_tenant_semaphore('T1')
-        sem4 = nwa_sem.Semaphore.get_tenant_semaphore('T1')
-        self.assertTrue(sem1 != sem4)
-
-    def test_get_tenant_semaphore_raise1(self):
-        self.assertRaises(
-            TypeError,
-            nwa_sem.Semaphore.get_tenant_semaphore, 0
-        )
-
-    def test_get_tenant_semaphore_raise2(self):
-        self.assertRaises(
-            TypeError,
-            nwa_sem.Semaphore.get_tenant_semaphore, ''
-        )
-
-    def test_delete_tenant_semaphore(self):
-        nwa_sem.Semaphore.delete_tenant_semaphore('T11')
-        self.assertTrue(True)
-
-    def test_any_locked(self):
-        sem1 = nwa_sem.Semaphore.get_tenant_semaphore('T21')
-        with sem1.sem:
-            locked = nwa_sem.Semaphore.any_locked()
-            self.assertTrue(locked)
-        locked = nwa_sem.Semaphore.any_locked()
-        self.assertFalse(locked)
-
-    def _check_push_history(self, param):
-        t31 = nwa_sem.Semaphore.get_tenant_semaphore('T31')
-        t31.push_history(
-            param['call'],
-            param['url'],
-            param['body'],
-            param['http_status'],
-            param['rj']
-        )
-        r1, r2 = t31.search_history(
-            param['search_call'],
-            param['search_url'],
-            param['search_body']
-        )
-        self.assertEqual(r1, param['search_result1'])
-        self.assertEqual(r2, param['search_result2'])
-
-    def test_push_history(self):
-        post1 = MagicMock()
-        post1.__name__ = 'post001'
-        succeed = {'status': 'SUCCESS'}
-        failed = {'status': 'FAILED'}
-        test_params = [
-            {
-                'body': 'body001', 'search_body': 'body001',
-                'http_status': 201, 'search_result1': 201,
-                'rj': succeed, 'search_result2': succeed
-            },
-            {
-                'body': 'body002', 'search_body': 'body002',
-                'http_status': 202, 'search_result1': 202,
-                'rj': succeed, 'search_result2': succeed
-            },
-            {
-                'body': 'body003', 'search_body': 'body001',
-                'http_status': 203, 'rj': succeed,
-                'search_result1': 201,
-                'search_result2': succeed
-            },
-            {
-                'body': 'body004', 'search_body': 'body001',
-                'http_status': 204, 'rj': succeed,
-                'search_result1': None, 'search_result2': None
-            },
-            {
-                'body': 'body005', 'search_body': 'body005',
-                'http_status': 205, 'rj': failed,
-                'search_result1': None, 'search_result2': None
-            },
-            {
-                'body': 'body006', 'search_body': 'body004',
-                'http_status': 206, 'rj': succeed,
-                'search_result1': 204, 'search_result2': succeed
-            },
-            {
-                'body': 'body006', 'search_body': 'body004',
-                'http_status': 206, 'rj': succeed,
-                'search_result1': 204, 'search_result2': succeed
-            }
-        ]
-        for param in test_params:
-            param['call'] = post1
-            param['search_call'] = post1
-            param['url'] = 'url001'
-            param['search_url'] = 'url001'
-            self._check_push_history(param)
 
 
 class TestNwaClient(base.BaseTestCase):
@@ -562,15 +179,12 @@ class TestNwaClient(base.BaseTestCase):
 
     def test_get_reserved_dc_resource(self):
         self.nwa.get_reserved_dc_resource(TENANT_ID)
-        self.assertTrue(True)
 
     def test_get_tenant_resource(self):
         self.nwa.get_tenant_resource(TENANT_ID)
-        self.assertTrue(True)
 
     def test_get_dc_resource_groups(self):
         self.nwa.get_dc_resource_groups('OpenStack/DC1/Common/Pod2Grp/Pod2')
-        self.assertTrue(True)
 
     @patch('networking_nec.plugins.necnwa.nwalib.client.NwaClient.get')
     def test_get_workflow_list(self, get):
@@ -586,15 +200,12 @@ class TestNwaClient(base.BaseTestCase):
 
     def test_stop_workflowinstance(self):
         self.nwa.stop_workflowinstance('id-0')
-        self.assertTrue(True)
 
     def test_update_workflow_list(self):
         self.nwa.update_workflow_list()
-        self.assertTrue(True)
 
     def test_wait_workflow_done(self):
         self.nwa.wait_workflow_done(MagicMock())
-        self.assertTrue(True)
 
     def create_vlan(self):
         init_async()
@@ -996,48 +607,3 @@ class TestSendQueueIsNotEmpty(base.BaseTestCase):
     def test_send_queue_is_not_empty(self):
         rb = client.send_queue_is_not_empty()
         self.assertFalse(rb)
-
-
-class TestConfig(base.BaseTestCase):
-    '''Unit test for NwaClient config. '''
-
-    def test_nwa_config(self):
-        cfgfile = self.get_temp_file_path('nwa.ini')
-        with open(cfgfile, 'w') as f:
-            f.write(CONFIG_FILE_CONTENTS)
-        cfg.CONF(args=[], default_config_files=[cfgfile])
-        nwa1 = client.NwaClient()
-        self.assertEqual(nwa1.host, '127.0.0.1')
-        self.assertEqual(nwa1.port, 12081)
-        self.assertFalse(nwa1.use_ssl)
-        self.assertEqual(nwa1.workflow_first_wait, 2)
-        self.assertEqual(nwa1.workflow_wait_sleep, 5)
-        self.assertEqual(nwa1.workflow_retry_count, 6)
-        self.assertEqual(
-            nwa1.auth(
-                'Wed, 11 Feb 2015 17:24:51 GMT',
-                '/umf/tenant/DC1'
-            ),
-            'SharedKeyLite 5g2ZMAdMwZ1gQqZagNqbJSrlopQUAUHILcP2nmxVs28='
-            ':mNd/AZJdMawfhJpVUT/lQcH7fPMz+4AocKti1jD1lCI='
-        )
-        headers = nwa1._make_headers('/')
-        self.assertEqual(headers.get('Content-Type'), 'application/json')
-        self.assertIsNotNone(headers.get('X-UMF-API-Version'))
-        self.assertIsNotNone(headers.get('Authorization'))
-        self.assertIsNotNone(headers.get('Date'))
-
-        host = '1.2.3.4'
-        port = 12345
-        nwa2 = client.NwaClient(host=host, port=port, use_ssl=True)
-        self.assertEqual(nwa2.host, host)
-        self.assertEqual(nwa2.port, port)
-        self.assertTrue(nwa2.use_ssl)
-        auth = nwa2.define_auth_function('user', 'password')
-        self.assertEqual(
-            auth(
-                'Wed, 11 Feb 2015 17:24:51 GMT',
-                '/umf/tenant/DC1'
-            ),
-            'SharedKeyLite user:d7ym8ADuKFoIphXojb1a36lvMb5KZK7fPYKz7RlDcpw='
-        )
