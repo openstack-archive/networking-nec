@@ -95,8 +95,8 @@ class TestConfig(base.BaseTestCase):
                 'Wed, 11 Feb 2015 17:24:51 GMT',
                 '/umf/tenant/DC1'
             ),
-            'SharedKeyLite 5g2ZMAdMwZ1gQqZagNqbJSrlopQUAUHILcP2nmxVs28='
-            ':mNd/AZJdMawfhJpVUT/lQcH7fPMz+4AocKti1jD1lCI='
+            b'SharedKeyLite 5g2ZMAdMwZ1gQqZagNqbJSrlopQUAUHILcP2nmxVs28='
+            b':mNd/AZJdMawfhJpVUT/lQcH7fPMz+4AocKti1jD1lCI='
         )
         headers = nwa1._make_headers('/')
         self.assertEqual(headers.get('Content-Type'), 'application/json')
@@ -116,5 +116,5 @@ class TestConfig(base.BaseTestCase):
                 'Wed, 11 Feb 2015 17:24:51 GMT',
                 '/umf/tenant/DC1'
             ),
-            'SharedKeyLite user:d7ym8ADuKFoIphXojb1a36lvMb5KZK7fPYKz7RlDcpw='
+            b'SharedKeyLite user:d7ym8ADuKFoIphXojb1a36lvMb5KZK7fPYKz7RlDcpw='
         )

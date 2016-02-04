@@ -13,12 +13,11 @@
 #    under the License.
 
 import datetime
-import sys
 
 from oslo_log import log as logging
 from oslo_serialization import jsonutils
 import requests
-import six.moves.urllib.parse as urlparse
+from six.moves.urllib import parse as urlparse
 
 from networking_nec._i18n import _, _LI, _LE
 from networking_nec.plugins.necnwa.nwalib import exceptions as nwa_exc
@@ -142,9 +141,7 @@ class RestClient(object):
                           'port': self.port,
                           'reason': e}
             LOG.error(msg, msg_params)
-            tback = sys.exc_info()[2]
-            raise nwa_exc.NwaException(status_code,
-                                       msg % msg_params, e), None, tback
+            raise nwa_exc.NwaException(status_code, msg % msg_params, e)
 
     def _report_workflow_error(self, data, errno):
         if not self._post_data:

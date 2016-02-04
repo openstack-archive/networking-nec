@@ -17,6 +17,7 @@ import hashlib
 import hmac
 
 from oslo_log import log as logging
+from oslo_utils import encodeutils
 
 from networking_nec._i18n import _LI
 from networking_nec.plugins.necnwa.common import config as nwaconf
@@ -66,13 +67,13 @@ class NwaRestClient(restclient.RestClient):
     def define_auth_function(self, access_key_id, secret_access_key):
         def azure_auth(datestr, path):
             signature = hmac.new(
-                secret_access_key,
-                datestr + CRLF + path,
+                encodeutils.safe_encode(secret_access_key),
+                encodeutils.safe_encode(datestr + CRLF + path),
                 hashlib.sha256
             ).digest()
-            return ('SharedKeyLite %s:%s' %
-                    (access_key_id,
-                     base64.encodestring(signature).rstrip()))
+            return (encodeutils.safe_encode('SharedKeyLite %s:'
+                                            % access_key_id) +
+                    base64.b64encode(signature))
 
         auth = None
         if access_key_id and secret_access_key:
