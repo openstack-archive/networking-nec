@@ -12,5 +12,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-NWA_DEVICE_GDV = "GeneralDev"
-NWA_DEVICE_TFW = "TenantFW"
+from networking_nec.plugins.necnwa.common import config
+
+
+def get_nwa_tenant_id(tenant_id):
+    return config.CONF.NWA.region_name + tenant_id
+
+
+def get_tenant_info(context):
+    tenant_id = context.network.current['tenant_id']
+    nwa_tenant_id = get_nwa_tenant_id(tenant_id)
+    return tenant_id, nwa_tenant_id
