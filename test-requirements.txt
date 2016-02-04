@@ -20,4 +20,4 @@ testrepository>=0.0.18
 testscenarios>=0.4
 testtools>=1.4.0
 WebTest>=2.0
-MySQL-python>=1.2.3
+PyMySQL>=0.6.2  # MIT License

@@ -50,7 +50,7 @@ def setUpModule():
         _binding = MagicMock()
 
         engine = create_engine(
-            "mysql://root:hatake4js@localhost/neutron",
+            "mysql+pymysql://root:hatake4js@localhost/neutron",
             encoding="utf-8")
         Session = sessionmaker(bind=engine, autocommit=True)
         Session = sessionmaker(autocommit=True)
