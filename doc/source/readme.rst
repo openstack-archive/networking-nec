@@ -17,7 +17,7 @@ This plugin consists of two components:
   controller to handle logical networks on OpenFlow enabled network.
 
 * **Layer2-Agent**: It runs on each compute node. It gathers a mapping
-  beween a VIF and a switch port from local Open vSwitch and reports
+  between a VIF and a switch port from local Open vSwitch and reports
   it to the plugin.
 
 .. image:: images/nec-openflow-plugin-desgin.png
