@@ -380,7 +380,7 @@ class TestNwaClient(base.BaseTestCase):
             (4, ['cE', 'dE', 'dE', 'dE']),
         ]
         for count, vlan_names in params:
-            yield self.check_general_dev, count, vlan_names
+            self.check_general_dev(count, vlan_names)
 
     @patch('networking_nec.plugins.necnwa.nwalib'
            '.client.NwaClient.workflowinstance')
