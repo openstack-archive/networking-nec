@@ -15,6 +15,8 @@
 from neutron.agent.common import config
 from oslo_config import cfg
 
+from networking_nec._i18n import _
+
 agent_opts = [
     cfg.IntOpt('polling_interval', default=2,
                help=_("The number of seconds the agent will wait between "
