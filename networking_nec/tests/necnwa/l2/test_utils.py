@@ -145,7 +145,9 @@ class TestNwa(base.BaseTestCase):
             }
         ]
 
-        config.CONF.NWA.resource_group = jsonutils.dumps(self.resource_group)
+        config.CONF.set_override('resource_group',
+                                 jsonutils.dumps(self.resource_group),
+                                 group='NWA')
 
         self.nwa_data = {}
         self.jbody = {
