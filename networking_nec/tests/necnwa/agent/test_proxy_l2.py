@@ -20,9 +20,6 @@ from networking_nec.plugins.necnwa.agent import proxy_l2
 from networking_nec.tests.necnwa.agent import test_data
 from networking_nec.tests.necnwa.agent import test_nwa_agent
 
-# TODO(amotoki): Clean up this
-proxy_l2.WAIT_AGENT_NOTIFIER = 0
-
 
 class TestAgentProxyL2(test_nwa_agent.TestNECNWANeutronAgentBase):
 
@@ -644,6 +641,8 @@ class TestNECNWANeutronAgentRpc(test_nwa_agent.TestNECNWANeutronAgentBase):
 
     # ### GeneralDev: Openstack/DC/HA1
     # ### add Openstack/DC/HA1
+    @mock.patch('networking_nec.plugins.necnwa.agent.proxy_l2.'
+                'WAIT_AGENT_NOTIFIER', new=0)
     @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.get_nwa_tenant_binding')  # noqa
     @mock.patch('networking_nec.plugins.necnwa.agent.proxy_tenant.AgentProxyTenant.update_tenant_binding')  # noqa
     @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.set_nwa_tenant_binding')  # noqa
