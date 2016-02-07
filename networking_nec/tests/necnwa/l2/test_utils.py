@@ -15,6 +15,7 @@
 from mock import MagicMock
 from mock import patch
 from sqlalchemy.orm import exc
+import testscenarios
 
 from neutron.common import exceptions as n_exc
 from neutron.tests import base
@@ -23,6 +24,14 @@ from oslo_serialization import jsonutils
 
 from networking_nec.plugins.necnwa.common import config
 from networking_nec.plugins.necnwa.l2 import utils as nwa_l2_utils
+
+# the below code is required to load test scenarios.
+# If a test class has 'scenarios' attribute,
+# tests are multiplied depending on their 'scenarios' attribute.
+# This can be assigned to 'load_tests' in any test module to make this
+# automatically work across tests in the module.
+# For more details, see testscenarios document.
+load_tests = testscenarios.load_tests_apply_scenarios
 
 LOG = logging.getLogger(__name__)
 
@@ -218,108 +227,114 @@ class TestUpdatePortStatus(TestNwa):
 
 
 class TestIsBaremetal(base.BaseTestCase):
-    def setUp(self):
-        super(TestIsBaremetal, self).setUp()
-        self.ironic_az_prefix = config.CONF.NWA.ironic_az_prefix
 
-    def tearDown(self):
-        config.CONF.NWA.ironic_az_prefix = self.ironic_az_prefix
-        super(TestIsBaremetal, self).tearDown()
-
-    def check_is_baremetal(self, param):
-        config.CONF.NWA.ironic_az_prefix = param['ironic_az_prefix']
-        return nwa_l2_utils.is_baremetal(param['device_owner'])
+    scenarios = [
+        ('ironic_az_prefix is empty',
+         {
+             'ironic_az_prefix': '',
+             'device_owner': 'compute:',
+             'expected_return_value': False
+         }),
+        ('ironic_az_prefix is a space',
+         {
+             'ironic_az_prefix': ' ',
+             'device_owner': 'compute:',
+             'expected_return_value': False
+         }),
+        ('ironic_az_prefix and device_owner AZ match',
+         {
+             'ironic_az_prefix': 'BM1',
+             'device_owner': 'compute:BM1',
+             'expected_return_value': True
+         }),
+        ('ironic_az_prefix and device_owner AZ are different cases',
+         {
+             'ironic_az_prefix': 'BM2',
+             'device_owner': 'compute:bm2',
+             'expected_return_value': False
+         }),
+        ('ironic_az_prefix is specified but device_owner AZ is empty',
+         {
+             'ironic_az_prefix': 'BM3',
+             'device_owner': 'compute:',
+             'expected_return_value': False
+         }),
+        ('ironic_az_prefix is specified but device_owner prefix is unexpected',
+         {
+             'ironic_az_prefix': 'BM4',
+             'device_owner': 'COMPUTE:BM4',
+             'expected_return_value': False
+         })
+    ]
 
     def test_is_baremetal(self):
-        test_params = [
-            {
-                'ironic_az_prefix': '',
-                'device_owner': 'compute:',
-                'return': False
-            },
-            {
-                'ironic_az_prefix': ' ',
-                'device_owner': 'compute:',
-                'return': False
-            },
-            {
-                'ironic_az_prefix': 'BM1',
-                'device_owner': 'compute:BM1',
-                'return': True
-            },
-            {
-                'ironic_az_prefix': 'BM2',
-                'device_owner': 'compute:bm2',
-                'return': False
-            },
-            {
-                'ironic_az_prefix': 'BM3',
-                'device_owner': 'compute:',
-                'return': False
-            },
-            {
-                'ironic_az_prefix': 'BM4',
-                'device_owner': 'COMPUTE:BM4',
-                'return': False
-            }
-        ]
-        for param in test_params:
-            yield self.check_is_baremetal, param
+        config.CONF.set_override('ironic_az_prefix', self.ironic_az_prefix,
+                                 group='NWA')
+        rc = nwa_l2_utils.is_baremetal(self.device_owner)
+        self.assertEqual(self.expected_return_value, rc)
 
 
 class TestBaremetalResourceGroupName(base.BaseTestCase):
-    def setUp(self):
-        super(TestBaremetalResourceGroupName, self).setUp()
-        self.portmap = config.CONF.NWA.port_map
 
-    def tearDown(self):
-        config.CONF.NWA.port_map = self.portmap
-        super(TestBaremetalResourceGroupName, self).tearDown()
+    maca1 = '00:10:18:ca:1f:a1'
+    maca2 = '00:10:18:ca:1f:a2'
+    maca3 = '00:10:18:ca:1f:a3'
+    resgrp1 = "Common/BM/Pod2-BM1"
+    resgrp2 = "Common/BM/Pod2-BM2"
+    portmaps1 = [
+        {'mac_address': maca1, "ResourceGroupName": resgrp1},
+        {"mac_address": maca2, "ResourceGroupName": resgrp2},
+    ]
 
-    def check_baremetal_resource_group_name(self, param):
-        config.CONF.NWA.port_map = param['portmap']
-        rc = None
-        try:
-            rc = nwa_l2_utils.baremetal_resource_group_name(
-                param['mac_address'])
-        except KeyError:
-            rc = 'KeyError'
-        finally:
-            self.assertEqual(rc, param['return'])
+    scenarios = [
+        ('test 1',
+         {
+             'portmap': None,
+             'mac_address': '',
+             'expected_return_value': None
+         }),
+        ('test 2',
+         {
+             'portmap': [],
+             'mac_address': '',
+             'expected_return_value': None
+         }),
+        ('test 3',
+         {
+             'portmap': {},
+             'mac_address': '',
+             'expected_return_value': None
+         }),
+        ('test 4',
+         {
+             'portmap': {'a': 1},
+             'mac_address': '',
+             'expected_return_value': None
+         }),
+        ('test 5',
+         {
+             'portmap': jsonutils.dumps(portmaps1),
+             'mac_address': maca3,
+             'expected_return_value': None,
+         }),
+        ('test 6',
+         {
+             'portmap': jsonutils.dumps(portmaps1),
+             'mac_address': maca1,
+             'expected_return_value': resgrp1,
+         }),
+        ('test 7',
+         {
+             'portmap': jsonutils.dumps(portmaps1),
+             'mac_address': maca2,
+             'expected_return_value': resgrp2,
+         }),
+    ]
 
     def test_baremetal_resource_group_name(self):
-        maca1 = '00:10:18:ca:1f:a1'
-        maca2 = '00:10:18:ca:1f:a2'
-        maca3 = '00:10:18:ca:1f:a3'
-        resgrp1 = "Common/BM/Pod2-BM1"
-        resgrp2 = "Common/BM/Pod2-BM2"
-        portmaps1 = [
-            {'mac_address': maca1, "ResourceGroupName": resgrp1},
-            {"mac_address": maca2, "ResourceGroupName": resgrp2},
-        ]
-        test_params = [
-            {'portmap': None, 'mac_address': '', 'return': 'KeyError'},
-            {'portmap': [], 'mac_address': '', 'return': 'KeyError'},
-            {'portmap': {}, 'mac_address': '', 'return': 'KeyError'},
-            {'portmap': {'a': 1}, 'mac_address': '', 'return': 'KeyError'},
-            {
-                'portmap': jsonutils.dumps(portmaps1),
-                'mac_address': maca3,
-                'return': 'KeyError',
-            },
-            {
-                'portmap': jsonutils.dumps(portmaps1),
-                'mac_address': maca1,
-                'return': resgrp1,
-            },
-            {
-                'portmap': jsonutils.dumps(portmaps1),
-                'mac_address': maca2,
-                'return': resgrp2,
-            },
-        ]
-        for param in test_params:
-            yield self.check_baremetal_resource_group_name, param
+        config.CONF.set_override('port_map', self.portmap, group='NWA')
+        rc = nwa_l2_utils.baremetal_resource_group_name(self.mac_address)
+        self.assertEqual(self.expected_return_value, rc)
 
 
 class test__getResourceGroupName(TestNwa):
@@ -492,6 +507,7 @@ class TestNwaCreateTenantFw(base.BaseTestCase):
                 'call_count_create_general_dev': 1
             }
         ]
+        # NOTE(amotoki): check_nwa_create_general_dev_bm not found
         for param in test_params:
             yield self.check_nwa_create_general_dev_bm, param
 
@@ -559,5 +575,6 @@ class TestNwaDeleteGeneralDev(TestNwa):
                 'call_count_delete_general_dev': 0
             }
         ]
+        # NOTE(amotoki): check_nwa_delete_general_dev_bm not found
         for param in test_params:
             yield self.check_nwa_delete_general_dev_bm, param

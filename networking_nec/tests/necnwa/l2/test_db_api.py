@@ -15,6 +15,7 @@
 from mock import MagicMock
 from mock import patch
 from sqlalchemy.orm.exc import NoResultFound
+import testscenarios
 
 from neutron.tests import base
 from oslo_log import log as logging
@@ -41,6 +42,14 @@ from networking_nec.plugins.necnwa.l2.db_api \
 from networking_nec.plugins.necnwa.l2.db_api \
     import update_json_post_UpdateTenantFW
 from networking_nec.plugins.necnwa.l2.db_api import update_json_vlanid
+
+# the below code is required to load test scenarios.
+# If a test class has 'scenarios' attribute,
+# tests are multiplied depending on their 'scenarios' attribute.
+# This can be assigned to 'load_tests' in any test module to make this
+# automatically work across tests in the module.
+# For more details, see testscenarios document.
+load_tests = testscenarios.load_tests_apply_scenarios
 
 LOG = logging.getLogger(__name__)
 
@@ -170,135 +179,141 @@ class TestGetNwaTenantBindingByTid(base.BaseTestCase):
 
 
 class TestSetNwaTenantBinding(base.BaseTestCase):
-    @patch('networking_nec.plugins.necnwa.l2.db_api.get_nwa_tenant_binding')
-    def check_set_nwa_tenant_binding(self, param, gntb):
-        self.session = MagicMock()
-        gntb.return_value = param['old_value_json']
-        rc = set_nwa_tenant_binding(
-            self.session, TENANT_ID, NWA_TENANT_ID, param['new_value_json']
-        )
-        self.assertEqual(rc, param['return'])
-        if 'call_count_update' in param:
-            self.assertEqual(self.session.query().filter().one.call_count,
-                             param['call_count_update'])
-        if 'call_count_insert' in param:
-            self.assertEqual(self.session.execute.call_count,
-                             param['call_count_insert'])
-        if 'call_count_delete' in param:
-            self.assertEqual(self.session.delete.call_count,
-                             param['call_count_delete'])
 
-    def test_set_nwa_tenant_binding(self):
-        test_params = [
-            {
-                'return': False,
-                'old_value_json': None,
-                'new_value_json': None
-            },
-            {
-                'return': False,
-                'old_value_json': itemval(1),
-                'new_value_json': None
-            },
-            {
-                'return': False,
-                'old_value_json': itemval({'a': 1}),
-                'new_value_json': None
-            },
-            {
-                # same key, same value
-                'return': True,
-                'old_value_json': itemval({'a': 1}),
-                'new_value_json': {'a': 1},
-                'call_count_update': 0,
-                'call_count_insert': 0,
-                'call_count_delete': 0
-            },
-            {
-                # same key, same value (True, "True") XXX
-                'return': True,
-                'old_value_json': itemval({'a': "True"}),
-                'new_value_json': {'a': True},
-                'call_count_update': 1,
-                'call_count_insert': 0,
-                'call_count_delete': 0
-            },
-            {
-                # same key, same value (ignore case)
-                'return': True,
-                'old_value_json': itemval({'A': 1}),
-                'new_value_json': {'a': 1},
-                'call_count_update': 1,
-                'call_count_insert': 1,
-                'call_count_delete': 1
-            },
-            {
-                # same key, different value
-                'return': True,
-                'old_value_json': itemval({'a': 1}),
-                'new_value_json': {'a': 2},
-                'call_count_update': 1,
-                'call_count_insert': 0,
-                'call_count_delete': 0
-            },
-            {
-                # diffrent key
-                'return': True,
-                'old_value_json': itemval({'a': 1}),
-                'new_value_json': {'b': 2},
-                'call_count_update': 1,
-                'call_count_insert': 1,
-                'call_count_delete': 1
-            },
-            {
-                # diffrent key, multiple
-                'return': True,
-                'old_value_json': itemval({
-                    'a': 0,
-                    'b': 1
-                }),
-                'new_value_json': {
-                    'b': 1,
-                    'c': 2
-                },
-                'call_count_update': 1,
-                'call_count_insert': 1,
-                'call_count_delete': 1
-            },
+    scenarios = [
+        ('old new json None',
+         {
+             'expected_return_value': False,
+             'old_value_json': None,
+             'new_value_json': None
+         }),
+        ('old json is 1 and new json is None',
+         {
+             'expected_return_value': False,
+             'old_value_json': itemval(1),
+             'new_value_json': None
+         }),
+        ('old json is dict and new json is None',
+         {
+             'expected_return_value': False,
+             'old_value_json': itemval({'a': 1}),
+             'new_value_json': None
+         }),
+        ('old and new json have same key and value',
+         {
+             # same key, same value
+             'expected_return_value': True,
+             'old_value_json': itemval({'a': 1}),
+             'new_value_json': {'a': 1},
+             'call_count_update': 0,
+             'call_count_insert': 0,
+             'call_count_delete': 0
+         }),
+        ('old and new json have same key and same value (True, "True")',
+         {
+             # same key, same value (True, "True") XXX
+             'expected_return_value': True,
+             'old_value_json': itemval({'a': "True"}),
+             'new_value_json': {'a': True},
+             'call_count_update': 1,
+             'call_count_insert': 0,
+             'call_count_delete': 0
+         }),
+        ('old and new json have same key (ignore case)',
+         {
+             # same key, same value (ignore case)
+             'expected_return_value': True,
+             'old_value_json': itemval({'A': 1}),
+             'new_value_json': {'a': 1},
+             'call_count_update': 1,
+             'call_count_insert': 1,
+             'call_count_delete': 1
+         }),
+        ('old and new json has same key and different value',
+         {
+             # same key, different value
+             'expected_return_value': True,
+             'old_value_json': itemval({'a': 1}),
+             'new_value_json': {'a': 2},
+             'call_count_update': 1,
+             'call_count_insert': 0,
+             'call_count_delete': 0
+         }),
+        ('old and new json has different keys',
+         {
+             # diffrent key
+             'expected_return_value': True,
+             'old_value_json': itemval({'a': 1}),
+             'new_value_json': {'b': 2},
+             'call_count_update': 1,
+             'call_count_insert': 1,
+             'call_count_delete': 1
+         }),
+        ('old and new json has multiple different keys',
+         {
+             # diffrent key, multiple
+             'expected_return_value': True,
+             'old_value_json': itemval({
+                 'a': 0,
+                 'b': 1
+             }),
+             'new_value_json': {
+                 'b': 1,
+                 'c': 2
+             },
+             'call_count_update': 1,
+             'call_count_insert': 1,
+             'call_count_delete': 1
+         }),
         ]
-        for param in test_params:
-            yield self.check_set_nwa_tenant_binding, param
+
+    @patch('networking_nec.plugins.necnwa.l2.db_api.get_nwa_tenant_binding')
+    def test_set_nwa_tenant_binding(self, gntb):
+
+        self.session = MagicMock()
+        gntb.return_value = self.old_value_json
+        rc = set_nwa_tenant_binding(
+            self.session, TENANT_ID, NWA_TENANT_ID, self.new_value_json
+        )
+        self.assertEqual(rc, self.expected_return_value)
+        if self.expected_return_value:
+            self.assertEqual(self.session.query().filter().one.call_count,
+                             self.call_count_update)
+            self.assertEqual(self.session.execute.call_count,
+                             self.call_count_insert)
+            self.assertEqual(self.session.delete.call_count,
+                             self.call_count_delete)
 
 
 class TestDelNwaTenantBinding(base.BaseTestCase):
-    @patch('networking_nec.plugins.necnwa.l2.db_api.get_nwa_tenant_binding')
-    def check_del_nwa_tenant_binding(self, param, gntb):
-        self.session = MagicMock()
-        gntb.return_value = param['old_value_json']
-        rc = del_nwa_tenant_binding(self.session, TENANT_ID, NWA_TENANT_ID)
-        self.assertEqual(rc, param['return'])
 
-    def test_del_nwa_tenant_binding(self):
-        test_params = [
-            {
-                'return': False,
-                'old_value_json': None
-            },
-            {
-                'return': True,
-                'old_value_json': 1
-            }
-        ]
-        for param in test_params:
-            yield self.check_del_nwa_tenant_binding, param
+    scenarios = [
+        ('old value json is None',
+         {
+             'expected_return_value': False,
+             'old_value_json': None
+         }),
+        ('old value json is 1',
+         {
+             'expected_return_value': True,
+             'old_value_json': 1
+         }),
+        ('no result found',
+         {
+             'expected_return_value': False,
+             'old_value_json': 1,
+             'delete_not_found': True,
+         }),
+    ]
 
     @patch('networking_nec.plugins.necnwa.l2.db_api.get_nwa_tenant_binding')
-    def test_del_nwa_tenant_binding_no_result_found(self, gntb):
-        gntb.return_value = 1
+    def test_del_nwa_tenant_binding(self, gntb):
+        gntb.return_value = self.old_value_json
         self.session = MagicMock()
-        self.session.query().filter().delete.side_effect = NoResultFound
+        if getattr(self, 'delete_not_found', False):
+            self.session.query().filter().delete.side_effect = NoResultFound
         rc = del_nwa_tenant_binding(self.session, TENANT_ID, NWA_TENANT_ID)
-        self.assertFalse(rc)
+        self.assertEqual(rc, self.expected_return_value)
 
 
 class TestUpdateJsonNwaTenantId(base.BaseTestCase):

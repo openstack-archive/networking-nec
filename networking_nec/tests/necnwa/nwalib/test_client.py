@@ -14,6 +14,7 @@
 
 from mock import MagicMock
 from mock import patch
+import testscenarios
 
 from neutron.tests import base
 
@@ -21,6 +22,14 @@ from networking_nec.plugins.necnwa.nwalib import client
 from networking_nec.plugins.necnwa.nwalib import exceptions as nwa_exc
 from networking_nec.plugins.necnwa.nwalib import semaphore as nwa_sem
 from networking_nec.plugins.necnwa.nwalib import workflow
+
+# the below code is required to load test scenarios.
+# If a test class has 'scenarios' attribute,
+# tests are multiplied depending on their 'scenarios' attribute.
+# This can be assigned to 'load_tests' in any test module to make this
+# automatically work across tests in the module.
+# For more details, see testscenarios document.
+load_tests = testscenarios.load_tests_apply_scenarios
 
 TENANT_ID = 'OpenT9004'
 CONTEXT = MagicMock()
@@ -58,11 +67,10 @@ def init_async():
     RESULTS = {}
 
 
-class TestNwaClient(base.BaseTestCase):
-    '''Test code for Nwa Client '''
+class TestNwaClientBase(base.BaseTestCase):
 
     def setUp(self):
-        super(TestNwaClient, self).setUp()
+        super(TestNwaClientBase, self).setUp()
         host = '127.0.0.1'
         port = '12081'
         access_key_id = 'PzGIIoLbL7ttHFkDHqLguFz/7+VsVJbDmV0iLWAkJ0g='
@@ -78,6 +86,9 @@ class TestNwaClient(base.BaseTestCase):
         )
         self.nwa.workflow_first_wait = 0
         self.nwa2.workflow_first_wait = 0
+
+
+class TestNwaClient(TestNwaClientBase):
 
     def get_vlan_info(self):
         self.business_vlan = self.public_vlan = None
@@ -346,6 +357,9 @@ class TestNwaClient(base.BaseTestCase):
         rd, rj = self.nwa.setting_fw_policy(TENANT_ID, fw_name, props)
         self.assertEqual(rd, 500)
 
+
+class TestNwaClientScenario(TestNwaClientBase):
+
     def create_general_dev(self, vlan_name):
         init_async()
         dcresgrp_name = 'Common/App/Pod3'
@@ -368,36 +382,36 @@ class TestNwaClient(base.BaseTestCase):
         self.assertEqual(rj['status'], 'SUCCESS')
         return rd, rj
 
-    def test_general_dev(self):
-        params = [
-            (5, ['dA', 'dB', 'dC', 'dD', 'dA']),
-            (4, ['d1', 'd2', 'd3', 'd1']),
-            (3, ['cA', 'dA', 'cA']),      # delete to "create"
-            (3, ['c1', 'd2', 'c1']),      # don't delete if name is not same.
-            (3, ['cB', 'dB', 'cC']),
-            (4, ['cX', 'dX', 'cX', 'dX']),
-            (6, ['c1', 'c2', 'd1', 'd2', 'c1', 'd1']),
-            (4, ['cE', 'dE', 'dE', 'dE']),
-        ]
-        for count, vlan_names in params:
-            yield self.check_general_dev, count, vlan_names
+    scenarios = [
+        ('test 1', {'count': 5, 'vlan_names': ['dA', 'dB', 'dC', 'dD', 'dA']}),
+        ('test 2', {'count': 4, 'vlan_names': ['d1', 'd2', 'd3', 'd1']}),
+        # delete to "create"
+        ('test 3', {'count': 3, 'vlan_names': ['cA', 'dA', 'cA']}),
+        # don't delete if name is not same.
+        ('test 4', {'count': 3, 'vlan_names': ['c1', 'd2', 'c1']}),
+        ('test 5', {'count': 3, 'vlan_names': ['cB', 'dB', 'cC']}),
+        ('test 6', {'count': 4, 'vlan_names': ['cX', 'dX', 'cX', 'dX']}),
+        ('test 7', {'count': 6,
+                    'vlan_names': ['c1', 'c2', 'd1', 'd2', 'c1', 'd1']}),
+        ('test 8', {'count': 4, 'vlan_names': ['cE', 'dE', 'dE', 'dE']}),
+    ]
 
     @patch('networking_nec.plugins.necnwa.nwalib'
            '.client.NwaClient.workflowinstance')
     @patch('networking_nec.plugins.necnwa.nwalib.restclient.RestClient.post')
-    def check_general_dev(self, count, vlan_names, post, wki):
+    def test_general_dev(self, post, wki):
         post.__name__ = 'post'
         post.return_value = (200, {'status': 'SUCCESS', 'executionid': "01"})
         wki.return_value = (200, {'status': 'SUCCESS'})
 
         post.reset_mock()
-        for vlan_name in vlan_names:
+        for vlan_name in self.vlan_names:
             name = vlan_name[1:]
             if vlan_name.startswith('c'):
                 self.assertEqual(self.create_general_dev(name)[0], 200)
             else:
                 self.assertEqual(self.delete_general_dev(name)[0], 200)
-        self.assertEqual(post.call_count, count)
+        self.assertEqual(post.call_count, self.count)
 
 
 class TestUtNwaClient(base.BaseTestCase):
