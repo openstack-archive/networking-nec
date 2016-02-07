@@ -183,27 +183,20 @@ def setUpModule():
         }
     ]
     RESOURCE_GROUP_STR = jsonutils.dumps(resource_group)
-    config.CONF.NWA.resource_group = RESOURCE_GROUP_STR
 
 
 class TestNECNWAMechanismDriver(base.BaseTestCase):
     def setUp(self):
         super(TestNECNWAMechanismDriver, self).setUp()
         self.driver = mech.NECNWAMechanismDriver()
-        self.saveNWA = networking_nec.plugins.necnwa.common.config.CONF.NWA
-        cfg = MagicMock()
-        networking_nec.plugins.necnwa.common.config.CONF.NWA = cfg
-        cfg.resource_group = RESOURCE_GROUP_STR
+        config.CONF.set_override('resource_group', RESOURCE_GROUP_STR,
+                                 group='NWA')
 
         self.rcode = MagicMock()
         self.rcode.value_json = {
             'CreateTenant': True,
             'NWA_tenant_id': 'RegionOnetenant201'
         }
-
-    def tearDown(self):
-        networking_nec.plugins.necnwa.common.config.CONF.NWA = self.saveNWA
-        super(TestNECNWAMechanismDriver, self).tearDown()
 
     def _get_nwa_tenant_binding(self, value_json):
         rcode = MagicMock()
