@@ -13,17 +13,17 @@
 #    under the License.
 
 from neutron.db import api as db_api
-from neutron.plugins.ml2 import rpc
 from oslo_log import log as logging
+import oslo_messaging
 
 from networking_nec.plugins.necnwa.fwaas import db_api as necnwa_api
 
 LOG = logging.getLogger(__name__)
 
 
-class FwaasServerRpcCallbacks(rpc.RpcCallbacks):
+class FwaasServerRpcCallbacks(object):
 
-    RPC_VERSION = '1.0'
+    target = oslo_messaging.Target(version='1.0')
 
     def create_fwaas_ids(self, context, tfw):
         session = db_api.get_session()

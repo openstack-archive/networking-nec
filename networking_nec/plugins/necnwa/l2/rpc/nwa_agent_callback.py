@@ -13,12 +13,14 @@
 #    under the License.
 
 from oslo_log import log as logging
+import oslo_messaging
 
 LOG = logging.getLogger(__name__)
 
 
 class NwaAgentRpcCallback(object):
-    RPC_API_VERSION = '1.0'
+
+    target = oslo_messaging.Target(version='1.0')
 
     def __init__(self, context, agent):
         self.context = context

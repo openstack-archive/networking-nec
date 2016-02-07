@@ -15,15 +15,15 @@
 from neutron.extensions import l3
 from neutron import manager
 from neutron.plugins.common import constants as plugin_constants
-from neutron.plugins.ml2 import rpc
 from oslo_log import log as logging
+import oslo_messaging
 
 LOG = logging.getLogger(__name__)
 
 
-class NwaL3ServerRpcCallback(rpc.RpcCallbacks):
+class NwaL3ServerRpcCallback(object):
 
-    RPC_VERSION = '1.0'
+    target = oslo_messaging.Target(version='1.0')
 
     @property
     def l3plugin(self):

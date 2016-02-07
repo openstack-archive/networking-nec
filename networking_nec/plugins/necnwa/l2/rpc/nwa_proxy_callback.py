@@ -13,15 +13,17 @@
 #    under the License.
 
 from oslo_log import log as logging
+import oslo_messaging
 from oslo_serialization import jsonutils
 
 LOG = logging.getLogger(__name__)
 
 
 class NwaProxyCallback(object):
-    RPC_API_VERSION = '1.0'
+    target = oslo_messaging.Target(version='1.0')
 
     def __init__(self, context, agent):
+        super(NwaProxyCallback, self).__init__()
         self.context = context
         self.agent = agent
 
