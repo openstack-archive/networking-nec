@@ -17,31 +17,12 @@ from mock import patch
 from sqlalchemy.orm.exc import NoResultFound
 import testscenarios
 
+from neutron import context
 from neutron.tests import base
+from neutron.tests.unit import testlib_api
 from oslo_log import log as logging
 
-from networking_nec.plugins.necnwa.l2.db_api import add_nwa_tenant_binding
-from networking_nec.plugins.necnwa.l2.db_api import chg_value
-from networking_nec.plugins.necnwa.l2.db_api import del_nwa_tenant_binding
-from networking_nec.plugins.necnwa.l2.db_api import ensure_port_binding
-from networking_nec.plugins.necnwa.l2.db_api import get_nwa_tenant_binding
-from networking_nec.plugins.necnwa.l2.db_api \
-    import get_nwa_tenant_binding_by_tid
-from networking_nec.plugins.necnwa.l2.db_api import set_nwa_tenant_binding
-from networking_nec.plugins.necnwa.l2.db_api import update_json_nwa_tenant_id
-from networking_nec.plugins.necnwa.l2.db_api \
-    import update_json_post_CreateGeneralDev
-from networking_nec.plugins.necnwa.l2.db_api \
-    import update_json_post_CreateTenantFW
-from networking_nec.plugins.necnwa.l2.db_api \
-    import update_json_post_CreateTenantNW
-from networking_nec.plugins.necnwa.l2.db_api \
-    import update_json_post_CreateVLAN
-from networking_nec.plugins.necnwa.l2.db_api \
-    import update_json_post_SettingNAT
-from networking_nec.plugins.necnwa.l2.db_api \
-    import update_json_post_UpdateTenantFW
-from networking_nec.plugins.necnwa.l2.db_api import update_json_vlanid
+from networking_nec.plugins.necnwa.l2 import db_api
 
 # the below code is required to load test scenarios.
 # If a test class has 'scenarios' attribute,
@@ -84,14 +65,14 @@ class TestAddNwaTenantBinding(base.BaseTestCase):
         self.session = MagicMock()
 
     def test_add_nwa_tenant_binding_json_is_none(self):
-        rc = add_nwa_tenant_binding(
+        rc = db_api.add_nwa_tenant_binding(
             self.session, TENANT_ID, NWA_TENANT_ID, None
         )
         self.assertFalse(rc)
 
     def test_add_nwa_tenant_binding_tenant_id_no_match(self):
         self.session.query().filter().all = MagicMock(return_value=[1, 2])
-        rc = add_nwa_tenant_binding(
+        rc = db_api.add_nwa_tenant_binding(
             self.session, TENANT_ID, NWA_TENANT_ID, JSON_VALUE
         )
         self.assertFalse(rc)
@@ -99,7 +80,7 @@ class TestAddNwaTenantBinding(base.BaseTestCase):
     def test_add_nwa_tenant_binding(self):
         self.session.reset_mock()
         self.session.query().filter().all.return_value = []
-        rc = add_nwa_tenant_binding(
+        rc = db_api.add_nwa_tenant_binding(
             self.session, TENANT_ID, NWA_TENANT_ID, JSON_VALUE
         )
         self.assertTrue(rc)
@@ -108,7 +89,7 @@ class TestAddNwaTenantBinding(base.BaseTestCase):
     def test_add_nwa_tenant_binding_2(self):
         self.session.reset_mock()
         self.session.query().filter().all.return_value = []
-        rc = add_nwa_tenant_binding(
+        rc = db_api.add_nwa_tenant_binding(
             self.session, TENANT_ID, NWA_TENANT_ID,
             {'a': 1, 'b': 2}
         )
@@ -117,7 +98,7 @@ class TestAddNwaTenantBinding(base.BaseTestCase):
 
     def test_add_nwa_tenant_binding_no_result_found(self):
         self.session.query().filter().all.side_effect = NoResultFound
-        rc = add_nwa_tenant_binding(
+        rc = db_api.add_nwa_tenant_binding(
             self.session, TENANT_ID, NWA_TENANT_ID, JSON_VALUE
         )
         self.assertFalse(rc)
@@ -125,10 +106,10 @@ class TestAddNwaTenantBinding(base.BaseTestCase):
 
 class TestChgValue(base.BaseTestCase):
     def test_chg_value(self):
-        rb = chg_value('CreateTenant', "True")
+        rb = db_api.chg_value('CreateTenant', "True")
         self.assertTrue(rb)
 
-        rb = chg_value('CreateTenantNW', "False")
+        rb = db_api.chg_value('CreateTenantNW', "False")
         self.assertFalse(rb)
 
 
@@ -139,19 +120,22 @@ class TestGetNwaTenantBinding(base.BaseTestCase):
 
     def test_get_nwa_tenant_binding(self):
         self.session.query().filter().filter().all.return_value = []
-        rc = get_nwa_tenant_binding(self.session, TENANT_ID, NWA_TENANT_ID)
+        rc = db_api.get_nwa_tenant_binding(self.session,
+                                           TENANT_ID, NWA_TENANT_ID)
         self.assertIsNone(rc)
 
     def test_get_nwa_tenant_binding_1(self):
         nwa = MagicMock()
         nwa.json_key, nwa.json_value = 'a', 1
         self.session.query().filter().filter().all.return_value = [nwa]
-        rc = get_nwa_tenant_binding(self.session, TENANT_ID, NWA_TENANT_ID)
+        rc = db_api.get_nwa_tenant_binding(self.session,
+                                           TENANT_ID, NWA_TENANT_ID)
         self.assertEqual(rc.value_json, {'a': 1})
 
     def test_get_nwa_tenant_binding_no_result_found(self):
         self.session.query().filter().filter().all.side_effect = NoResultFound
-        rc = get_nwa_tenant_binding(self.session, TENANT_ID, NWA_TENANT_ID)
+        rc = db_api.get_nwa_tenant_binding(self.session,
+                                           TENANT_ID, NWA_TENANT_ID)
         self.assertIsNone(rc)
 
 
@@ -162,19 +146,19 @@ class TestGetNwaTenantBindingByTid(base.BaseTestCase):
 
     def test_get_nwa_tenant_binding_by_tid(self):
         self.session.query().filter().all = MagicMock(return_value=MagicMock())
-        rc = get_nwa_tenant_binding_by_tid(self.session, MagicMock())
+        rc = db_api.get_nwa_tenant_binding_by_tid(self.session, MagicMock())
         self.assertIsNone(rc)
 
     def test_get_nwa_tenant_binding_by_tid_1(self):
         nwa = MagicMock()
         nwa.json_key, nwa.json_value = 'a', 1
         self.session.query().filter().all.return_value = [nwa]
-        rc = get_nwa_tenant_binding_by_tid(self.session, TENANT_ID)
+        rc = db_api.get_nwa_tenant_binding_by_tid(self.session, TENANT_ID)
         self.assertEqual(rc.value_json, {'a': 1})
 
     def test_get_nwa_tenant_binding_by_tid_no_result_found(self):
         self.session.query().filter().all.side_effect = NoResultFound
-        rc = get_nwa_tenant_binding_by_tid(self.session, TENANT_ID)
+        rc = db_api.get_nwa_tenant_binding_by_tid(self.session, TENANT_ID)
         self.assertIsNone(rc)
 
 
@@ -272,7 +256,7 @@ class TestSetNwaTenantBinding(base.BaseTestCase):
 
         self.session = MagicMock()
         gntb.return_value = self.old_value_json
-        rc = set_nwa_tenant_binding(
+        rc = db_api.set_nwa_tenant_binding(
             self.session, TENANT_ID, NWA_TENANT_ID, self.new_value_json
         )
         self.assertEqual(rc, self.expected_return_value)
@@ -312,30 +296,31 @@ class TestDelNwaTenantBinding(base.BaseTestCase):
         self.session = MagicMock()
         if getattr(self, 'delete_not_found', False):
             self.session.query().filter().delete.side_effect = NoResultFound
-        rc = del_nwa_tenant_binding(self.session, TENANT_ID, NWA_TENANT_ID)
+        rc = db_api.del_nwa_tenant_binding(self.session,
+                                           TENANT_ID, NWA_TENANT_ID)
         self.assertEqual(rc, self.expected_return_value)
 
 
 class TestUpdateJsonNwaTenantId(base.BaseTestCase):
     def test_update_json_nwa_tenant_id(self):
-        update_json_nwa_tenant_id(VALUE_JSON, NWA_TENANT_ID)
+        db_api.update_json_nwa_tenant_id(VALUE_JSON, NWA_TENANT_ID)
 
 
 class TestUpdateJsonPostCreateTenantNW(base.BaseTestCase):
     def test_update_json_post__create_tenant_n_w(self):
-        update_json_post_CreateTenantNW(VALUE_JSON)
+        db_api.update_json_post_CreateTenantNW(VALUE_JSON)
 
 
 class TestUpdateJsonVlanid(base.BaseTestCase):
     def test_update_json_vlanid(self):
-        update_json_vlanid(
+        db_api.update_json_vlanid(
             VALUE_JSON, NETWORK_ID, PHYSICAL_NETWORK, 2, 302
         )
 
 
 class TestUpdateJsonPostCreateVLAN(base.BaseTestCase):
     def test_update_json_post__create_vla_n(self):
-        update_json_post_CreateVLAN(
+        db_api.update_json_post_CreateVLAN(
             VALUE_JSON, NETWORK_ID, NETWORK_NAME,
             'uuid-subnet_id', CIDR,
             'PUBLICVLAN_102',
@@ -345,7 +330,7 @@ class TestUpdateJsonPostCreateVLAN(base.BaseTestCase):
 
 class TestUpdateJsonPostCreateTenantFW(base.BaseTestCase):
     def test_update_json_post__create_tenant_f_w(self):
-        update_json_post_CreateTenantFW(
+        db_api.update_json_post_CreateTenantFW(
             VALUE_JSON, NETWORK_ID, NETWORK_NAME, PHYSICAL_NETWORK,
             2, 202, DEVICE_ID, DEVICE_OWNER,
             'T1',
@@ -355,7 +340,7 @@ class TestUpdateJsonPostCreateTenantFW(base.BaseTestCase):
 
 class TestUpdateJsonPostUpdateTenantFW(base.BaseTestCase):
     def test_update_json_post__update_tenant_f_w(self):
-        update_json_post_UpdateTenantFW(
+        db_api.update_json_post_UpdateTenantFW(
             VALUE_JSON, NETWORK_ID, NETWORK_NAME, PHYSICAL_NETWORK,
             3, 203, DEVICE_ID, IP_ADDRESS, MAC_ADDRESS
         )
@@ -363,14 +348,14 @@ class TestUpdateJsonPostUpdateTenantFW(base.BaseTestCase):
 
 class TestUpdateJsonPostCreateGeneralDev(base.BaseTestCase):
     def test_update_json_post__create_general_dev(self):
-        update_json_post_CreateGeneralDev(
+        db_api.update_json_post_CreateGeneralDev(
             VALUE_JSON, PHYSICAL_NETWORK, 4, NETWORK_ID, 204
         )
 
 
 class TestUpdateJsonPostSettingNAT(base.BaseTestCase):
     def test_update_json_post__setting_na_t(self):
-        update_json_post_SettingNAT(
+        db_api.update_json_post_SettingNAT(
             VALUE_JSON, DEVICE_ID,
             'uuid-fip-1',
             'uuid-network_id-1',
@@ -387,7 +372,7 @@ class TestEnsurePortBinding(base.BaseTestCase):
     def test_ensure_port_binding(self):
         port_id = 'uuid-port_id-1'
         self.session.query().filter_by().one.return_value = port_id
-        rc = ensure_port_binding(self.session, port_id)
+        rc = db_api.ensure_port_binding(self.session, port_id)
         self.assertEqual(rc, port_id)
 
     @patch('neutron.plugins.ml2.models.PortBinding')
@@ -397,5 +382,70 @@ class TestEnsurePortBinding(base.BaseTestCase):
         mpb.return_value = 'uuid-port_id-2'
         self.assertRaises(
             NoResultFound,
-            ensure_port_binding, self.session, port_id
+            db_api.ensure_port_binding, self.session, port_id
         )
+
+
+class TestTenantQueue(testlib_api.SqlTestCase):
+
+    tenant1 = 'ffffffffff0000000000000000000001'
+    tenant2 = 'ffffffffff0000000000000000000002'
+    tenant3 = 'ffffffffff0000000000000000000003'
+
+    def setUp(self):
+        super(TestTenantQueue, self).setUp()
+        self.ssn = context.get_admin_context().session
+
+    def test_add_del_tenant_queue(self):
+        ret = db_api.get_nwa_tenant_queue(self.ssn, self.tenant1)
+        self.assertFalse(ret)  # not found
+        ret = db_api.add_nwa_tenant_queue(self.ssn, self.tenant1)
+        self.assertTrue(ret)  # succeed
+        ret = db_api.add_nwa_tenant_queue(self.ssn, self.tenant1)
+        self.assertFalse(ret)  # already registered
+        ret = db_api.get_nwa_tenant_queue(self.ssn, self.tenant1)
+        self.assertTrue(ret)  # item found
+        ret = db_api.del_nwa_tenant_queue(self.ssn, self.tenant1)
+        self.assertTrue(ret)  # delete succeed
+        ret = db_api.del_nwa_tenant_queue(self.ssn, self.tenant1)
+        self.assertFalse(ret)  # do nothing
+        ret = db_api.get_nwa_tenant_queue(self.ssn, self.tenant1)
+        self.assertFalse(ret)  # not found
+
+    def test_add_tenant_queue_detail(self):
+        ret = db_api.add_nwa_tenant_queue(
+            self.ssn, self.tenant1, 'nwa_%s' % self.tenant1, topic='foo')
+        self.assertTrue(ret)
+        ret = db_api.get_nwa_tenant_queue(self.ssn, self.tenant1)
+        self.assertEqual(self.tenant1, ret.tenant_id)
+        self.assertEqual('nwa_%s' % self.tenant1, ret.nwa_tenant_id)
+        self.assertEqual('foo', ret.topic)
+
+        ret = db_api.add_nwa_tenant_queue(self.ssn, self.tenant2)
+        self.assertTrue(ret)
+        ret = db_api.get_nwa_tenant_queue(self.ssn, self.tenant2)
+        self.assertEqual(self.tenant2, ret.tenant_id)
+        self.assertEqual('', ret.nwa_tenant_id)
+        self.assertEqual('', ret.topic)
+
+    def test_get_tenant_queues(self):
+        ret = db_api.get_nwa_tenant_queues(self.ssn)
+        self.assertEqual(0, len(ret))
+
+        self.assertTrue(db_api.add_nwa_tenant_queue(self.ssn, self.tenant1))
+        self.assertTrue(db_api.add_nwa_tenant_queue(self.ssn, self.tenant2))
+        self.assertTrue(db_api.add_nwa_tenant_queue(self.ssn, self.tenant3))
+
+        ret = db_api.get_nwa_tenant_queues(self.ssn)
+        self.assertEqual(3, len(ret))
+
+        self.assertTrue(db_api.del_nwa_tenant_queue(self.ssn, self.tenant1))
+
+        ret = db_api.get_nwa_tenant_queues(self.ssn)
+        self.assertEqual(2, len(ret))
+
+        self.assertTrue(db_api.del_nwa_tenant_queue(self.ssn, self.tenant2))
+        self.assertTrue(db_api.del_nwa_tenant_queue(self.ssn, self.tenant3))
+
+        ret = db_api.get_nwa_tenant_queues(self.ssn)
+        self.assertEqual(0, len(ret))

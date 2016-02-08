@@ -16,7 +16,7 @@ from neutron.plugins.ml2 import models as models_ml2
 import sqlalchemy as sa
 from sqlalchemy import and_
 
-from networking_nec.plugins.necnwa.db import models as nmodels
+from networking_nec.plugins.necnwa.l2 import models as nmodels
 
 
 def add_nwa_tenant_binding(session, tenant_id, nwa_tenant_id, json_value):

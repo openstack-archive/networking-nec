@@ -15,7 +15,7 @@
 from oslo_utils import timeutils
 import sqlalchemy as sa
 
-from networking_nec.plugins.necnwa.db import models as nmodels
+from networking_nec.plugins.necnwa.fwaas import models as nmodels
 
 # 0 is autoincrement
 NWA_MIN_ID = 0

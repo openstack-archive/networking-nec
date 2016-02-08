@@ -17,22 +17,19 @@
 
 from neutron.tests import base
 
-from networking_nec.plugins.necnwa.db.models import (  # noqa
-    NWATenantBinding,
-    NWATenantBindingN
-)
+from networking_nec.plugins.necnwa.l2 import models
 
 
 class TestNWATenantBinding(base.BaseTestCase):
     def test_nwa_tenant_binding(self):
-        ntb = NWATenantBinding('T1', 'NWA-T1', {'key': 'value'})
+        ntb = models.NWATenantBinding('T1', 'NWA-T1', {'key': 'value'})
         self.assertIsNotNone(ntb)
         self.assertEqual(str(ntb), "<TenantState(T1,NWA-T1,{'key': 'value'})>")
 
 
 class TestNWATenantBindingN(base.BaseTestCase):
     def test_nwa_tenant_binding(self):
-        ntbn = NWATenantBindingN('T1', 'NWA-T1', 'key', 'value')
+        ntbn = models.NWATenantBindingN('T1', 'NWA-T1', 'key', 'value')
         self.assertIsNotNone(ntbn)
         self.assertEqual(str(ntbn),
                          "<TenantState(T1,NWA-T1,{'key': 'value'})>")
