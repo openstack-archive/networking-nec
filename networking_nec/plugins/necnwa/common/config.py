@@ -56,7 +56,15 @@ NWA_opts = [
     cfg.BoolOpt('use_setting_fw_policy',
                 default=False,
                 help=_('Using setting_fw_policy as default')),
+    cfg.StrOpt('resource_group_file',
+               help=_("JSON file which defines relations between "
+                      "physical network of OpenStack and NWA.")),
+    cfg.StrOpt('port_map_file',
+               help=_("JSON file which defines relations between "
+                      "each NIC of baremetal server and PFS port.")),
     cfg.StrOpt('resource_group',
+               deprecated_for_removal=True,
+               deprecated_reason='In favor of resource_group_file option.',
                help=_("""
         Relations between physical network of OpenStack and NWA.
         ex)
@@ -68,6 +76,8 @@ NWA_opts = [
            { ... },
         ]""")),
     cfg.StrOpt('port_map',
+               deprecated_for_removal=True,
+               deprecated_reason='In favor of port_map_file option.',
                help=_("""Relations between each NIC of BM server and PFS port.
         ex)
         [

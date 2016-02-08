@@ -180,18 +180,22 @@ class TestGetNetworkInfo(TestNwa):
 
 class TestGetPhysicalNetwork(TestNwa):
     def test_get_physical_network(self):
-        pnet = nwa_l2_utils.get_physical_network('compute:AZ1')
+        pnet = nwa_l2_utils.get_physical_network('compute:AZ1',
+                                                 self.resource_group)
         self.assertEqual(pnet, 'Common/KVM/Pod1-1')
 
         pnet = nwa_l2_utils.get_physical_network('compute:AZ1',
+                                                 self.resource_group,
                                                  'Common/KVM/Pod1')
         self.assertEqual(pnet, 'Common/KVM/Pod1-1')
 
     def test_get_physical_network_not_found(self):
-        pnet = nwa_l2_utils.get_physical_network('network:router_interface1')
+        pnet = nwa_l2_utils.get_physical_network('network:router_interface1',
+                                                 self.resource_group)
         self.assertIsNone(pnet)
 
         pnet = nwa_l2_utils.get_physical_network('compute:AZ1',
+                                                 self.resource_group,
                                                  'Common/KVM/Pod2')
         self.assertIsNone(pnet)
 
@@ -315,46 +319,50 @@ class TestBaremetalResourceGroupName(base.BaseTestCase):
          }),
         ('test 5',
          {
-             'portmap': jsonutils.dumps(portmaps1),
+             'portmap': portmaps1,
              'mac_address': maca3,
              'expected_return_value': None,
          }),
         ('test 6',
          {
-             'portmap': jsonutils.dumps(portmaps1),
+             'portmap': portmaps1,
              'mac_address': maca1,
              'expected_return_value': resgrp1,
          }),
         ('test 7',
          {
-             'portmap': jsonutils.dumps(portmaps1),
+             'portmap': portmaps1,
              'mac_address': maca2,
              'expected_return_value': resgrp2,
          }),
     ]
 
     def test_baremetal_resource_group_name(self):
-        config.CONF.set_override('port_map', self.portmap, group='NWA')
-        rc = nwa_l2_utils.baremetal_resource_group_name(self.mac_address)
+        rc = nwa_l2_utils.baremetal_resource_group_name(self.mac_address,
+                                                        self.portmap)
         self.assertEqual(self.expected_return_value, rc)
 
 
 class test__getResourceGroupName(TestNwa):
     def test__get_resource_group_name(self):
         self.context.current['device_owner'] = 'network:dhcp'
-        rc = nwa_l2_utils._get_resource_group_name(self.context)
+        rc = nwa_l2_utils._get_resource_group_name(self.context,
+                                                   self.resource_group)
         self.assertEqual(rc, 'Common/App/Pod3')
 
         self.context.current['device_owner'] = 'network:router_interface'
-        rc = nwa_l2_utils._get_resource_group_name(self.context)
+        rc = nwa_l2_utils._get_resource_group_name(self.context,
+                                                   self.resource_group)
         self.assertEqual(rc, 'Common/App/Pod4')
 
         self.context.current['device_owner'] = 'network:router_gateway'
-        rc = nwa_l2_utils._get_resource_group_name(self.context)
+        rc = nwa_l2_utils._get_resource_group_name(self.context,
+                                                   self.resource_group)
         self.assertEqual(rc, 'Common/App/Pod4')
 
         self.context.current['device_owner'] = 'compute:AZ1'
-        rc = nwa_l2_utils._get_resource_group_name(self.context)
+        rc = nwa_l2_utils._get_resource_group_name(self.context,
+                                                   self.resource_group)
         self.assertIsNone(rc)
 
 
@@ -395,7 +403,8 @@ class test__setSegmentToTenantBinding(TestNwa):
         self.rcode.value_json = {}
         gntb.return_value = self.rcode
         sntb.return_value = True
-        nwa_l2_utils._set_segment_to_tenant_binding(self.context, self.jbody)
+        nwa_l2_utils._set_segment_to_tenant_binding(self.context, self.jbody,
+                                                    self.resource_group)
         self.assertEqual(gntb.call_count, 1)
         self.assertEqual(sntb.call_count, 1)
 
@@ -405,7 +414,8 @@ class test__setSegmentToTenantBinding(TestNwa):
         self.rcode.value_json = {}
         gntb.return_value = self.rcode
         sntb.return_value = False
-        nwa_l2_utils._set_segment_to_tenant_binding(self.context, self.jbody)
+        nwa_l2_utils._set_segment_to_tenant_binding(self.context, self.jbody,
+                                                    self.resource_group)
         self.assertEqual(gntb.call_count, 1)
         self.assertEqual(sntb.call_count, 1)
 

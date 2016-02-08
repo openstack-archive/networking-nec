@@ -44,7 +44,10 @@ def add_router_interface_by_port(plugin, context, router_id, interface_info):
                                                       context, port,
                                                       network, binding, None)
 
-            nwa_info = nwa_l2_utils.portcontext_to_nwa_info(port_context)
+            mech_drivers = plugin._core_plugin.mechanism_manager.mech_drivers
+            mech_driver = mech_drivers['necnwa']
+            nwa_info = nwa_l2_utils.portcontext_to_nwa_info(
+                port_context, mech_driver.obj.resource_groups)
 
             rt_tid = nwa_l3_db.get_tenant_id_by_router(
                 session, router_id

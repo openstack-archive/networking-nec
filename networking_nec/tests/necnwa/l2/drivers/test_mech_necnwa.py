@@ -191,6 +191,7 @@ class TestNECNWAMechanismDriver(base.BaseTestCase):
         self.driver = mech.NECNWAMechanismDriver()
         config.CONF.set_override('resource_group', RESOURCE_GROUP_STR,
                                  group='NWA')
+        self.driver.initialize()
 
         self.rcode = MagicMock()
         self.rcode.value_json = {
