@@ -133,7 +133,7 @@ class NECNWANeutronAgent(object):
             )
 
         except Exception as e:
-            LOG.exception(_LE("Failed reporting state! %s"), str(e))
+            LOG.exception(_LE("Failed reporting state! %s"), e)
 
     def loop_handler(self):
         pass

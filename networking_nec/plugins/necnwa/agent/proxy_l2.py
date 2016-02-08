@@ -41,39 +41,30 @@ def check_vlan(network_id, nwa_data):
     # dev_key = 'VLAN_' + network_id + '_.*_VlanID$'
     #  TFW, GDV: VLAN_' + network_id + '_.*_VlanID$
     #  TLB:      VLAN_LB_' + network_id + '_.*_VlanID$
-    dev_key = 'VLAN_.*_' + network_id + '_.*_VlanID$'
-    cnt = 0
-    for k in nwa_data.keys():
-        if re.match(dev_key, k):
-            LOG.debug("find device in network(id=%s)", network_id)
-            cnt += 1
-
-    return cnt
+    vlan_pat = re.compile(r'VLAN_.*_' + network_id + '_.*_VlanID$')
+    matched = [k for k in nwa_data if vlan_pat.match(k)]
+    if len(matched) > 0:
+        LOG.debug("find device in network(ids=%s)", network_id)
+    return len(matched)
 
 
 def count_device_id(device_id, nwa_data):
-    dev_key = 'DEV_' + device_id + '_'
-    cnt = 0
-    for k in nwa_data.keys():
-        if re.match(dev_key, k):
-            LOG.debug("found device with device_id={}".format(device_id))
-            cnt += 1
-    return cnt
+    dev_pat = re.compile(r'DEV_' + device_id + '_')
+    matched = [k for k in nwa_data if dev_pat.match(k)]
+    if len(matched) > 0:
+        LOG.debug("found device with device_id=%s", device_id)
+    return len(matched)
 
 
 def check_segment(network_id, res_name, nwa_data, dev_type):
-    dev_key = 'DEV_.*_' + network_id + '_' + res_name
-    cnt = 0
-    for k in nwa_data.keys():
-        if (
-                re.match(dev_key, k) and
-                dev_type == nwa_data[k]
-        ):
-            LOG.debug("find device in network(id=%s),"
-                      "resource_group_name=%s,"
-                      "type=%s" % (network_id, res_name, dev_type))
-            cnt += 1
-    return cnt
+    dev_pat = re.compile(r'DEV_.*_' + network_id + '_' + res_name)
+    matched = [k for k in nwa_data
+               if dev_pat.match(k) and dev_type == nwa_data[k]]
+    if len(matched) > 0:
+        LOG.debug("find device in network(id=%s),"
+                  " resource_group_name=%s, type=%s" %
+                  (network_id, res_name, dev_type))
+    return len(matched)
 
 
 def check_segment_gd(network_id, res_name, nwa_data):

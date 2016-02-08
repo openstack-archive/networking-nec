@@ -21,7 +21,7 @@ from networking_nec.plugins.necnwa.l2 import models as nmodels
 
 def add_nwa_tenant_binding(session, tenant_id, nwa_tenant_id, json_value):
     try:
-        if isinstance(json_value, dict) is False:
+        if not isinstance(json_value, dict):
             return False
         nwa = session.query(nmodels.NWATenantBindingN).filter(
             nmodels.NWATenantBindingN.tenant_id == tenant_id).all()
@@ -32,7 +32,6 @@ def add_nwa_tenant_binding(session, tenant_id, nwa_tenant_id, json_value):
                 item = nmodels.NWATenantBindingN(tenant_id, nwa_tenant_id,
                                                  json_key, json_value)
                 session.add(item)
-            session.flush()
         return True
     except sa.orm.exc.NoResultFound:
         return False
@@ -55,7 +54,7 @@ def get_nwa_tenant_binding(session, tenant_id, nwa_tenant_id):
                 nmodels.NWATenantBindingN.nwa_tenant_id ==
                 nwa_tenant_id).all():
             value_json[nwa.json_key] = chg_value(nwa.json_key, nwa.json_value)
-        if len(value_json):
+        if value_json:
             return nmodels.NWATenantBinding(tenant_id, nwa_tenant_id,
                                             value_json)
         else:
@@ -72,7 +71,7 @@ def get_nwa_tenant_binding_by_tid(session, tenant_id):
                 nmodels.NWATenantBindingN.tenant_id == tenant_id).all():
             value_json[nwa.json_key] = chg_value(nwa.json_key, nwa.json_value)
             nwa_tenant_id = nwa.nwa_tenant_id
-        if len(value_json):
+        if value_json:
             return nmodels.NWATenantBinding(tenant_id, nwa_tenant_id,
                                             value_json)
         else:
@@ -118,7 +117,6 @@ def set_nwa_tenant_binding(session, tenant_id, nwa_tenant_id, value_json):
                     and_(nmodels.NWATenantBindingN.tenant_id == tenant_id,
                          nmodels.NWATenantBindingN.json_key == key)).one()
                 session.delete(item)
-    session.flush()
     return True
 
 
@@ -133,191 +131,9 @@ def del_nwa_tenant_binding(session, tenant_id, nwa_tenant_id):
                     and_(nmodels.NWATenantBindingN.tenant_id == tenant_id,
                          nmodels.NWATenantBindingN.nwa_tenant_id ==
                          nwa_tenant_id)).delete()
-            session.flush()
             return True
     except sa.orm.exc.NoResultFound:
         return False
-
-
-# update json object: set result of /umf/tenant/(TenantID)
-def update_json_nwa_tenant_id(value_json, nwa_tenant_id):
-    value_json['NWA_tenant_id'] = nwa_tenant_id
-
-
-# update json object: set result of /umf/workflowinstance/(executionid)
-# for CreateTenantNW
-def update_json_post_CreateTenantNW(value_json):
-    value_json['CreateTenantNW'] = True
-
-
-# sub-routine: set vlan value.
-def update_json_vlanid(
-    value_json,
-    network_id,
-    physical_network,
-    segmentation_id,
-        vlan_id):
-    value_json[
-        'VLAN_' +
-        network_id +
-        '_' +
-        physical_network] = 'physical_network'
-    value_json[
-        'VLAN_' +
-        network_id +
-        '_' +
-        physical_network +
-        '_segmentation_id'] = segmentation_id
-    value_json[
-        'VLAN_' +
-        network_id +
-        '_' +
-        physical_network +
-        '_VlanID'] = vlan_id
-
-
-# update json object: set result of /umf/workflowinstance/(executionid)
-# for CreateVLAN
-def update_json_post_CreateVLAN(
-    value_json,
-    network_id,
-    network_name,
-    subnet_id,
-    cidr,
-    logical_nw_name,
-    physical_network,
-    segmentation_id,
-        vlan_id):
-    value_json['NW_' + network_id] = network_name
-    value_json['NW_' + network_id + '_network_id'] = network_id
-    value_json['NW_' + network_id + '_subnet_id'] = subnet_id
-    value_json['NW_' + network_id + '_subnet'] = cidr  # subnet['cidr']
-    value_json[
-        'NW_' +
-        network_id +
-        '_nwa_network_name'] = logical_nw_name
-    # retJson['resultdata']['LogicalNWName']
-    if vlan_id != '':  # retJson['resultdata']['VlanID'] != '':
-        update_json_vlanid(
-            value_json,
-            network_id,
-            physical_network,
-            segmentation_id,
-            vlan_id)
-
-
-# update json object: set result of /umf/workflowinstance/(executionid)
-# for CreateTenantFW
-def update_json_post_CreateTenantFW(
-    value_json,
-    network_id,
-    network_name,
-    physical_network,
-    segmentation_id,
-    vlan_id,
-    device_id,
-    device_owner,
-    tenant_nw_name,
-    ip_address,
-        mac_address):
-    value_json['DEV_' + device_id] = 'device_id'
-    value_json['DEV_' + device_id + '_physical_network'] = physical_network
-    value_json['DEV_' + device_id + '_device_owner'] = device_owner
-    value_json[
-        'DEV_' +
-        device_id +
-        '_TenantFWName'] = tenant_nw_name
-    # retJson['resultdata']['TenantFWName']
-    value_json['DEV_' + device_id + '_' + network_id] = network_name
-    value_json[
-        'DEV_' +
-        device_id +
-        '_' +
-        network_id +
-        '_ip_address'] = ip_address
-    # context._port['fixed_ips'][0]['ip_address']
-    value_json[
-        'DEV_' +
-        device_id +
-        '_' +
-        network_id +
-        '_mac_address'] = mac_address  # context._port['mac_address']
-    if vlan_id != '':  # retJson['resultdata']['VlanID'] != '':
-        update_json_vlanid(
-            value_json,
-            network_id,
-            physical_network,
-            segmentation_id,
-            vlan_id)
-
-
-# update json object: set result of /umf/workflowinstance/(executionid)
-# for UpdateTenantFW
-def update_json_post_UpdateTenantFW(
-    value_json,
-    network_id,
-    network_name,
-    physical_network,
-    segmentation_id,
-    vlan_id,
-    device_id,
-    ip_address,
-        mac_address):
-    value_json['DEV_' + device_id + '_' + network_id] = network_name
-    value_json[
-        'DEV_' +
-        device_id +
-        '_' +
-        network_id +
-        '_ip_address'] = ip_address
-    # context._port['fixed_ips'][0]['ip_address']
-    value_json[
-        'DEV_' +
-        device_id +
-        '_' +
-        network_id +
-        '_mac_address'] = mac_address  # context._port['mac_address']
-    if vlan_id != '':  # retJson['resultdata']['VlanID'] != '':
-        update_json_vlanid(
-            value_json,
-            network_id,
-            physical_network,
-            segmentation_id,
-            vlan_id)
-
-
-# update json object: set result of /umf/workflowinstance/(executionid)
-# for CreateGeneralDev
-def update_json_post_CreateGeneralDev(
-    value_json,
-    physical_network,
-    segmentation_id,
-    network_id,
-        vlan_id):
-    update_json_vlanid(
-        value_json,
-        network_id,
-        physical_network,
-        segmentation_id,
-        vlan_id)
-
-
-# update json object: set result of '/umf/workflow/'+SettingNAT+'/execute'
-# fip_id: floatingip id
-def update_json_post_SettingNAT(
-    value_json,
-    device_id,
-    fip_id,
-    fip_network_id,
-    fip_ip_address,
-        fip_fixed_ip_address):
-    value_json['NAT_' + fip_id] = device_id
-    value_json['NAT_' + fip_id + '_network_id'] = fip_network_id
-    value_json['NAT_' + fip_id + '_floating_ip_address'] = fip_ip_address
-    value_json['NAT_' + fip_id + '_fixed_ip_address'] = fip_fixed_ip_address
-    if 'NATnumber' not in value_json:
-        value_json['NATnumber'] = 0
-    value_json['NATnumber'] = str(int(value_json['NATnumber']) + 1)
 
 
 def ensure_port_binding(session, port_id):
@@ -388,7 +204,6 @@ def del_nwa_tenant_queue(session, tenant_id):
                 session.query(nmodels.NWATenantQueue).filter(
                     nmodels.NWATenantQueue.tenant_id == tenant_id
                 ).delete()
-            session.flush()
             return True
     except sa.orm.exc.NoResultFound:
         return False

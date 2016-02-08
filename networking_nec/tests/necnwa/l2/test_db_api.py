@@ -301,69 +301,6 @@ class TestDelNwaTenantBinding(base.BaseTestCase):
         self.assertEqual(rc, self.expected_return_value)
 
 
-class TestUpdateJsonNwaTenantId(base.BaseTestCase):
-    def test_update_json_nwa_tenant_id(self):
-        db_api.update_json_nwa_tenant_id(VALUE_JSON, NWA_TENANT_ID)
-
-
-class TestUpdateJsonPostCreateTenantNW(base.BaseTestCase):
-    def test_update_json_post__create_tenant_n_w(self):
-        db_api.update_json_post_CreateTenantNW(VALUE_JSON)
-
-
-class TestUpdateJsonVlanid(base.BaseTestCase):
-    def test_update_json_vlanid(self):
-        db_api.update_json_vlanid(
-            VALUE_JSON, NETWORK_ID, PHYSICAL_NETWORK, 2, 302
-        )
-
-
-class TestUpdateJsonPostCreateVLAN(base.BaseTestCase):
-    def test_update_json_post__create_vla_n(self):
-        db_api.update_json_post_CreateVLAN(
-            VALUE_JSON, NETWORK_ID, NETWORK_NAME,
-            'uuid-subnet_id', CIDR,
-            'PUBLICVLAN_102',
-            PHYSICAL_NETWORK, 1, 201
-        )
-
-
-class TestUpdateJsonPostCreateTenantFW(base.BaseTestCase):
-    def test_update_json_post__create_tenant_f_w(self):
-        db_api.update_json_post_CreateTenantFW(
-            VALUE_JSON, NETWORK_ID, NETWORK_NAME, PHYSICAL_NETWORK,
-            2, 202, DEVICE_ID, DEVICE_OWNER,
-            'T1',
-            IP_ADDRESS, MAC_ADDRESS
-        )
-
-
-class TestUpdateJsonPostUpdateTenantFW(base.BaseTestCase):
-    def test_update_json_post__update_tenant_f_w(self):
-        db_api.update_json_post_UpdateTenantFW(
-            VALUE_JSON, NETWORK_ID, NETWORK_NAME, PHYSICAL_NETWORK,
-            3, 203, DEVICE_ID, IP_ADDRESS, MAC_ADDRESS
-        )
-
-
-class TestUpdateJsonPostCreateGeneralDev(base.BaseTestCase):
-    def test_update_json_post__create_general_dev(self):
-        db_api.update_json_post_CreateGeneralDev(
-            VALUE_JSON, PHYSICAL_NETWORK, 4, NETWORK_ID, 204
-        )
-
-
-class TestUpdateJsonPostSettingNAT(base.BaseTestCase):
-    def test_update_json_post__setting_na_t(self):
-        db_api.update_json_post_SettingNAT(
-            VALUE_JSON, DEVICE_ID,
-            'uuid-fip-1',
-            'uuid-network_id-1',
-            '192.168.123.45',
-            '192.168.123.46'
-        )
-
-
 class TestEnsurePortBinding(base.BaseTestCase):
     def setUp(self):
         super(TestEnsurePortBinding, self).setUp()
