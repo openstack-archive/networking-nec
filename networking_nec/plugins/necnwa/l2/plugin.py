@@ -47,7 +47,7 @@ class NECNWAL2Plugin(ml2_plugin.Ml2Plugin):
         self.nwa_rpc = nwa_agent_api.NECNWAAgentApi(
             nwa_const.NWA_AGENT_TOPIC
         )
-        self.nwa_proxies = dict()
+        self.nwa_proxies = {}
 
     def start_rpc_listeners(self):
         self.endpoints = [

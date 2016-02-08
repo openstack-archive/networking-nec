@@ -53,7 +53,7 @@ class TenantBindingServerRpcCallback(object):
                 )
                 return recode.value_json
 
-        return dict()
+        return {}
 
     def add_nwa_tenant_binding(self, rpc_context, **kwargs):
         """get nwa_tenant_binding from neutorn db.

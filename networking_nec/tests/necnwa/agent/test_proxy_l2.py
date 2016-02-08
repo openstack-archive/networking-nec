@@ -32,7 +32,7 @@ class TestAgentProxyL2(test_nwa_agent.TestNECNWANeutronAgentBase):
             'resource_group_name': resource_group_name,
             'resource_group_name_nw': resource_group_name,
         }
-        self.nwacli.create_tenant_nw.return_value = 500, dict()
+        self.nwacli.create_tenant_nw.return_value = 500, {}
         result, nwa_data2 = self.agent.proxy_l2._create_tenant_nw(
             self.context,
             tenant_id=tenant_id,
@@ -67,7 +67,7 @@ class TestAgentProxyL2(test_nwa_agent.TestNECNWANeutronAgentBase):
         # resource_group_name = 'OpenStack/DC1/APP'
         nwa_data = {'NW_546a8551-5c2b-4050-a769-cc3c962fc5cf': 'net100'}
         nwa_info = deepcopy(test_data.nwa_info_add_intf)
-        self.nwacli.create_vlan.return_value = 500, dict()
+        self.nwacli.create_vlan.return_value = 500, {}
         result, nwa_data = self.agent.proxy_l2._create_vlan(
             self.context,
             tenant_id=tenant_id,
@@ -128,10 +128,10 @@ class TestAgentProxyL2(test_nwa_agent.TestNECNWANeutronAgentBase):
 
         nwa_info = deepcopy(test_data.nwa_info_create_gdv)
 
-        self.nwacli.create_tenant.   return_value = (200, dict())
+        self.nwacli.create_tenant.   return_value = (200, {})
         self.nwacli.create_tenant_nw.return_value = (200, deepcopy(test_data.result_tnw))  # noqa
         self.nwacli.create_vlan.     return_value = (200, deepcopy(test_data.result_vln))  # noqa
-        gtb.return_value = dict()
+        gtb.return_value = {}
 
         self.agent.proxy_l2.create_general_dev(
             context,
@@ -150,7 +150,7 @@ class TestAgentProxyL2(test_nwa_agent.TestNECNWANeutronAgentBase):
 
         nwa_info = deepcopy(test_data.nwa_info_create_gdv2)
 
-        self.nwacli.create_tenant.   return_value = (200, dict())
+        self.nwacli.create_tenant.   return_value = (200, {})
         self.nwacli.create_tenant_nw.return_value = (200, deepcopy(test_data.result_tnw))  # noqa
         self.nwacli.create_vlan.     return_value = (200, deepcopy(test_data.result_vln))  # noqa
         gtb.return_value = deepcopy(test_data.nwa_data_one_gdev)
@@ -172,10 +172,10 @@ class TestAgentProxyL2(test_nwa_agent.TestNECNWANeutronAgentBase):
 
         nwa_info = deepcopy(test_data.nwa_info_create_gdv)
 
-        self.nwacli.create_tenant.   return_value = (200, dict())
+        self.nwacli.create_tenant.   return_value = (200, {})
         self.nwacli.create_tenant_nw.return_value = (200, deepcopy(test_data.result_tnw))  # noqa
         self.nwacli.create_vlan.     return_value = (200, deepcopy(test_data.result_vln))  # noqa
-        gtb.return_value = dict()
+        gtb.return_value = {}
 
         self.agent.proxy_l2.create_general_dev(
             context,
@@ -194,10 +194,10 @@ class TestAgentProxyL2(test_nwa_agent.TestNECNWANeutronAgentBase):
 
         nwa_info = deepcopy(test_data.nwa_info_create_gdv)
 
-        self.nwacli.create_tenant.   return_value = (200, dict())
+        self.nwacli.create_tenant.   return_value = (200, {})
         self.nwacli.create_tenant_nw.return_value = (200, deepcopy(test_data.result_tnw))  # noqa
         self.nwacli.create_vlan.     return_value = (500, deepcopy(test_data.result_vln))  # noqa
-        gtb.return_value = dict()
+        gtb.return_value = {}
 
         self.agent.proxy_l2.create_general_dev(
             context,
@@ -216,10 +216,10 @@ class TestAgentProxyL2(test_nwa_agent.TestNECNWANeutronAgentBase):
 
         nwa_info = deepcopy(test_data.nwa_info_create_gdv)
 
-        self.nwacli.create_tenant.   return_value = (200, dict())
+        self.nwacli.create_tenant.   return_value = (200, {})
         self.nwacli.create_tenant_nw.return_value = (500, deepcopy(test_data.result_tnw))  # noqa
         self.nwacli.create_vlan.     return_value = (200, deepcopy(test_data.result_vln))  # noqa
-        gtb.return_value = dict()
+        gtb.return_value = {}
 
         self.agent.proxy_l2.create_general_dev(
             context,
@@ -238,10 +238,10 @@ class TestAgentProxyL2(test_nwa_agent.TestNECNWANeutronAgentBase):
 
         nwa_info = deepcopy(test_data.nwa_info_create_gdv)
 
-        self.nwacli.create_tenant.   return_value = (501, dict())
+        self.nwacli.create_tenant.   return_value = (501, {})
         self.nwacli.create_tenant_nw.return_value = (200, deepcopy(test_data.result_tnw))  # noqa
         self.nwacli.create_vlan.     return_value = (200, deepcopy(test_data.result_vln))  # noqa
-        gtb.return_value = dict()
+        gtb.return_value = {}
 
         self.agent.proxy_l2.create_general_dev(
             context,
@@ -261,7 +261,7 @@ class TestAgentProxyL2(test_nwa_agent.TestNECNWANeutronAgentBase):
         nwa_info = deepcopy(test_data.nwa_info_delete_gdv)
         nwa_data = deepcopy(test_data.nwa_data_one_gdev)
 
-        self.nwacli.delete_tenant.return_value = (200, dict())
+        self.nwacli.delete_tenant.return_value = (200, {})
         self.nwacli.delete_tenant_nw.return_value = (200, deepcopy(test_data.result_dnw))  # noqa
         self.nwacli.delete_vlan.return_value = (200, deepcopy(test_data.result_dvl))  # noqa
         gtb.return_value = nwa_data
@@ -283,7 +283,7 @@ class TestAgentProxyL2(test_nwa_agent.TestNECNWANeutronAgentBase):
 
         nwa_info = deepcopy(test_data.nwa_info_delete_gdv)
 
-        self.nwacli.delete_tenant.return_value = (200, dict())
+        self.nwacli.delete_tenant.return_value = (200, {})
         self.nwacli.delete_tenant_nw.return_value = (200, deepcopy(test_data.result_dnw))  # noqa
         self.nwacli.delete_vlan.return_value = (200, deepcopy(test_data.result_dvl))  # noqa
         gtb.return_value = deepcopy(test_data.nwa_data_two_gdev)
@@ -305,7 +305,7 @@ class TestAgentProxyL2(test_nwa_agent.TestNECNWANeutronAgentBase):
 
         nwa_info = deepcopy(test_data.nwa_info_delete_gdv)
 
-        self.nwacli.delete_tenant.return_value = (200, dict())
+        self.nwacli.delete_tenant.return_value = (200, {})
         self.nwacli.delete_tenant_nw.return_value = (200, deepcopy(test_data.result_dnw))  # noqa
         self.nwacli.delete_vlan.return_value = (200, deepcopy(test_data.result_dvl))  # noqa
         gtb.return_value = deepcopy(test_data.nwa_data_two_port_gdev)
@@ -327,7 +327,7 @@ class TestAgentProxyL2(test_nwa_agent.TestNECNWANeutronAgentBase):
 
         nwa_info = deepcopy(test_data.nwa_info_delete_gdv)
 
-        self.nwacli.delete_tenant.return_value = (200, dict())
+        self.nwacli.delete_tenant.return_value = (200, {})
         self.nwacli.delete_tenant_nw.return_value = (200, deepcopy(test_data.result_dnw))  # noqa
         self.nwacli.delete_vlan.return_value = (200, deepcopy(test_data.result_dvl))  # noqa
         gtb.return_value = deepcopy(test_data.nwa_data_one_gdev)
@@ -350,7 +350,7 @@ class TestAgentProxyL2(test_nwa_agent.TestNECNWANeutronAgentBase):
         nwa_info = deepcopy(test_data.nwa_info_delete_gdv)
         nwa_data = deepcopy(test_data.nwa_data_one_gdev)
 
-        self.nwacli.delete_tenant.return_value = (200, dict())
+        self.nwacli.delete_tenant.return_value = (200, {})
         self.nwacli.delete_tenant_nw.return_value = (200, deepcopy(test_data.result_dnw))  # noqa
         self.nwacli.delete_vlan.return_value = (200, deepcopy(test_data.result_dvl))  # noqa
         gtb.return_value = nwa_data
@@ -372,7 +372,7 @@ class TestAgentProxyL2(test_nwa_agent.TestNECNWANeutronAgentBase):
 
         nwa_info = deepcopy(test_data.nwa_info_delete_gdv)
 
-        self.nwacli.delete_tenant.return_value = (500, dict())
+        self.nwacli.delete_tenant.return_value = (500, {})
         self.nwacli.delete_tenant_nw.return_value = (200, deepcopy(test_data.result_dnw))  # noqa
         self.nwacli.delete_vlan.return_value = (200, deepcopy(test_data.result_dvl))  # noqa
         gtb.return_value = deepcopy(test_data.nwa_data_one_gdev)
@@ -394,7 +394,7 @@ class TestAgentProxyL2(test_nwa_agent.TestNECNWANeutronAgentBase):
 
         nwa_info = deepcopy(test_data.nwa_info_delete_gdv)
 
-        self.nwacli.delete_tenant.return_value = (200, dict())
+        self.nwacli.delete_tenant.return_value = (200, {})
         self.nwacli.delete_tenant_nw.return_value = (500, deepcopy(test_data.result_dnw))  # noqa
         self.nwacli.delete_vlan.return_value = (200, deepcopy(test_data.result_dvl))  # noqa
         gtb.return_value = deepcopy(test_data.nwa_data_one_gdev)
@@ -416,7 +416,7 @@ class TestAgentProxyL2(test_nwa_agent.TestNECNWANeutronAgentBase):
 
         nwa_info = deepcopy(test_data.nwa_info_delete_gdv)
 
-        self.nwacli.delete_tenant.return_value = (200, dict())
+        self.nwacli.delete_tenant.return_value = (200, {})
         self.nwacli.delete_tenant_nw.return_value = (200, deepcopy(test_data.result_dnw))  # noqa
         self.nwacli.delete_vlan.return_value = (500, deepcopy(test_data.result_dvl))  # noqa
         gtb.return_value = deepcopy(test_data.nwa_data_one_gdev)
@@ -438,7 +438,7 @@ class TestAgentProxyL2(test_nwa_agent.TestNECNWANeutronAgentBase):
 
         nwa_info = deepcopy(test_data.nwa_info_delete_gdv)
 
-        self.nwacli.delete_tenant.return_value = (200, dict())
+        self.nwacli.delete_tenant.return_value = (200, {})
         self.nwacli.delete_tenant_nw.return_value = (200, deepcopy(test_data.result_dnw))  # noqa
         self.nwacli.delete_vlan.return_value = (200, deepcopy(test_data.result_dvl))  # noqa
         gtb.return_value = deepcopy(test_data.nwa_data_gdev_fail6)
@@ -460,10 +460,10 @@ class TestAgentProxyL2(test_nwa_agent.TestNECNWANeutronAgentBase):
 
         nwa_info = deepcopy(test_data.nwa_info_delete_gdv)
 
-        self.nwacli.delete_tenant.return_value = (200, dict())
+        self.nwacli.delete_tenant.return_value = (200, {})
         self.nwacli.delete_tenant_nw.return_value = (200, deepcopy(test_data.result_dnw))  # noqa
         self.nwacli.delete_vlan.return_value = (200, deepcopy(test_data.result_dvl))  # noqa
-        gtb.return_value = dict()
+        gtb.return_value = {}
 
         self.agent.proxy_l2.delete_general_dev(
             context,
@@ -528,7 +528,7 @@ class TestAgentProxyL2(test_nwa_agent.TestNECNWANeutronAgentBase):
             "tenant_id": "844eb55f21e84a289e9c22098d387e5d"
         }
 
-        self.nwacli.create_tenant.   return_value = (200, dict())
+        self.nwacli.create_tenant.   return_value = (200, {})
         self.nwacli.create_tenant_nw.return_value = (200, deepcopy(test_data.result_tnw))  # noqa
         self.nwacli.create_vlan.     return_value = (200, deepcopy(test_data.result_vln))  # noqa
         gtb.return_value = {
@@ -603,7 +603,7 @@ class TestNECNWANeutronAgentRpc(test_nwa_agent.TestNECNWANeutronAgentBase):
         context = mock.MagicMock()
         tenant_id = "5d9c51b1d6a34133bb735d4988b309c2"
         nwa_tenant_id = "DC_KILO3_5d9c51b1d6a34133bb735d4988b309c2"
-        stb.return_value = dict()
+        stb.return_value = {}
         utb.return_value = {'status': 'SUCCESS'}
         gtb.return_value = None
         nwa_info = {
@@ -653,7 +653,7 @@ class TestNECNWANeutronAgentRpc(test_nwa_agent.TestNECNWANeutronAgentBase):
 
         context = mock.MagicMock()
 
-        stb.return_value = dict()
+        stb.return_value = {}
         utb.return_value = {'status': 'SUCCESS'}
 
         gtb.return_value = {
@@ -723,7 +723,7 @@ class TestNECNWANeutronAgentRpc(test_nwa_agent.TestNECNWANeutronAgentBase):
 
         context = mock.MagicMock()
 
-        stb.return_value = dict()
+        stb.return_value = {}
         utb.return_value = {'status': 'SUCCESS'}
 
         gtb.return_value = {
@@ -794,7 +794,7 @@ class TestNECNWANeutronAgentRpc(test_nwa_agent.TestNECNWANeutronAgentBase):
 
         context = mock.MagicMock()
 
-        stb.return_value = dict()
+        stb.return_value = {}
         utb.return_value = {'status': 'SUCCESS'}
 
         gtb.return_value = {
@@ -865,7 +865,7 @@ class TestNECNWANeutronAgentRpc(test_nwa_agent.TestNECNWANeutronAgentBase):
 
         context = mock.MagicMock()
 
-        stb.return_value = dict()
+        stb.return_value = {}
         utb.return_value = {'status': 'SUCCESS'}
 
         gtb.return_value = {
@@ -942,7 +942,7 @@ class TestNECNWANeutronAgentRpc(test_nwa_agent.TestNECNWANeutronAgentBase):
 
         context = mock.MagicMock()
 
-        stb.return_value = dict()
+        stb.return_value = {}
         utb.return_value = {'status': 'SUCCESS'}
 
         gtb.return_value = {

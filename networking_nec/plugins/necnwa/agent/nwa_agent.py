@@ -41,7 +41,7 @@ LOG = logging.getLogger(__name__)
 
 class NECNWANeutronAgent(object):
 
-    rpc_servers = dict()
+    rpc_servers = {}
     topic = nwa_const.NWA_AGENT_TOPIC
 
     def __init__(self, polling_interval):

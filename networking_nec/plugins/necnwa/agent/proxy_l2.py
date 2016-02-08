@@ -117,7 +117,7 @@ class AgentProxyL2(object):
             else:
                 LOG.error(_LE("CreateTenantNW Failed."))
 
-                return False, dict()
+                return False, {}
 
     def _delete_tenant_nw(self, context, **kwargs):
         nwa_tenant_id = kwargs.get('nwa_tenant_id')

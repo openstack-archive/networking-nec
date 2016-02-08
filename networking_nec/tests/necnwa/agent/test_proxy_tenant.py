@@ -54,7 +54,7 @@ class TestAgentProxyTenant(test_nwa_agent.TestNECNWANeutronAgentBase):
 
     def test__delete_tenant_failed(self):
         nwa_tenant_id = 'DC1_844eb55f21e84a289e9c22098d387e5d'
-        self.nwacli.delete_tenant.return_value = 500, dict()
+        self.nwacli.delete_tenant.return_value = 500, {}
         result, nwa_data = self.agent.proxy_tenant.delete_tenant(
             self.context,
             nwa_tenant_id=nwa_tenant_id
@@ -66,7 +66,7 @@ class TestAgentProxyTenant(test_nwa_agent.TestNECNWANeutronAgentBase):
         context = mock.MagicMock()
         tenant_id = '844eb55f21e84a289e9c22098d387e5d'
         nwa_tenant_id = 'DC1_844eb55f21e84a289e9c22098d387e5d',
-        nwa_data = dict()
+        nwa_data = {}
         self.agent.proxy_tenant.update_tenant_binding(
             context,
             tenant_id,
@@ -79,7 +79,7 @@ class TestAgentProxyTenant(test_nwa_agent.TestNECNWANeutronAgentBase):
         context = mock.MagicMock()
         tenant_id = '844eb55f21e84a289e9c22098d387e5d'
         nwa_tenant_id = 'DC1_844eb55f21e84a289e9c22098d387e5d',
-        nwa_data = dict()
+        nwa_data = {}
         self.agent.proxy_tenant.update_tenant_binding(
             context,
             tenant_id,
