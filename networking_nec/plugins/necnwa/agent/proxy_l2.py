@@ -18,6 +18,7 @@ import time
 from neutron.common import topics
 from neutron.plugins.common import constants as n_constants
 from neutron.plugins.ml2 import driver_api as api
+from oslo_log import helpers
 from oslo_log import log as logging
 from oslo_serialization import jsonutils
 
@@ -42,38 +43,32 @@ def check_vlan(network_id, nwa_data):
     #  TFW, GDV: VLAN_' + network_id + '_.*_VlanID$
     #  TLB:      VLAN_LB_' + network_id + '_.*_VlanID$
     dev_key = 'VLAN_.*_' + network_id + '_.*_VlanID$'
-    cnt = 0
-    for k in nwa_data.keys():
-        if re.match(dev_key, k):
-            LOG.debug("find device in network(id=%s)", network_id)
-            cnt += 1
-
-    return cnt
+    regex = re.compile(dev_key)
+    matched = [k for k in nwa_data if regex.match(k)]
+    if matched:
+        LOG.debug("find device in network(id=%s)", network_id)
+    return len(matched)
 
 
 def count_device_id(device_id, nwa_data):
     dev_key = 'DEV_' + device_id + '_'
-    cnt = 0
-    for k in nwa_data.keys():
-        if re.match(dev_key, k):
-            LOG.debug("found device with device_id={}".format(device_id))
-            cnt += 1
-    return cnt
+    regex = re.compile(dev_key)
+    matched = [k for k in nwa_data if regex.match(k)]
+    if matched:
+        LOG.debug("found device with device_id=%s", device_id)
+    return len(matched)
 
 
 def check_segment(network_id, res_name, nwa_data, dev_type):
     dev_key = 'DEV_.*_' + network_id + '_' + res_name
-    cnt = 0
-    for k in nwa_data.keys():
-        if (
-                re.match(dev_key, k) and
-                dev_type == nwa_data[k]
-        ):
-            LOG.debug("find device in network(id=%s),"
-                      "resource_group_name=%s,"
-                      "type=%s" % (network_id, res_name, dev_type))
-            cnt += 1
-    return cnt
+    regex = re.compile(dev_key)
+    matched = [k for k in nwa_data
+               if regex.match(k) and dev_type == nwa_data[k]]
+    if matched:
+        LOG.debug("find device in network(id=%s),"
+                  "resource_group_name=%s,"
+                  "type=%s" % (network_id, res_name, dev_type))
+    return len(matched)
 
 
 def check_segment_gd(network_id, res_name, nwa_data):
@@ -96,8 +91,8 @@ class AgentProxyL2(object):
         self.client = client
         self.proxy_tenant = proxy_tenant
 
+    @helpers.log_method_call
     def _create_tenant_nw(self, context, **kwargs):
-        LOG.debug("context=%s, kwargs=%s" % (context, kwargs))
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
         nwa_info = kwargs.get('nwa_info')
 
@@ -126,7 +121,7 @@ class AgentProxyL2(object):
             else:
                 LOG.error(_LE("CreateTenantNW Failed."))
 
-                return False, dict()
+                return False, {}
 
     def _delete_tenant_nw(self, context, **kwargs):
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
@@ -260,6 +255,7 @@ class AgentProxyL2(object):
 
         return True, nwa_data
 
+    @helpers.log_method_call
     def create_general_dev(self, context, **kwargs):
         """Create GeneralDev wrapper.
 
@@ -268,7 +264,6 @@ class AgentProxyL2(object):
         @return: dict of status and msg.
         """
 
-        LOG.debug("context=%s, kwargs=%s" % (context, kwargs))
         tenant_id = kwargs.get('tenant_id')
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
         nwa_info = kwargs.get('nwa_info')
@@ -420,8 +415,8 @@ class AgentProxyL2(object):
 
         return nwa_data
 
+    @helpers.log_method_call
     def _create_general_dev(self, context, **kwargs):
-        LOG.debug("context=%s, kwargs=%s" % (context, kwargs))
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
         nwa_info = kwargs.get('nwa_info')
         nwa_data = kwargs.get('nwa_data')
@@ -469,6 +464,7 @@ class AgentProxyL2(object):
 
         return True, nwa_data
 
+    @helpers.log_method_call
     def delete_general_dev(self, context, **kwargs):
         """Delete GeneralDev.
 
@@ -476,7 +472,6 @@ class AgentProxyL2(object):
         @param kwargs:
         @return: dict of status and msg.
         """
-        LOG.debug("context=%s, kwargs=%s" % (context, kwargs))
         tenant_id = kwargs.get('tenant_id')
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
         nwa_info = kwargs.get('nwa_info')
@@ -624,8 +619,8 @@ class AgentProxyL2(object):
 
         return nwa_data
 
+    @helpers.log_method_call
     def _delete_general_dev(self, context, **kwargs):
-        LOG.debug("context=%s, kwargs=%s" % (context, kwargs))
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
         nwa_info = kwargs.get('nwa_info')
         nwa_data = kwargs.get('nwa_data')

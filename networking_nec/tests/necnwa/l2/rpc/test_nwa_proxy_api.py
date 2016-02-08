@@ -40,13 +40,13 @@ class TestNECNWAProxyApi(base.BaseTestCase):
     def test_create_general_dev(self):
         tenant_id = '844eb55f21e84a289e9c22098d387e5d'
         nwa_tenant_id = 'DC1_' + tenant_id
-        nwa_info = dict()
+        nwa_info = {}
         self.proxy.create_general_dev(self.context, tenant_id, nwa_tenant_id,
                                       nwa_info)
 
     def test_delete_general_dev(self):
         tenant_id = '844eb55f21e84a289e9c22098d387e5d'
         nwa_tenant_id = 'DC1_' + tenant_id
-        nwa_info = dict()
+        nwa_info = {}
         self.proxy.delete_general_dev(self.context, tenant_id, nwa_tenant_id,
                                       nwa_info)

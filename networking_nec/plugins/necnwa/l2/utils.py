@@ -21,6 +21,7 @@ from neutron.db import models_v2
 from neutron.plugins.ml2 import db as ml2_db_api
 from oslo_log import log as logging
 from oslo_serialization import jsonutils
+import six
 from sqlalchemy.orm import exc as sa_exc
 
 from networking_nec._i18n import _LE
@@ -197,7 +198,7 @@ def _release_dynamic_segment(context, session, network_id, physical_network,
 
         return False
     except Exception as e:
-        LOG.exception(str(e))
+        LOG.exception(six.text_type(e))
         return False
 
 
@@ -242,7 +243,7 @@ def _set_segment_to_tenant_binding(context, jbody):
             return
 
     except Exception as e:
-        LOG.exception(_LE('%s'), str(e))
+        LOG.exception(six.text_type(e))
     LOG.error(_LE('fail to add the network segment to nwa db.'))
 
 
@@ -282,7 +283,6 @@ def _set_general_dev_to_tenant_binding(context):
             nwa_tenant_id, nwa_data)
         if done:
             return
-
+        LOG.error(_LE('fail to set nwa general device to nwa db.'))
     except Exception as e:
-        LOG.exception(_LE('%s'), str(e))
-    LOG.error(_LE('fail to set nwa general device to nwa db.'))
+        LOG.exception(six.text_type(e))

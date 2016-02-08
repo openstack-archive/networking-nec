@@ -44,7 +44,7 @@ class ServerManager(object):
 
         @param tid: openstack tenant id
         """
-        ret = dict()
+        ret = {}
 
         if tid in self.rpc_servers.keys():
             LOG.warning(

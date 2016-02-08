@@ -58,7 +58,7 @@ class TestAgentServerManager(test_nwa_agent.TestNECNWANeutronAgentBase):
 
     def test_delete_tenant_rpc_server_fail(self):
         tenant_id = '844eb55f21e84a289e9c22098d387e5d'
-        self.agent.server_manager.rpc_servers = dict()
+        self.agent.server_manager.rpc_servers = {}
         rd = self.agent.server_manager.delete_tenant_rpc_server(tenant_id)
         self.assertIsInstance(rd, dict)
         self.assertEqual(rd['result'], 'FAILED')

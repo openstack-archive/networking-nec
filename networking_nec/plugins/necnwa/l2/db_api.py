@@ -21,11 +21,11 @@ from networking_nec.plugins.necnwa.l2 import models as nmodels
 
 def add_nwa_tenant_binding(session, tenant_id, nwa_tenant_id, json_value):
     try:
-        if isinstance(json_value, dict) is False:
+        if not isinstance(json_value, dict):
             return False
         nwa = session.query(nmodels.NWATenantBindingN).filter(
             nmodels.NWATenantBindingN.tenant_id == tenant_id).all()
-        if len(nwa) > 0:
+        if nwa:
             return False
         with session.begin(subtransactions=True):
             for json_key, json_value in json_value.items():
@@ -86,9 +86,9 @@ def set_nwa_tenant_binding(session, tenant_id, nwa_tenant_id, value_json):
     if item is None:
         return False
     _json = item.value_json
-    if isinstance(_json, dict) is False:
+    if not isinstance(_json, dict):
         return False
-    if isinstance(value_json, dict) is False:
+    if not isinstance(value_json, dict):
         return False
     with session.begin(subtransactions=True):
         for key, value in value_json.items():

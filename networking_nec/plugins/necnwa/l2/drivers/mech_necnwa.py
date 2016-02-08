@@ -25,7 +25,7 @@ from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_serialization import jsonutils
 
-from networking_nec._i18n import _LW, _LE
+from networking_nec._i18n import _, _LW, _LE
 from networking_nec.plugins.necnwa.common import config
 from networking_nec.plugins.necnwa.common import utils as nwa_com_utils
 from networking_nec.plugins.necnwa.l2 import db_api as nwa_db
@@ -44,9 +44,9 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
         except Exception as e:
             LOG.error(_LE('NECNWA option error: %(error_msg)s\n'
                           'resource_group = %(resource_group)'),
-                      {'error_msg': str(e),
+                      {'error_msg': e,
                        'resource_group': resgrp})
-            raise cfg.Error('NECNWA option parse error')
+            raise cfg.Error(_('NECNWA option parse error'))
 
     def create_port_precommit(self, context):
         tenant_id, nwa_tenant_id = nwa_com_utils.get_tenant_info(context)
@@ -54,8 +54,8 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
         device_owner = context._port['device_owner']
         device_id = context._port['device_id']
 
-        if ((device_owner == constants.DEVICE_OWNER_ROUTER_INTF or
-             device_owner == constants.DEVICE_OWNER_ROUTER_GW)):
+        if (device_owner == constants.DEVICE_OWNER_ROUTER_INTF or
+                device_owner == constants.DEVICE_OWNER_ROUTER_GW):
 
             res_grp = jsonutils.loads(config.CONF.NWA.resource_group)
 
@@ -145,10 +145,8 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
                   {'tid': tenant_id, 'nid': nwa_tenant_id,
                    'dev': device_owner})
 
-        if (
-                (device_owner == constants.DEVICE_OWNER_ROUTER_GW) or
-                (device_owner == constants.DEVICE_OWNER_ROUTER_INTF)
-        ):
+        if (device_owner == constants.DEVICE_OWNER_ROUTER_GW or
+                device_owner == constants.DEVICE_OWNER_ROUTER_INTF):
 
             rt_tid = nwa_l3_db.get_tenant_id_by_router(
                 context.network._plugin_context.session,
@@ -185,8 +183,8 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
                 LOG.debug('resource_group_name is None nwa_info=%s',
                           nwa_info)
                 return
-            if device_owner == constants.DEVICE_OWNER_DHCP and \
-                    device_id == constants.DEVICE_ID_RESERVED_DHCP_PORT:
+            if (device_owner == constants.DEVICE_OWNER_DHCP and
+                    device_id == constants.DEVICE_ID_RESERVED_DHCP_PORT):
                 nwa_info['device']['id'] = utils.get_dhcp_agent_device_id(
                     network_id,
                     context._port.get('binding:host_id')
@@ -206,7 +204,7 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
 
         grp = jsonutils.loads(config.CONF.NWA.resource_group)
         for res in grp:
-            if res['ResourceGroupName'] not in mappings.keys():
+            if res['ResourceGroupName'] not in mappings:
                 continue
 
             if res['device_owner'] == context._port['device_owner']:
@@ -250,10 +248,8 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
         port_id = context._port['id']
         mac_address = context._port['mac_address']
 
-        if (
-                (device_owner == constants.DEVICE_OWNER_ROUTER_GW) or
-                (device_owner == constants.DEVICE_OWNER_ROUTER_INTF)
-        ):
+        if (device_owner == constants.DEVICE_OWNER_ROUTER_GW or
+                device_owner == constants.DEVICE_OWNER_ROUTER_INTF):
             return
 
         subnet_ids = []

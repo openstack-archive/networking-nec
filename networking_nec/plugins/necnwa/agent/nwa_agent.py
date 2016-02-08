@@ -43,7 +43,7 @@ LOG = logging.getLogger(__name__)
 
 class NECNWANeutronAgent(object):
 
-    rpc_servers = dict()
+    rpc_servers = {}
     topic = nwa_const.NWA_AGENT_TOPIC
 
     def __init__(self, polling_interval):
@@ -135,7 +135,7 @@ class NECNWANeutronAgent(object):
             )
 
         except Exception as e:
-            LOG.exception(_LE("Failed reporting state! %s"), str(e))
+            LOG.exception(_LE("Failed reporting state! %s"), e)
 
     def loop_handler(self):
         pass
