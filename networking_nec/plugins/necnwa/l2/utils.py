@@ -17,7 +17,6 @@ from neutron.common import exceptions as n_exc
 from neutron.db import external_net_db
 from neutron.db import models_v2
 from oslo_log import log as logging
-from oslo_serialization import jsonutils
 from sqlalchemy.orm import exc as sa_exc
 
 from networking_nec.plugins.necnwa.common import config
@@ -32,10 +31,10 @@ def get_network_info(context):
     return name, network_id
 
 
-def get_physical_network(device_owner, resource_group_name=None):
-    grp = jsonutils.loads(config.CONF.NWA.resource_group)
-    for physnet in grp:
-        physnets = [physnet['physical_network'] for physnet in grp
+def get_physical_network(device_owner, resource_groups,
+                         resource_group_name=None):
+    for physnet in resource_groups:
+        physnets = [physnet['physical_network'] for physnet in resource_groups
                     if (physnet['device_owner'] == device_owner and
                         (not resource_group_name or
                          physnet['ResourceGroupName'] == resource_group_name))]
@@ -79,7 +78,8 @@ def is_external_network(context, net_id):
         return False
 
 
-def portcontext_to_nwa_info(context, use_original_port=False):
+def portcontext_to_nwa_info(context, resource_groups,
+                            use_original_port=False):
     tenant_id, nwa_tenant_id = nwa_com_utils.get_tenant_info(context)
     network_name, network_id = get_network_info(context)
 
@@ -109,8 +109,10 @@ def portcontext_to_nwa_info(context, use_original_port=False):
     macaddr = port['mac_address']
 
     resource_group_name_nw = config.CONF.NWA.resource_group_name
-    resource_group_name = _get_resource_group_name(context, use_original_port)
-    physical_network = get_physical_network(device_owner, resource_group_name)
+    resource_group_name = _get_resource_group_name(context, resource_groups,
+                                                   use_original_port)
+    physical_network = get_physical_network(device_owner, resource_groups,
+                                            resource_group_name)
 
     return {
         'tenant_id': tenant_id,
@@ -134,14 +136,14 @@ def portcontext_to_nwa_info(context, use_original_port=False):
 
 # Private methods
 
-def _get_resource_group_name(context, use_original_port=False):
+def _get_resource_group_name(context, resource_groups,
+                             use_original_port=False):
     port = context.original if use_original_port else context.current
     device_owner = port['device_owner']
-    grp = jsonutils.loads(config.CONF.NWA.resource_group)
     for agent in context.host_agents(constants.AGENT_TYPE_OVS):
         if agent['alive']:
             mappings = agent['configurations'].get('bridge_mappings', {})
-            for res_grp in grp:
+            for res_grp in resource_groups:
                 if not res_grp['ResourceGroupName'] in mappings:
                     continue
                 if res_grp['device_owner'] == device_owner:
@@ -149,7 +151,7 @@ def _get_resource_group_name(context, use_original_port=False):
 
     if (device_owner == constants.DEVICE_OWNER_ROUTER_INTF or
             device_owner == constants.DEVICE_OWNER_ROUTER_GW):
-        for res_grp in grp:
+        for res_grp in resource_groups:
             if res_grp['device_owner'] == device_owner:
                 return res_grp['ResourceGroupName']
 

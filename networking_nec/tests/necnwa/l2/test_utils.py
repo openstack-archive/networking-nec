@@ -171,18 +171,22 @@ class TestGetNetworkInfo(TestNwa):
 
 class TestGetPhysicalNetwork(TestNwa):
     def test_get_physical_network(self):
-        pnet = nwa_l2_utils.get_physical_network('compute:AZ1')
+        pnet = nwa_l2_utils.get_physical_network('compute:AZ1',
+                                                 self.resource_group)
         self.assertEqual(pnet, 'Common/KVM/Pod1-1')
 
         pnet = nwa_l2_utils.get_physical_network('compute:AZ1',
+                                                 self.resource_group,
                                                  'Common/KVM/Pod1')
         self.assertEqual(pnet, 'Common/KVM/Pod1-1')
 
     def test_get_physical_network_not_found(self):
-        pnet = nwa_l2_utils.get_physical_network('network:router_interface1')
+        pnet = nwa_l2_utils.get_physical_network('network:router_interface1',
+                                                 self.resource_group)
         self.assertIsNone(pnet)
 
         pnet = nwa_l2_utils.get_physical_network('compute:AZ1',
+                                                 self.resource_group,
                                                  'Common/KVM/Pod2')
         self.assertIsNone(pnet)
 
@@ -222,7 +226,8 @@ class TestUpdatePortStatus(TestNwa):
 class TestPortcontextToNwaInfo(TestNwa):
     def test_portcontext_to_nwa_info(self):
         self.context.current = self.context._port
-        rd = nwa_l2_utils.portcontext_to_nwa_info(self.context)
+        rd = nwa_l2_utils.portcontext_to_nwa_info(self.context,
+                                                  self.resource_group)
         self.assertIsInstance(rd, dict)
         p = self.context._port
         self.assertEqual(rd['device']['owner'], p['device_owner'])
@@ -249,7 +254,9 @@ class TestPortcontextToNwaInfo(TestNwa):
             ],
             'mac_address': mac,
         }
-        rd = nwa_l2_utils.portcontext_to_nwa_info(self.context, True)
+        rd = nwa_l2_utils.portcontext_to_nwa_info(self.context,
+                                                  self.resource_group,
+                                                  True)
         self.assertIsInstance(rd, dict)
         self.assertEqual(rd['device']['owner'], device_owner)
         self.assertEqual(rd['device']['id'], device_id)
@@ -272,7 +279,9 @@ class TestPortcontextToNwaInfo(TestNwa):
             'fixed_ips': [],
             'mac_address': mac,
         }
-        rd = nwa_l2_utils.portcontext_to_nwa_info(self.context, True)
+        rd = nwa_l2_utils.portcontext_to_nwa_info(self.context,
+                                                  self.resource_group,
+                                                  True)
         self.assertIsInstance(rd, dict)
         self.assertEqual(rd['device']['owner'], device_owner)
         self.assertEqual(rd['device']['id'], device_id)
@@ -285,17 +294,21 @@ class TestPortcontextToNwaInfo(TestNwa):
 class test__getResourceGroupName(TestNwa):
     def test__get_resource_group_name(self):
         self.context.current['device_owner'] = 'network:dhcp'
-        rc = nwa_l2_utils._get_resource_group_name(self.context)
+        rc = nwa_l2_utils._get_resource_group_name(self.context,
+                                                   self.resource_group)
         self.assertEqual(rc, 'Common/App/Pod3')
 
         self.context.current['device_owner'] = 'network:router_interface'
-        rc = nwa_l2_utils._get_resource_group_name(self.context)
+        rc = nwa_l2_utils._get_resource_group_name(self.context,
+                                                   self.resource_group)
         self.assertEqual(rc, 'Common/App/Pod4')
 
         self.context.current['device_owner'] = 'network:router_gateway'
-        rc = nwa_l2_utils._get_resource_group_name(self.context)
+        rc = nwa_l2_utils._get_resource_group_name(self.context,
+                                                   self.resource_group)
         self.assertEqual(rc, 'Common/App/Pod4')
 
         self.context.current['device_owner'] = 'compute:AZ1'
-        rc = nwa_l2_utils._get_resource_group_name(self.context)
+        rc = nwa_l2_utils._get_resource_group_name(self.context,
+                                                   self.resource_group)
         self.assertIsNone(rc)

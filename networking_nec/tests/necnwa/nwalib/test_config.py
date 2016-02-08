@@ -30,48 +30,8 @@ server_url = http://127.0.0.1:12081
 access_key_id = 5g2ZMAdMwZ1gQqZagNqbJSrlopQUAUHILcP2nmxVs28=
 secret_access_key = JE35Lup5CvI68lneFS4EtSGCh1DnG8dBtTRycPQ83QA=
 resource_group_name = OpenStack/DC1/Common/App1Grp/App1
-scenario_polling_timer =5
-resource_group = [
-   {
-       "physical_network": "physnet1",
-       "device_owner":"compute:None",
-       "ResourceGroupName":"OpenStack/DC1/Common/Pod1Grp/Pod1"
-   },
-   {
-       "physical_network": "physnet1",
-       "device_owner":"network:dhcp",
-       "ResourceGroupNliame":"OpenStack/DC1/Common/Pod1Grp/Pod1"
-   },
-   {
-       "physical_network": "physnet2",
-       "device_owner":"network:dhcp",
-       "ResourceGroupName":"OpenStack/DC1/Common/Pod2Grp/Pod2"
-   },
-   {
-       "physical_network": "physnet1",
-       "device_owner":"compute:AZ1",
-       "ResourceGroupName":"OpenStack/DC1/Common/Pod1Grp/Pod1"
-   },
-   {
-       "physical_network": "physnet2",
-       "device_owner":"compute:AZ2",
-       "ResourceGroupName":"OpenStack/DC1/Common/Pod2Grp/Pod2"
-   },
-   {
-       "physical_network": "physnet3",
-       "device_owner":"network:router_gateway",
-       "ResourceGroupName":"OpenStack/DC1/Common/App1"
-   },
-   {
-       "physical_network": "physnet3",
-       "device_owner":"network:router_interface",
-       "ResourceGroupName":"OpenStack/DC1/Common/App1"
-   },
-   {
-       "physical_network":"",
-       "device_owner":"Stopper",
-       "ResourceGroupName":"Stopper"
-   }]
+scenario_polling_timer = 5
+resource_group_file = resource_group.json
 """
 
 
