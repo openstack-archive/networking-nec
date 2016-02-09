@@ -25,7 +25,7 @@ def add_nwa_tenant_binding(session, tenant_id, nwa_tenant_id, json_value):
             return False
         nwa = session.query(nmodels.NWATenantBindingN).filter(
             nmodels.NWATenantBindingN.tenant_id == tenant_id).all()
-        if len(nwa) > 0:
+        if nwa:
             return False
         with session.begin(subtransactions=True):
             for json_key, json_value in json_value.items():
@@ -155,7 +155,7 @@ def add_nwa_tenant_queue(session, tenant_id, nwa_tenant_id='', topic=''):
     try:
         nwa = session.query(nmodels.NWATenantQueue).filter(
             nmodels.NWATenantQueue.tenant_id == tenant_id).all()
-        if len(nwa) > 0:
+        if nwa:
             return False
         with session.begin(subtransactions=True):
             nwa = nmodels.NWATenantQueue(
@@ -185,11 +185,7 @@ def get_nwa_tenant_queue(session, tenant_id):
 def get_nwa_tenant_queues(session):
     try:
         queues = session.query(nmodels.NWATenantQueue).all()
-
-        if len(queues) > 0:
-            return queues
-        else:
-            return []
+        return queues
     except sa.orm.exc.NoResultFound:
         return None
 
