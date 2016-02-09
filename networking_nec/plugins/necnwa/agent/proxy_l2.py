@@ -92,7 +92,7 @@ class AgentProxyL2(object):
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
         nwa_info = kwargs.get('nwa_info')
 
-        # get resource gropu name for NWA TenantNW.
+        # get resource group name for NWA TenantNW.
         resource_group_name = nwa_info['resource_group_name_nw']
         nwa_data = kwargs.get('nwa_data')
 
@@ -637,7 +637,7 @@ class AgentProxyL2(object):
             logical_name,
         )
         if rcode != 200:
-            LOG.debug("DeleteGeneralDev Error: invalid responce."
+            LOG.debug("DeleteGeneralDev Error: invalid response."
                       " rcode = %d" % rcode)
             # error port send to plugin
             return False, None

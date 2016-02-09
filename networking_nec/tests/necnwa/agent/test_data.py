@@ -17,7 +17,7 @@ test params
 """""
 
 # #############################
-# NWA Server dummy responce
+# NWA Server dummy response
 # CreateTenantNW succeed
 result_tnw = {
     "progress": 100,

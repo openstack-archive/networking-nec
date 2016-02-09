@@ -34,7 +34,7 @@ class AgentProxyTenant(object):
 
         @param context: contains user information.
         @param kwargs: nwa_tenant_id
-        @return: succeed - dict of status, and infomation.
+        @return: succeed - dict of status, and information.
         """
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
 
@@ -50,7 +50,7 @@ class AgentProxyTenant(object):
 
         @param context: contains user information.
         @param kwargs: nwa_tenant_id
-        @return: resutl(succeed = (True, dict(empty)  other = False, None)
+        @return: result(succeed = (True, dict(empty)  other = False, None)
         """
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
         rcode, body = self.client.delete_tenant(nwa_tenant_id)

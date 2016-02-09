@@ -225,7 +225,7 @@ class TestSetNwaTenantBinding(base.BaseTestCase):
          }),
         ('old and new json has different keys',
          {
-             # diffrent key
+             # different key
              'expected_return_value': True,
              'old_value_json': itemval({'a': 1}),
              'new_value_json': {'b': 2},
@@ -235,7 +235,7 @@ class TestSetNwaTenantBinding(base.BaseTestCase):
          }),
         ('old and new json has multiple different keys',
          {
-             # diffrent key, multiple
+             # different key, multiple
              'expected_return_value': True,
              'old_value_json': itemval({
                  'a': 0,
