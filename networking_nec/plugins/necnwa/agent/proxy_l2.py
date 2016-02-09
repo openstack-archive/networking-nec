@@ -290,9 +290,9 @@ class AgentProxyL2(object):
                 indent=4,
                 sort_keys=True
             ))
-            if self.proxy_tenant.update_tenant_binding(
+            if not self.proxy_tenant.update_tenant_binding(
                     context, tenant_id, nwa_tenant_id,
-                    nwa_data, nwa_created=True) is False:
+                    nwa_data, nwa_created=True):
                 return None
 
         # create tenant nw
@@ -304,7 +304,7 @@ class AgentProxyL2(object):
                 indent=4,
                 sort_keys=True
             ))
-            if rcode is False:
+            if not rcode:
                 return self.proxy_tenant.update_tenant_binding(
                     context, tenant_id, nwa_tenant_id, nwa_data,
                     nwa_created=nwa_created
@@ -321,7 +321,7 @@ class AgentProxyL2(object):
                 sort_keys=True
             ))
 
-            if rcode is False:
+            if not rcode:
                 return self.proxy_tenant.update_tenant_binding(
                     context, tenant_id, nwa_tenant_id, nwa_data,
                     nwa_created=nwa_created
@@ -333,10 +333,10 @@ class AgentProxyL2(object):
         if check_segment_gd(network_id, resource_group_name, nwa_data):
             skip_generaldev = True
 
-        if skip_generaldev is False:
+        if not skip_generaldev:
             rcode, ret_val = self._create_general_dev(
                 context, nwa_data=nwa_data, **kwargs)
-            if rcode is False:
+            if not rcode:
                 return self.proxy_tenant.update_tenant_binding(
                     context, tenant_id, nwa_tenant_id, nwa_data,
                     nwa_created=nwa_created
@@ -510,7 +510,7 @@ class AgentProxyL2(object):
             indent=4,
             sort_keys=True
         ))
-        if rcode is False:
+        if not rcode:
             return self.proxy_tenant.update_tenant_binding(
                 context, tenant_id, nwa_tenant_id, nwa_data
             )
@@ -535,7 +535,7 @@ class AgentProxyL2(object):
             sort_keys=True
         ))
 
-        if result is False:
+        if not result:
             # delete vlan error.
             return self.proxy_tenant.update_tenant_binding(
                 context, tenant_id, nwa_tenant_id, nwa_data
@@ -562,7 +562,7 @@ class AgentProxyL2(object):
             indent=4,
             sort_keys=True
         ))
-        if result is False:
+        if not result:
             return self.proxy_tenant.update_tenant_binding(
                 context, tenant_id, nwa_tenant_id, nwa_data
             )
@@ -576,7 +576,7 @@ class AgentProxyL2(object):
             nwa_data=nwa_data,
             **kwargs
         )
-        if result is False:
+        if not result:
             return self.proxy_tenant.update_tenant_binding(
                 context, tenant_id, nwa_tenant_id, nwa_data
             )

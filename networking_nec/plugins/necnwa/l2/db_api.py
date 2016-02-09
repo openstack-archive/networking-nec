@@ -82,12 +82,12 @@ def get_nwa_tenant_binding_by_tid(session, tenant_id):
 
 def set_nwa_tenant_binding(session, tenant_id, nwa_tenant_id, value_json):
     item = get_nwa_tenant_binding(session, tenant_id, nwa_tenant_id)
-    if item is None:
+    if not item:
         return False
     _json = item.value_json
-    if isinstance(_json, dict) is False:
+    if not isinstance(_json, dict):
         return False
-    if isinstance(value_json, dict) is False:
+    if not isinstance(value_json, dict):
         return False
     with session.begin(subtransactions=True):
         for key, value in value_json.items():
@@ -124,7 +124,7 @@ def del_nwa_tenant_binding(session, tenant_id, nwa_tenant_id):
     try:
         with session.begin(subtransactions=True):
             item = get_nwa_tenant_binding(session, tenant_id, nwa_tenant_id)
-            if item is None:
+            if not item:
                 return False
             with session.begin(subtransactions=True):
                 session.query(nmodels.NWATenantBindingN).filter(
@@ -198,7 +198,7 @@ def del_nwa_tenant_queue(session, tenant_id):
     try:
         with session.begin(subtransactions=True):
             item = get_nwa_tenant_queue(session, tenant_id)
-            if item is None:
+            if not item:
                 return False
             with session.begin(subtransactions=True):
                 session.query(nmodels.NWATenantQueue).filter(

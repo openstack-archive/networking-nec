@@ -37,7 +37,7 @@ class NwaClient(nwa_restclient.NwaRestClient):
     def __init__(self, *args, **kwargs):
         load_workflow_list = kwargs.pop('load_workflow_list', True)
         super(NwaClient, self).__init__(*args, **kwargs)
-        if load_workflow_list and NwaClient.workflow_list_is_loaded is False:
+        if load_workflow_list and not NwaClient.workflow_list_is_loaded:
             self.update_workflow_list()
             NwaClient.workflow_list_is_loaded = True
 
@@ -368,7 +368,7 @@ class NwaClient(nwa_restclient.NwaRestClient):
         return self.get('/umf/reserveddcresource/' + tenant_id)
 
     def get_dc_resource_groups(self, group=None):
-        if group is None:
+        if not group:
             url = '/umf/dcresource/groups'
         else:
             url = '/umf/dcresource/groups/' + str(group)

@@ -75,7 +75,7 @@ class AgentProxyTenant(object):
             indent=4,
             sort_keys=True
         ))
-        if nwa_created is True:
+        if nwa_created:
             return self.nwa_tenant_rpc.add_nwa_tenant_binding(
                 context, tenant_id, nwa_tenant_id, nwa_data
             )
