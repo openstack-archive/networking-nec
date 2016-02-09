@@ -76,8 +76,8 @@ class TestNwaClient(base.BaseTestCase):
             host=host, port=port, access_key_id=access_key_id,
             secret_access_key=secret_access_key
         )
-        self.nwa.workflow_first_wait = 0.5
-        self.nwa2.workflow_first_wait = 0.5
+        self.nwa.workflow_first_wait = 0
+        self.nwa2.workflow_first_wait = 0
 
     def get_vlan_info(self):
         self.business_vlan = self.public_vlan = None
