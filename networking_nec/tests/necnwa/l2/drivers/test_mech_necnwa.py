@@ -23,9 +23,6 @@ from neutron.tests import base
 from oslo_log import log as logging
 from oslo_serialization import jsonutils
 
-import networking_nec
-NECNWA_INI = (networking_nec.__path__[0] +
-              '/../etc/neutron/plugins/nec/necnwa.ini')
 from networking_nec.plugins.necnwa.common import config
 from networking_nec.plugins.necnwa.common import constants as nwa_const
 from networking_nec.plugins.necnwa.l2.drivers import mech_necnwa as mech

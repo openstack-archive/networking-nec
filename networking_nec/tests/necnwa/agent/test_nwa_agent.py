@@ -15,18 +15,11 @@
 from mock import MagicMock
 from mock import patch
 
-import neutron
-NEUTRON_CONF = (neutron.__path__[0] +
-                '/../etc/neutron.conf')
-from neutron.common import config
 from neutron.common import rpc
 from neutron.tests import base
 from oslo_config import cfg
 from oslo_log import log as logging
 
-import networking_nec
-NECNWA_INI = (networking_nec.__path__[0] +
-              '/../etc/neutron/plugins/nec/necnwa.ini')
 from networking_nec.plugins.necnwa.agent import nwa_agent
 
 LOG = logging.getLogger(__name__)
@@ -61,7 +54,6 @@ class TestNECNWANeutronAgentBase(base.BaseTestCase):
     def setUp(self, f1, f2, f3, f4, f5):
         super(TestNECNWANeutronAgentBase, self).setUp()
         self._patch_nwa_client()
-        self._config_parse()
         self.context = MagicMock()
         self.agent = nwa_agent.NECNWANeutronAgent(10)
         rpc.init(cfg.ConfigOpts())
@@ -74,18 +66,6 @@ class TestNECNWANeutronAgentBase(base.BaseTestCase):
         self.nwacli = MagicMock()
         cli.return_value = self.nwacli
         init_nwa_client_patch(self.nwacli)
-
-    def _config_parse(self, conf=None, args=None):
-        """Create the default configurations."""
-        if args is None:
-            args = []
-        # args += ['--config-file', NEUTRON_CONF]
-        args += ['--config-file', NECNWA_INI]
-
-        if conf is None:
-            config.init(args=args)
-        else:
-            conf(args)
 
 
 class TestNECNWANeutronAgentAsNwaClient(TestNECNWANeutronAgentBase):
