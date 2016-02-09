@@ -18,6 +18,7 @@ import time
 from neutron.common import topics
 from neutron.plugins.common import constants as n_constants
 from neutron.plugins.ml2 import driver_api as api
+from oslo_log import helpers
 from oslo_log import log as logging
 from oslo_serialization import jsonutils
 
@@ -87,8 +88,8 @@ class AgentProxyL2(object):
         self.client = client
         self.proxy_tenant = proxy_tenant
 
+    @helpers.log_method_call
     def _create_tenant_nw(self, context, **kwargs):
-        LOG.debug("context=%s, kwargs=%s" % (context, kwargs))
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
         nwa_info = kwargs.get('nwa_info')
 
@@ -251,6 +252,7 @@ class AgentProxyL2(object):
 
         return True, nwa_data
 
+    @helpers.log_method_call
     def create_general_dev(self, context, **kwargs):
         """Create GeneralDev wrapper.
 
@@ -259,7 +261,6 @@ class AgentProxyL2(object):
         @return: dict of status and msg.
         """
 
-        LOG.debug("context=%s, kwargs=%s" % (context, kwargs))
         tenant_id = kwargs.get('tenant_id')
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
         nwa_info = kwargs.get('nwa_info')
@@ -411,8 +412,8 @@ class AgentProxyL2(object):
 
         return nwa_data
 
+    @helpers.log_method_call
     def _create_general_dev(self, context, **kwargs):
-        LOG.debug("context=%s, kwargs=%s" % (context, kwargs))
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
         nwa_info = kwargs.get('nwa_info')
         nwa_data = kwargs.get('nwa_data')
@@ -460,6 +461,7 @@ class AgentProxyL2(object):
 
         return True, nwa_data
 
+    @helpers.log_method_call
     def delete_general_dev(self, context, **kwargs):
         """Delete GeneralDev.
 
@@ -467,7 +469,6 @@ class AgentProxyL2(object):
         @param kwargs:
         @return: dict of status and msg.
         """
-        LOG.debug("context=%s, kwargs=%s" % (context, kwargs))
         tenant_id = kwargs.get('tenant_id')
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
         nwa_info = kwargs.get('nwa_info')
@@ -617,8 +618,8 @@ class AgentProxyL2(object):
 
         return nwa_data
 
+    @helpers.log_method_call
     def _delete_general_dev(self, context, **kwargs):
-        LOG.debug("context=%s, kwargs=%s" % (context, kwargs))
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
         nwa_info = kwargs.get('nwa_info')
         nwa_data = kwargs.get('nwa_data')
