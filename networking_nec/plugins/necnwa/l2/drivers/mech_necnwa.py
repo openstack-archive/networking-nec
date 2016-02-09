@@ -25,7 +25,7 @@ from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_serialization import jsonutils
 
-from networking_nec._i18n import _LW, _LE
+from networking_nec._i18n import _, _LW, _LE
 from networking_nec.plugins.necnwa.common import config
 from networking_nec.plugins.necnwa.common import utils as nwa_com_utils
 from networking_nec.plugins.necnwa.l2 import db_api as nwa_db
@@ -46,7 +46,7 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
                           'resource_group = %(resource_group)'),
                       {'error_msg': e,
                        'resource_group': resgrp})
-            raise cfg.Error(_LE('NECNWA option parse error'))
+            raise cfg.Error(_('NECNWA option parse error'))
 
     def create_port_precommit(self, context):
         tenant_id, nwa_tenant_id = nwa_com_utils.get_tenant_info(context)
@@ -181,8 +181,8 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
                 LOG.debug('resource_group_name is None nwa_info=%s',
                           nwa_info)
                 return
-            if device_owner == constants.DEVICE_OWNER_DHCP and \
-                    device_id == constants.DEVICE_ID_RESERVED_DHCP_PORT:
+            if (device_owner == constants.DEVICE_OWNER_DHCP and
+                    device_id == constants.DEVICE_ID_RESERVED_DHCP_PORT):
                 nwa_info['device']['id'] = utils.get_dhcp_agent_device_id(
                     network_id,
                     context._port.get('binding:host_id')
