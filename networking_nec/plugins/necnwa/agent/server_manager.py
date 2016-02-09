@@ -37,7 +37,7 @@ class ServerManager(object):
         return [v['topic'] for k, v in self.rpc_servers.items()]
 
     def get_rpc_server_tenant_ids(self):
-        return [{'tenant_id': tid} for tid in self.rpc_servers.keys()]
+        return [{'tenant_id': tid} for tid in self.rpc_servers]
 
     def create_tenant_rpc_server(self, tid):
         """create_ blocking rpc server
@@ -46,7 +46,7 @@ class ServerManager(object):
         """
         ret = {}
 
-        if tid in self.rpc_servers.keys():
+        if tid in self.rpc_servers:
             LOG.warning(
                 _LW("already in message queue and server."
                     " queue=%s") % self.rpc_servers[tid]['topic']
@@ -82,7 +82,7 @@ class ServerManager(object):
         return ret
 
     def delete_tenant_rpc_server(self, tid):
-        if tid not in self.rpc_servers.keys():
+        if tid not in self.rpc_servers:
             LOG.warning(_LW("rpc server not found. tid=%s"), tid)
             return {'result': 'FAILED'}
 

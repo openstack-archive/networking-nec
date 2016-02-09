@@ -202,7 +202,7 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
 
         grp = jsonutils.loads(config.CONF.NWA.resource_group)
         for res in grp:
-            if res['ResourceGroupName'] not in mappings.keys():
+            if res['ResourceGroupName'] not in mappings:
                 continue
 
             if res['device_owner'] == context._port['device_owner']:

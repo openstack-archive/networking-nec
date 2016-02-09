@@ -96,7 +96,7 @@ class AgentProxyL2(object):
         resource_group_name = nwa_info['resource_group_name_nw']
         nwa_data = kwargs.get('nwa_data')
 
-        if KEY_CREATE_TENANT_NW not in nwa_data.keys():
+        if KEY_CREATE_TENANT_NW not in nwa_data:
             LOG.debug("nwa_tenant_id=%s, resource_group_name_nw=%s" %
                       (nwa_tenant_id, resource_group_name))
             rcode, body = self.client.create_tenant_nw(
@@ -155,7 +155,7 @@ class AgentProxyL2(object):
         network_id = nwa_info['network']['id']
 
         nw_vlan_key = 'VLAN_' + network_id
-        if nw_vlan_key in nwa_data.keys():
+        if nw_vlan_key in nwa_data:
             LOG.warning(_LW("aleady in vlan_key %s"), nw_vlan_key)
             return True, nwa_data
 
@@ -296,7 +296,7 @@ class AgentProxyL2(object):
                 return None
 
         # create tenant nw
-        if KEY_CREATE_TENANT_NW not in nwa_data.keys():
+        if KEY_CREATE_TENANT_NW not in nwa_data:
             rcode, ret_val = self._create_tenant_nw(
                 context, nwa_data=nwa_data, **kwargs)
             LOG.info(_LI("_create_tenant_nw.ret_val=%s"), jsonutils.dumps(
@@ -312,7 +312,7 @@ class AgentProxyL2(object):
 
         # create vlan
         nw_vlan_key = 'NW_' + network_id
-        if nw_vlan_key not in nwa_data.keys():
+        if nw_vlan_key not in nwa_data:
             rcode, ret_val = self._create_vlan(context,
                                                nwa_data=nwa_data, **kwargs)
             LOG.info(_LI("_create_vlan.ret_val=%s"), jsonutils.dumps(
@@ -441,7 +441,7 @@ class AgentProxyL2(object):
             LOG.debug("CreateGeneralDev SUCCESS")
 
             vlan_key = 'VLAN_' + network_id
-            if vlan_key not in nwa_data.keys():
+            if vlan_key not in nwa_data:
                 LOG.error(_LE("not create vlan."))
                 return False, None
 
@@ -544,7 +544,7 @@ class AgentProxyL2(object):
         # delete vlan end.
 
         # tenant network check.
-        for k in nwa_data.keys():
+        for k in nwa_data:
             if re.match('NW_.*', k):
                 return self.proxy_tenant.update_tenant_binding(
                     context, tenant_id, nwa_tenant_id, nwa_data
@@ -601,7 +601,7 @@ class AgentProxyL2(object):
                   VLAN_OWN_GDV)
 
         dev_key = 'DEV_' + device_id
-        if dev_key in nwa_data.keys():
+        if dev_key in nwa_data:
             nwa_data.pop(dev_key + '_' + network_id)
             nwa_data.pop(dev_key + '_' + network_id + '_ip_address')
             nwa_data.pop(dev_key + '_' + network_id + '_mac_address')
