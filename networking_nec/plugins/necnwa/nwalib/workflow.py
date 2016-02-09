@@ -171,6 +171,6 @@ class NwaWorkflow(object):
     def update_nameid(new_nameid):
         if NwaWorkflow._nameid_initialized:
             return
-        if len(new_nameid) > 0:
+        if new_nameid:
             NwaWorkflow._nameid = new_nameid
             NwaWorkflow._nameid_initialized = True

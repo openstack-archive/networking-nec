@@ -43,7 +43,7 @@ def check_vlan(network_id, nwa_data):
     #  TLB:      VLAN_LB_' + network_id + '_.*_VlanID$
     vlan_pat = re.compile(r'VLAN_.*_' + network_id + '_.*_VlanID$')
     matched = [k for k in nwa_data if vlan_pat.match(k)]
-    if len(matched) > 0:
+    if matched:
         LOG.debug("find device in network(ids=%s)", network_id)
     return len(matched)
 
@@ -51,7 +51,7 @@ def check_vlan(network_id, nwa_data):
 def count_device_id(device_id, nwa_data):
     dev_pat = re.compile(r'DEV_' + device_id + '_')
     matched = [k for k in nwa_data if dev_pat.match(k)]
-    if len(matched) > 0:
+    if matched:
         LOG.debug("found device with device_id=%s", device_id)
     return len(matched)
 
@@ -60,7 +60,7 @@ def check_segment(network_id, res_name, nwa_data, dev_type):
     dev_pat = re.compile(r'DEV_.*_' + network_id + '_' + res_name)
     matched = [k for k in nwa_data
                if dev_pat.match(k) and dev_type == nwa_data[k]]
-    if len(matched) > 0:
+    if matched:
         LOG.debug("find device in network(id=%s),"
                   " resource_group_name=%s, type=%s" %
                   (network_id, res_name, dev_type))
