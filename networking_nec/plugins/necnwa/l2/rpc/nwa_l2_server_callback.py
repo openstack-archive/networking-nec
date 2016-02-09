@@ -18,6 +18,7 @@ from neutron.db import models_v2
 from neutron import manager
 from neutron.plugins.ml2 import db as db_ml2
 from neutron.plugins.ml2 import models as models_ml2
+from oslo_log import helpers
 from oslo_log import log as logging
 import oslo_messaging
 from sqlalchemy.orm import exc as sa_exc
@@ -62,24 +63,13 @@ class NwaL2ServerRpcCallback(object):
 
         return networks
 
+    @helpers.log_method_call
     def update_port_state_with_notifier(self, rpc_context, **kwargs):
-        device = kwargs.get('device')
-        agent_id = kwargs.get('agent_id')
         port_id = kwargs.get('port_id')
         network_id = kwargs.get('network_id')
         network_type = kwargs.get('network_type')
         segmentation_id = kwargs.get('segmentation_id')
         physical_network = kwargs.get('physical_network')
-
-        LOG.debug("device %(device)s "
-                  "agent_id %(agent_id)s "
-                  "port_id %(port_id)s "
-                  "segmentation_id %(segmentation_id)d "
-                  "physical_network %(physical_network)s ",
-                  {'device': device, 'agent_id': agent_id,
-                   'port_id': port_id,
-                   'segmentation_id': segmentation_id,
-                   'physical_network': physical_network})
 
         # 1 update segment
         session = db_api.get_session()

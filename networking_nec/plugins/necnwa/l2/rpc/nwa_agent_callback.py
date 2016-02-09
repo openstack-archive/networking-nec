@@ -12,6 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from oslo_log import helpers
 from oslo_log import log as logging
 import oslo_messaging
 
@@ -26,8 +27,8 @@ class NwaAgentRpcCallback(object):
         self.context = context
         self.agent = agent
 
+    @helpers.log_method_call
     def get_nwa_rpc_servers(self, context, **kwargs):
-        LOG.debug("kwargs=%s", kwargs)
         return {'nwa_rpc_servers':
                 [
                     {
@@ -36,12 +37,12 @@ class NwaAgentRpcCallback(object):
                     } for k, v in self.agent.rpc_servers.items()
                 ]}
 
+    @helpers.log_method_call
     def create_server(self, context, **kwargs):
-        LOG.debug("kwargs=%s", kwargs)
         tenant_id = kwargs.get('tenant_id')
         return self.agent.create_tenant_rpc_server(tenant_id)
 
+    @helpers.log_method_call
     def delete_server(self, context, **kwargs):
-        LOG.debug("kwargs=%s", kwargs)
         tenant_id = kwargs.get('tenant_id')
         return self.agent.delete_tenant_rpc_server(tenant_id)
