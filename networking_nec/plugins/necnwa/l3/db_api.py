@@ -21,13 +21,11 @@ LOG = logging.getLogger(__name__)
 
 
 def get_tenant_id_by_router(session, router_id):
-    rt_tid = None
     with session.begin(subtransactions=True):
         try:
             router = session.query(l3_db.Router).filter_by(id=router_id).one()
             rt_tid = router.tenant_id
+            LOG.debug("rt_tid=%s", rt_tid)
+            return rt_tid
         except sa_exc.NoResultFound:
             LOG.debug("router not found %s", router_id)
-
-    LOG.debug("rt_tid=%s", rt_tid)
-    return rt_tid
