@@ -14,6 +14,7 @@
 
 from neutron.db import api as db_api
 from neutron import manager
+from oslo_log import helpers
 from oslo_log import log as logging
 import oslo_messaging
 from oslo_serialization import jsonutils
@@ -28,6 +29,7 @@ class TenantBindingServerRpcCallback(object):
 
     target = oslo_messaging.Target(version='1.0')
 
+    @helpers.log_method_call
     def get_nwa_tenant_binding(self, rpc_context, **kwargs):
         """get nwa_tenant_binding from neutorn db.
 
@@ -35,12 +37,9 @@ class TenantBindingServerRpcCallback(object):
         @param kwargs: tenant_id, nwa_tenant_id
         @return: success = dict of nwa_tenant_binding, error = dict of empty.
         """
-        LOG.debug("context=%s, kwargs=%s" % (rpc_context, kwargs))
         tenant_id = kwargs.get('tenant_id')
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
 
-        LOG.debug("tenant_id=%s, nwa_tenant_id=%s" %
-                  (tenant_id, nwa_tenant_id))
         session = db_api.get_session()
         with session.begin(subtransactions=True):
             recode = necnwa_api.get_nwa_tenant_binding(
@@ -55,6 +54,7 @@ class TenantBindingServerRpcCallback(object):
 
         return {}
 
+    @helpers.log_method_call
     def add_nwa_tenant_binding(self, rpc_context, **kwargs):
         """get nwa_tenant_binding from neutorn db.
 
@@ -63,7 +63,6 @@ class TenantBindingServerRpcCallback(object):
         @return: dict of status
         """
 
-        LOG.debug("context=%s, kwargs=%s" % (rpc_context, kwargs))
         tenant_id = kwargs.get('tenant_id')
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
         nwa_data = kwargs.get('nwa_data')
@@ -80,12 +79,11 @@ class TenantBindingServerRpcCallback(object):
 
         return {'status': 'FAILED'}
 
+    @helpers.log_method_call
     def set_nwa_tenant_binding(self, rpc_context, **kwargs):
         tenant_id = kwargs.get('tenant_id')
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
         nwa_data = kwargs.get('nwa_data')
-        LOG.debug("tenant_id=%s, nwa_tenant_id=%s" %
-                  (tenant_id, nwa_tenant_id))
         LOG.debug(
             "nwa_data=%s", jsonutils.dumps(nwa_data, indent=4, sort_keys=True)
         )
@@ -102,8 +100,8 @@ class TenantBindingServerRpcCallback(object):
 
         return {'status': 'FAILED'}
 
+    @helpers.log_method_call
     def delete_nwa_tenant_binding(self, rpc_context, **kwargs):
-        LOG.debug("context=%s, kwargs=%s" % (rpc_context, kwargs))
         tenant_id = kwargs.get('tenant_id')
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
 
