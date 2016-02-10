@@ -19,7 +19,6 @@ disable=
 # "I" Informational noise
  locally-disabled,
 # "E" Error for important programming issues (likely bugs)
- no-member,
 # "W" Warnings for stylistic problems or minor programming issues
  attribute-defined-outside-init,
  broad-except,
