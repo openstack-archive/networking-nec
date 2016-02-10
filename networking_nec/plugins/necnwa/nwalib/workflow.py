@@ -140,8 +140,8 @@ class NwaWorkflow(object):
         :param name: The name of workflow.
         """
         wid = path[len(NwaWorkflow._path_prefix):-len('/execute')]
-        for (name, id) in NwaWorkflow._nameid.items():
-            if id == wid:
+        for (name, _id) in NwaWorkflow._nameid.items():
+            if _id == wid:
                 return name
         return None
 

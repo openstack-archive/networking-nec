@@ -28,8 +28,6 @@ disable=
  global-statement,
  no-init,
  protected-access,
- redefined-builtin,
- redefined-outer-name,
  unpacking-non-sequence,
  unused-argument,
  unused-variable,

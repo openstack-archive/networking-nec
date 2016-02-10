@@ -391,15 +391,15 @@ class NwaClient(nwa_restclient.NwaRestClient):
         st, rj = self.get_workflow_list()
         nameid = {}
         if isinstance(rj, dict) and rj.get('Workflows'):
-            def new_nameid(workflow):
-                path = workflow.get('Path')
+            def new_nameid(wf):
+                path = wf.get('Path')
                 if isinstance(path, six.string_types):
                     m = re.search(r'\\([a-zA-Z0-9_]+)$', path)
                     if m:
                         key = str(m.group(1))
-                        nameid[key] = str(workflow.get('Id'))
-            for wf in rj.get('Workflows'):
-                new_nameid(wf)
+                        nameid[key] = str(wf.get('Id'))
+            for _wf in rj.get('Workflows'):
+                new_nameid(_wf)
         workflow.NwaWorkflow.update_nameid(nameid)
 
     def setting_fw_policy(self, tenant_id, fw_name, props):
