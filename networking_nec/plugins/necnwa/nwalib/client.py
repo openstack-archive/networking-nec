@@ -532,17 +532,6 @@ class NwaClient(nwa_restclient.NwaRestClient):
             vlan_logical_name, vlan_type, vif_ipaddr
         )
 
-    def update_tenant_lb(self, ok, ng, ctx, tenant_id,
-                         device_name,
-                         old_name, old_type,
-                         new_name, new_type, new_ipaddr):
-        return self.apply_async(
-            self._update_tenant_lb, ok, ng, ctx, tenant_id,
-            device_name,
-            old_name, old_type,
-            new_name, new_type, new_ipaddr
-        )
-
     def update_tenant_lbn(self, ok, ng, ctx, tenant_id,
                           device_name, actions):
         return self.apply_async(
