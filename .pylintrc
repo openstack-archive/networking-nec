@@ -22,7 +22,6 @@ disable=
  no-member,
 # "W" Warnings for stylistic problems or minor programming issues
  attribute-defined-outside-init,
- abstract-method,
  broad-except,
  fixme,
  global-statement,
