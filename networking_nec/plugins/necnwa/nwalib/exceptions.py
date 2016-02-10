@@ -16,6 +16,7 @@
 class NwaException(Exception):
     '''Raised when there is an error in Nwa. '''
     def __init__(self, http_status, errmsg, orgexc=None):
+        super(NwaException, self).__init__()
         self.http_status = http_status
         self.errmsg = errmsg
         self.orgexc = orgexc

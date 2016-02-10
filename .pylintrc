@@ -30,7 +30,6 @@ disable=
  protected-access,
  redefined-builtin,
  redefined-outer-name,
- super-init-not-called,
  unpacking-non-sequence,
  unused-argument,
  unused-variable,
