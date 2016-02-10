@@ -27,8 +27,6 @@ disable=
  fixme,
  global-statement,
  protected-access,
- redefined-builtin,
- redefined-outer-name,
  unpacking-non-sequence,
  unused-argument,
  unused-variable,

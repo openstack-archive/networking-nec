@@ -74,12 +74,12 @@ class NECNWAL2Plugin(ml2_plugin.Ml2Plugin):
             network[provider.SEGMENTATION_ID] = None
             return
 
-        id = network['id']
+        net_id = network['id']
         segments = db_ml2.get_network_segments(
-            context.session, id, filter_dynamic=True)
+            context.session, net_id, filter_dynamic=True)
 
         if not segments:
-            LOG.debug("Network %s has no segments", id)
+            LOG.debug("Network %s has no segments", net_id)
             network[provider.NETWORK_TYPE] = None
             network[provider.PHYSICAL_NETWORK] = None
             network[provider.SEGMENTATION_ID] = None
@@ -95,6 +95,7 @@ class NECNWAL2Plugin(ml2_plugin.Ml2Plugin):
             network[provider.PHYSICAL_NETWORK] = segment[api.PHYSICAL_NETWORK]
             network[provider.SEGMENTATION_ID] = segment[api.SEGMENTATION_ID]
 
+    # pylint: disable=redefined-builtin
     def get_network(self, context, id, fields=None):
         session = context.session
 
@@ -145,12 +146,12 @@ class NECNWAL2Plugin(ml2_plugin.Ml2Plugin):
         return result
 
     def get_nwa_topics(self, context, tid):
-        topics = []
         rss = self.nwa_rpc.get_nwa_rpc_servers(context)
         if isinstance(rss, dict) and rss.get('nwa_rpc_servers'):
-            topics = [t.get('topic') for t in rss['nwa_rpc_servers']
-                      if t.get('tenant_id') == tid]
-        return topics
+            return [t.get('topic') for t in rss['nwa_rpc_servers']
+                    if t.get('tenant_id') == tid]
+        else:
+            return []
 
     def get_nwa_proxy(self, tid, context=None):
         if tid not in self.nwa_proxies:
@@ -159,10 +160,10 @@ class NECNWAL2Plugin(ml2_plugin.Ml2Plugin):
             )
             if context:
                 self._create_nwa_agent_tenant_queue(context, tid)
-                topics = self.get_nwa_topics(context, tid)
-                if len(topics) == 1:
+                nwa_topics = self.get_nwa_topics(context, tid)
+                if len(nwa_topics) == 1:
                     LOG.info(_LI('NWA tenant queue: new topic is %s'),
-                             str(topics[0]))
+                             str(nwa_topics[0]))
                 else:
                     LOG.warning(_LW('NWA tenant queue is not created. tid=%s'),
                                 tid)
