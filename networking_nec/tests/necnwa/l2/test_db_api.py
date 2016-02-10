@@ -48,6 +48,14 @@ MAC_ADDRESS = '12:34:56:78:9a'
 CIDR = 24
 
 
+class TestNWATenantBinding(base.BaseTestCase):
+    def test_nwa_tenant_binding(self):
+        ntb = db_api.NWATenantBinding('T1', 'NWA-T1', {'key': 'value'})
+        self.assertIsNotNone(ntb)
+        self.assertEqual(str(ntb),
+                         "<TenantBinding(T1,NWA-T1,{'key': 'value'})>")
+
+
 class itemval(base.BaseTestCase):
     value_json = None
 
@@ -102,15 +110,6 @@ class TestAddNwaTenantBinding(base.BaseTestCase):
             self.session, TENANT_ID, NWA_TENANT_ID, JSON_VALUE
         )
         self.assertFalse(rc)
-
-
-class TestChgValue(base.BaseTestCase):
-    def test_chg_value(self):
-        rb = db_api.chg_value('CreateTenant', "True")
-        self.assertTrue(rb)
-
-        rb = db_api.chg_value('CreateTenantNW', "False")
-        self.assertFalse(rb)
 
 
 class TestGetNwaTenantBinding(base.BaseTestCase):
