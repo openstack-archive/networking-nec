@@ -20,16 +20,17 @@ from neutron.tests import base
 from networking_nec.plugins.necnwa.l2 import models
 
 
-class TestNWATenantBinding(base.BaseTestCase):
-    def test_nwa_tenant_binding(self):
-        ntb = models.NWATenantBinding('T1', 'NWA-T1', {'key': 'value'})
-        self.assertIsNotNone(ntb)
-        self.assertEqual(str(ntb), "<TenantState(T1,NWA-T1,{'key': 'value'})>")
+class TestNWATenantKeyValue(base.BaseTestCase):
+    def test_nwa_tenant_key_value(self):
+        ntkv = models.NWATenantKeyValue('T1', 'NWA-T1', 'key', 'value')
+        self.assertIsNotNone(ntkv)
+        self.assertEqual(str(ntkv),
+                         "<TenantKeyValue(T1,NWA-T1,{'key': 'value'})>")
 
 
-class TestNWATenantBindingN(base.BaseTestCase):
-    def test_nwa_tenant_binding(self):
-        ntbn = models.NWATenantBindingN('T1', 'NWA-T1', 'key', 'value')
-        self.assertIsNotNone(ntbn)
-        self.assertEqual(str(ntbn),
-                         "<TenantState(T1,NWA-T1,{'key': 'value'})>")
+class TestNWATenantQueue(base.BaseTestCase):
+    def test_nwa_tenant_queue(self):
+        ntq = models.NWATenantQueue('T1', 'NWA-T1', 'topic-1')
+        self.assertIsNotNone(ntq)
+        self.assertEqual(str(ntq),
+                         "<TenantQueue(T1,NWA-T1,topic-1)>")

@@ -16,28 +16,8 @@ from neutron.db import model_base
 import sqlalchemy as sa
 
 
-class NWATenantBinding(object):
-    """Relation between OpenStack Tenant ID and NWA Tenant ID."""
-
-    # should be foreign key.
-    tenant_id = sa.Column(sa.String(36),
-                          primary_key=True)
-    nwa_tenant_id = sa.Column(sa.String(64))
-    value_json = sa.Column(sa.String(32768), nullable=False, default='')
-
-    def __init__(self, tenant_id, nwa_tenant_id, value_json):
-        self.tenant_id = tenant_id
-        self.nwa_tenant_id = nwa_tenant_id
-        self.value_json = value_json
-
-    def __repr__(self):
-        return "<TenantState(%s,%s,%s)>" % (
-            self.tenant_id, self.nwa_tenant_id, self.value_json
-        )
-
-
-class NWATenantBindingN(model_base.BASEV2):
-    """Relation between OpenStack Tenant ID and NWA Tenant ID."""
+class NWATenantKeyValue(model_base.BASEV2):
+    """Key and value database of NWW tenant"""
     __tablename__ = 'nwa_tenant_binding'
 
     tenant_id = sa.Column(sa.String(36), primary_key=True)
@@ -54,14 +34,14 @@ class NWATenantBindingN(model_base.BASEV2):
         self.json_value = json_value
 
     def __repr__(self):
-        return "<TenantState(%s,%s,%s)>" % (
+        return "<TenantKeyValue(%s,%s,%s)>" % (
             self.tenant_id, self.nwa_tenant_id,
             {self.json_key: self.json_value}
         )
 
 
 class NWATenantQueue(model_base.BASEV2):
-    """Relation between OpenStack Tenant ID and NWA Tenant ID."""
+    """Queue for each NWA Tenant between server and agent"""
     __tablename__ = 'nwa_tenant_queue'
 
     tenant_id = sa.Column(sa.String(36), primary_key=True)
