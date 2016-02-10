@@ -14,62 +14,41 @@ ignore=.git,tests,openstack
 # with a local disable)
 disable=
 # "F" Fatal errors that prevent further processing
+# flake8 detects import-error
  import-error,
 # "I" Informational noise
  locally-disabled,
 # "E" Error for important programming issues (likely bugs)
- access-member-before-definition,
  no-member,
- no-method-argument,
- no-self-argument,
 # "W" Warnings for stylistic problems or minor programming issues
- abstract-method,
- arguments-differ,
  attribute-defined-outside-init,
- bad-builtin,
- bad-indentation,
+ abstract-method,
  broad-except,
- dangerous-default-value,
- deprecated-lambda,
- duplicate-key,
- expression-not-assigned,
  fixme,
  global-statement,
- no-init,
- non-parent-init-called,
- not-callable,
  protected-access,
  redefined-builtin,
  redefined-outer-name,
- signature-differs,
- star-args,
  super-init-not-called,
- super-on-old-class,
  unpacking-non-sequence,
  unused-argument,
- unused-import,
  unused-variable,
 # "C" Coding convention violations
+# pylint check is not compatible with flake8
  bad-continuation,
  invalid-name,
  missing-docstring,
  superfluous-parens,
 # "R" Refactor recommendations
- abstract-class-little-used,
- abstract-class-not-used,
  duplicate-code,
- interface-not-implemented,
  no-self-use,
  too-few-public-methods,
  too-many-ancestors,
  too-many-arguments,
- too-many-branches,
  too-many-instance-attributes,
- too-many-lines,
  too-many-locals,
  too-many-public-methods,
  too-many-return-statements,
- too-many-statements
 
 [BASIC]
 # Variable names can be 1 to 31 characters long, with lowercase and underscores
@@ -93,10 +72,6 @@ no-docstring-rgx=((__.*__)|([tT]est.*)|setUp|tearDown)$
 max-line-length=79
 
 [VARIABLES]
-# List of additional names supposed to be defined in builtins. Remember that
-# you should avoid to define new builtins when possible.
-# _ is used by our localization
-additional-builtins=_
 
 [CLASSES]
 # List of interface methods to ignore, separated by a comma.
