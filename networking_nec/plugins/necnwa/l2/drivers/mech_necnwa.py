@@ -49,8 +49,7 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
             raise cfg.Error(_('NECNWA option parse error'))
 
     def create_port_precommit(self, context):
-        tenant_id, nwa_tenant_id = nwa_com_utils.get_tenant_info(context)
-        network_name, network_id = nwa_l2_utils.get_network_info(context)
+        __network_name, network_id = nwa_l2_utils.get_network_info(context)
         device_owner = context._port['device_owner']
         device_id = context._port['device_id']
 
@@ -121,7 +120,6 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
                 not new_port['device_owner'] and orig_port['device_owner']):
             # device_id and device_owner are clear on VM deleted.
             tenant_id, nwa_tenant_id = nwa_com_utils.get_tenant_info(context)
-            network_name, network_id = nwa_l2_utils.get_network_info(context)
             LOG.debug('original_port=%s', context.original)
             LOG.debug('updated_port=%s', context.current)
             nwa_info = nwa_l2_utils.portcontext_to_nwa_info(context, True)
@@ -135,7 +133,7 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
 
     def delete_port_precommit(self, context):
         tenant_id, nwa_tenant_id = nwa_com_utils.get_tenant_info(context)
-        network_name, network_id = nwa_l2_utils.get_network_info(context)
+        __network_name, network_id = nwa_l2_utils.get_network_info(context)
         device_owner = context._port['device_owner']
         device_id = context._port['device_id']
 
@@ -197,7 +195,7 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
             )
 
     def try_to_bind_segment_for_agent(self, context, segment, agent):
-        network_name, network_id = nwa_l2_utils.get_network_info(context)
+        __network_name, network_id = nwa_l2_utils.get_network_info(context)
         mappings = agent['configurations'].get('bridge_mappings', {})
 
         grp = jsonutils.loads(config.CONF.NWA.resource_group)
