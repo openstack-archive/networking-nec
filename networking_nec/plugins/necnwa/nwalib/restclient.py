@@ -194,7 +194,7 @@ class RestClient(object):
             elif status == 'SUCCESS':
                 name = ''
                 if self._post_data:
-                    post_url, post_body = self._post_data
+                    post_url, __post_body = self._post_data
                     name = (workflow.NwaWorkflow.name(post_url) or post_url)
                 LOG.info(_LI("NWA workflow: %(name)s %(workflow)s"),
                          {'name': name,

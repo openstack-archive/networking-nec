@@ -94,7 +94,7 @@ class Semaphore(object):
     def push_history(self, call, url, body, http_status, rj):
         while len(self.histrun) > self.histsiz:
             self.histrun.pop()
-        (hs, rb) = self.search_history(call, url, body)
+        __, rb = self.search_history(call, url, body)
         if rb is not None:
             return
         if isinstance(rj, dict) and rj.get('status') == 'SUCCESS':

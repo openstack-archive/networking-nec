@@ -34,7 +34,7 @@ class ServerManager(object):
         self.agent_top = agent_top
 
     def get_rpc_server_topics(self):
-        return [v['topic'] for k, v in self.rpc_servers.items()]
+        return [v['topic'] for v in self.rpc_servers.values()]
 
     def get_rpc_server_tenant_ids(self):
         return [{'tenant_id': tid} for tid in self.rpc_servers]

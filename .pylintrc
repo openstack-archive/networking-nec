@@ -29,7 +29,6 @@ disable=
  protected-access,
  unpacking-non-sequence,
  unused-argument,
- unused-variable,
 # "C" Coding convention violations
 # pylint check is not compatible with flake8
  bad-continuation,
@@ -69,6 +68,10 @@ no-docstring-rgx=((__.*__)|([tT]est.*)|setUp|tearDown)$
 max-line-length=79
 
 [VARIABLES]
+# List of additional names supposed to be defined in builtins. Remember that
+# you should avoid to define new builtins when possible.
+# _ is used by our localization
+dummy-variables-rgx=^(__[A-Za-z0-9_]*[A-Za-z0-9]|__)$
 
 [CLASSES]
 # List of interface methods to ignore, separated by a comma.

@@ -38,8 +38,8 @@ class AgentProxyTenant(object):
         """
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
 
-        rcode, body = self.client.create_tenant(nwa_tenant_id)
         # ignore result
+        self.client.create_tenant(nwa_tenant_id)
         return True, {
             'CreateTenant': True,
             'NWA_tenant_id': nwa_tenant_id
@@ -53,8 +53,7 @@ class AgentProxyTenant(object):
         @return: result(succeed = (True, dict(empty)  other = False, None)
         """
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
-        rcode, body = self.client.delete_tenant(nwa_tenant_id)
-        # ignore result
+        __rcode, body = self.client.delete_tenant(nwa_tenant_id)
         return True, body
 
     def update_tenant_binding(

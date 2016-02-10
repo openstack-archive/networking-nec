@@ -281,7 +281,7 @@ class NwaClient(nwa_restclient.NwaRestClient):
         try:
             wait_time = self.workflow_first_wait
             eventlet.sleep(wait_time)
-            for i in range(self.workflow_retry_count):
+            for __ in range(self.workflow_retry_count):
                 (http_status, rw) = self.workflowinstance(exeid)
                 if not isinstance(rw, dict):
                     LOG.error(
@@ -388,7 +388,7 @@ class NwaClient(nwa_restclient.NwaRestClient):
             return None, None
 
     def update_workflow_list(self):
-        st, rj = self.get_workflow_list()
+        __, rj = self.get_workflow_list()
         nameid = {}
         if isinstance(rj, dict) and rj.get('Workflows'):
             def new_nameid(wf):

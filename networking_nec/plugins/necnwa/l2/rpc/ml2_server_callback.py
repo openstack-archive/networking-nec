@@ -204,7 +204,7 @@ class NwaML2ServerRpcCallbacks(rpc.RpcCallbacks):
     def update_device_up(self, rpc_context, **kwargs):
         """Device is up on agent."""
 
-        agent_id = kwargs.get('agent_id')  # noqa
+        # agent_id = kwargs.get('agent_id')
         # device = kwargs.get('device')
 
         # plugin = manager.NeutronManager.get_plugin()
