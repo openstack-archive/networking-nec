@@ -25,7 +25,7 @@ from neutron.plugins.ml2 import driver_api as api
 from neutron.plugins.ml2 import plugin as ml2_plugin
 from oslo_log import log as logging
 
-from networking_nec._i18n import _LI, _LW
+from networking_nec._i18n import _LE, _LI, _LW
 from networking_nec.plugins.necnwa.common import constants as nwa_const
 from networking_nec.plugins.necnwa.l2 import db_api as necnwa_api
 from networking_nec.plugins.necnwa.l2.rpc import ml2_server_callback
@@ -176,3 +176,8 @@ class NECNWAL2Plugin(ml2_plugin.Ml2Plugin):
             filters={'agent_type': [nwa_const.NWA_AGENT_TYPE]}
         )
         return any(agent['alive'] for agent in agents)
+
+    # This needs to be defined to avoid pylint abstract-method check.
+    def get_port_from_device(self, context, device):
+        LOG.error(_LE('This method should not be called. '
+                      'get_ports_from_devices is used.'))

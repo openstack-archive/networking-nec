@@ -21,7 +21,6 @@ disable=
 # "E" Error for important programming issues (likely bugs)
 # "W" Warnings for stylistic problems or minor programming issues
  attribute-defined-outside-init,
- abstract-method,
  broad-except,
  fixme,
  global-statement,
