@@ -19,17 +19,30 @@ from sqlalchemy import and_
 from networking_nec.plugins.necnwa.l2 import models as nmodels
 
 
+class NWATenantBinding(object):
+    """Relation between OpenStack Tenant ID and NWA Tenant ID."""
+    def __init__(self, tenant_id, nwa_tenant_id, value_json):
+        self.tenant_id = tenant_id
+        self.nwa_tenant_id = nwa_tenant_id
+        self.value_json = value_json
+
+    def __repr__(self):
+        return "<TenantBinding(%s,%s,%s)>" % (
+            self.tenant_id, self.nwa_tenant_id, self.value_json
+        )
+
+
 def add_nwa_tenant_binding(session, tenant_id, nwa_tenant_id, json_value):
     try:
         if not isinstance(json_value, dict):
             return False
-        nwa = session.query(nmodels.NWATenantBindingN).filter(
-            nmodels.NWATenantBindingN.tenant_id == tenant_id).all()
+        nwa = session.query(nmodels.NWATenantKeyValue).filter(
+            nmodels.NWATenantKeyValue.tenant_id == tenant_id).all()
         if nwa:
             return False
         with session.begin(subtransactions=True):
             for json_key, json_value in json_value.items():
-                item = nmodels.NWATenantBindingN(tenant_id, nwa_tenant_id,
+                item = nmodels.NWATenantKeyValue(tenant_id, nwa_tenant_id,
                                                  json_key, json_value)
                 session.add(item)
         return True
@@ -37,43 +50,26 @@ def add_nwa_tenant_binding(session, tenant_id, nwa_tenant_id, json_value):
         return False
 
 
-def chg_value(key, value):
-    if key == "CreateTenant" or key == "CreateTenantNW":
-        if value == "True":
-            value = True
-        elif value == "False":
-            value = False
-    return value
-
-
 def get_nwa_tenant_binding(session, tenant_id, nwa_tenant_id):
-    try:
-        value_json = {}
-        for nwa in session.query(nmodels.NWATenantBindingN).filter(
-            nmodels.NWATenantBindingN.tenant_id == tenant_id).filter(
-                nmodels.NWATenantBindingN.nwa_tenant_id ==
-                nwa_tenant_id).all():
-            value_json[nwa.json_key] = chg_value(nwa.json_key, nwa.json_value)
-        if value_json:
-            return nmodels.NWATenantBinding(tenant_id, nwa_tenant_id,
-                                            value_json)
-        else:
+    def convert_if_special_value(s):
+        if s == 'True' or s == '1':
+            return True
+        if s == 'False' or s == '0':
+            return False
+        if s == '':
             return None
-    except sa.orm.exc.NoResultFound:
-        return None
+        return s
 
-
-def get_nwa_tenant_binding_by_tid(session, tenant_id):
     try:
-        value_json = {}
-        nwa_tenant_id = ""
-        for nwa in session.query(nmodels.NWATenantBindingN).filter(
-                nmodels.NWATenantBindingN.tenant_id == tenant_id).all():
-            value_json[nwa.json_key] = chg_value(nwa.json_key, nwa.json_value)
-            nwa_tenant_id = nwa.nwa_tenant_id
+        value_json = {
+            nwa.json_key: convert_if_special_value(nwa.json_value)
+            for nwa in session.query(nmodels.NWATenantKeyValue).filter(
+                nmodels.NWATenantKeyValue.tenant_id == tenant_id).filter(
+                    nmodels.NWATenantKeyValue.nwa_tenant_id ==
+                    nwa_tenant_id).all()
+        }
         if value_json:
-            return nmodels.NWATenantBinding(tenant_id, nwa_tenant_id,
-                                            value_json)
+            return NWATenantBinding(tenant_id, nwa_tenant_id, value_json)
         else:
             return None
     except sa.orm.exc.NoResultFound:
@@ -94,16 +90,16 @@ def set_nwa_tenant_binding(session, tenant_id, nwa_tenant_id, value_json):
             if key in _json:
                 if value != _json[key]:
                     # update
-                    item = session.query(nmodels.NWATenantBindingN).filter(
-                        and_(nmodels.NWATenantBindingN.tenant_id == tenant_id,
-                             nmodels.NWATenantBindingN.json_key == key)).one()
+                    item = session.query(nmodels.NWATenantKeyValue).filter(
+                        and_(nmodels.NWATenantKeyValue.tenant_id == tenant_id,
+                             nmodels.NWATenantKeyValue.json_key == key)).one()
                     item.json_value = value
             else:
                 # insert
-                # item = nmodels.NWATenantBindingN(
+                # item = nmodels.NWATenantKeyValue(
                 #        tenant_id, nwa_tenant_id, key, value)
                 # session.add(item)
-                insert = ("INSERT INTO nwa_tenant_binding (tenant_id,"
+                insert = ("INSERT INTO nwa_tenant_key_value (tenant_id,"
                           "nwa_tenant_id,json_key,json_value) "
                           " VALUES (\'%s\',\'%s\',\'%s\',\'%s\') "
                           "ON DUPLICATE KEY UPDATE "
@@ -113,9 +109,9 @@ def set_nwa_tenant_binding(session, tenant_id, nwa_tenant_id, value_json):
         for key, value in _json.items():
             if key not in value_json:
                 # delete
-                item = session.query(nmodels.NWATenantBindingN).filter(
-                    and_(nmodels.NWATenantBindingN.tenant_id == tenant_id,
-                         nmodels.NWATenantBindingN.json_key == key)).one()
+                item = session.query(nmodels.NWATenantKeyValue).filter(
+                    and_(nmodels.NWATenantKeyValue.tenant_id == tenant_id,
+                         nmodels.NWATenantKeyValue.json_key == key)).one()
                 session.delete(item)
     return True
 
@@ -127,9 +123,9 @@ def del_nwa_tenant_binding(session, tenant_id, nwa_tenant_id):
             if not item:
                 return False
             with session.begin(subtransactions=True):
-                session.query(nmodels.NWATenantBindingN).filter(
-                    and_(nmodels.NWATenantBindingN.tenant_id == tenant_id,
-                         nmodels.NWATenantBindingN.nwa_tenant_id ==
+                session.query(nmodels.NWATenantKeyValue).filter(
+                    and_(nmodels.NWATenantKeyValue.tenant_id == tenant_id,
+                         nmodels.NWATenantKeyValue.nwa_tenant_id ==
                          nwa_tenant_id)).delete()
             return True
     except sa.orm.exc.NoResultFound:

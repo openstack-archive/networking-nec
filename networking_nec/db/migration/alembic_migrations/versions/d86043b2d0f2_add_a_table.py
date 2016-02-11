@@ -31,7 +31,7 @@ import sqlalchemy as sa
 
 def upgrade():
     op.create_table(
-        'nwa_tenant_binding',
+        'nwa_tenant_key_value',
         sa.Column('tenant_id', sa.String(length=36),
                   nullable=False, primary_key=True),
         sa.Column('nwa_tenant_id', sa.String(length=64)),

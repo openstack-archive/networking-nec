@@ -58,59 +58,134 @@ class itemval(base.BaseTestCase):
         return str(self.value_json)
 
 
-class TestAddNwaTenantBinding(base.BaseTestCase):
+class TestNWATenantBinding(base.BaseTestCase):
+    def test_nwa_tenant_binding(self):
+        ntb = db_api.NWATenantBinding('T1', 'NWA-T1', {'key': 'value'})
+        self.assertIsNotNone(ntb)
+        self.assertEqual(str(ntb),
+                         "<TenantBinding(T1,NWA-T1,{'key': 'value'})>")
+
+
+class TestAddNwaTenantBinding(testlib_api.SqlTestCase):
+    nwa_tenant1 = 'NWA01'
+    nwa_tenant2 = 'NWA02'
+    tenant1 = 'ffffffffff0000000000000000000001'
+    tenant2 = 'ffffffffff0000000000000000000002'
+    key1 = 'Key-1'
+    key2 = 'Key-2'
+    value1 = 'Value-1'
+    value2 = 'Value-2'
+    value_json1 = {key1: value1}
+    value_json2 = {key2: value2}
 
     def setUp(self):
         super(TestAddNwaTenantBinding, self).setUp()
-        self.session = MagicMock()
+        self.ssn = context.get_admin_context().session
 
-    def test_add_nwa_tenant_binding_json_is_none(self):
-        rc = db_api.add_nwa_tenant_binding(
-            self.session, TENANT_ID, NWA_TENANT_ID, None
-        )
-        self.assertFalse(rc)
+    def get_t1(self):
+        return db_api.get_nwa_tenant_binding(
+            self.ssn, self.tenant1, self.nwa_tenant1)
 
-    def test_add_nwa_tenant_binding_tenant_id_no_match(self):
-        self.session.query().filter().all = MagicMock(return_value=[1, 2])
-        rc = db_api.add_nwa_tenant_binding(
-            self.session, TENANT_ID, NWA_TENANT_ID, JSON_VALUE
-        )
-        self.assertFalse(rc)
+    def add_t1(self, value_json):
+        return db_api.add_nwa_tenant_binding(
+            self.ssn, self.tenant1, self.nwa_tenant1, value_json)
 
-    def test_add_nwa_tenant_binding(self):
-        self.session.reset_mock()
-        self.session.query().filter().all.return_value = []
-        rc = db_api.add_nwa_tenant_binding(
-            self.session, TENANT_ID, NWA_TENANT_ID, JSON_VALUE
-        )
-        self.assertTrue(rc)
-        self.assertEqual(self.session.add.call_count, 1)
+    def del_t1(self):
+        return db_api.del_nwa_tenant_binding(
+            self.ssn, self.tenant1, self.nwa_tenant1)
 
-    def test_add_nwa_tenant_binding_2(self):
-        self.session.reset_mock()
-        self.session.query().filter().all.return_value = []
-        rc = db_api.add_nwa_tenant_binding(
-            self.session, TENANT_ID, NWA_TENANT_ID,
-            {'a': 1, 'b': 2}
-        )
-        self.assertTrue(rc)
-        self.assertEqual(self.session.add.call_count, 2)
+    def test_add_del(self):
+        self.assertIsNone(self.get_t1())  # not found
+        self.assertTrue(self.add_t1(self.value_json1))
 
-    def test_add_nwa_tenant_binding_no_result_found(self):
-        self.session.query().filter().all.side_effect = NoResultFound
-        rc = db_api.add_nwa_tenant_binding(
-            self.session, TENANT_ID, NWA_TENANT_ID, JSON_VALUE
-        )
-        self.assertFalse(rc)
+        # already added
+        self.assertFalse(self.add_t1(self.value_json2))
+        self.assertEqual(self.get_t1().value_json, self.value_json1)
 
+        self.assertTrue(self.del_t1())
+        # already deleted
+        self.assertFalse(self.del_t1())
+        self.assertIsNone(self.get_t1())
 
-class TestChgValue(base.BaseTestCase):
-    def test_chg_value(self):
-        rb = db_api.chg_value('CreateTenant', "True")
-        self.assertTrue(rb)
+    def test_add_del_tenant_id_difference(self):
+        self.assertIsNone(self.get_t1())  # not found
+        self.assertTrue(self.add_t1(self.value_json1))
 
-        rb = db_api.chg_value('CreateTenantNW', "False")
-        self.assertFalse(rb)
+        self.assertFalse(       # already exits
+            db_api.add_nwa_tenant_binding(
+                self.ssn, self.tenant1, self.nwa_tenant2,
+                self.value_json2))
+        self.assertTrue(        # diffrent tenant id
+            db_api.add_nwa_tenant_binding(
+                self.ssn, self.tenant2, self.nwa_tenant1,
+                self.value_json2))
+
+        self.assertEqual(self.get_t1().value_json, self.value_json1)
+        self.assertEqual(
+            db_api.get_nwa_tenant_binding(
+                self.ssn, self.tenant2, self.nwa_tenant1).value_json,
+            self.value_json2)
+
+        self.assertTrue(self.del_t1())
+        self.assertEqual(       # no effect
+            db_api.get_nwa_tenant_binding(
+                self.ssn, self.tenant2, self.nwa_tenant1).value_json,
+            self.value_json2)
+
+    def test_tenant_id_no_match(self):
+        self.assertIsNone(self.get_t1())  # not found
+        self.assertTrue(        # succeed
+            db_api.add_nwa_tenant_binding(
+                self.ssn, self.tenant2, self.nwa_tenant1,
+                {self.key1: self.value1}))
+        self.assertFalse(       # not found
+            db_api.get_nwa_tenant_binding(
+                self.ssn, self.tenant1, self.nwa_tenant1))
+        self.assertEqual(       # get same value
+            db_api.get_nwa_tenant_binding(
+                self.ssn, self.tenant2, self.nwa_tenant1).value_json,
+            {self.key1: self.value1})
+
+    def test_nwa_tenant_id_no_match(self):
+        self.assertIsNone(self.get_t1())  # not found
+        self.assertTrue(        # succeed
+            db_api.add_nwa_tenant_binding(
+                self.ssn, self.tenant1, self.nwa_tenant2,
+                {self.key2: self.value2}))
+        self.assertFalse(       # not found
+            db_api.get_nwa_tenant_binding(
+                self.ssn, self.tenant1, self.nwa_tenant1))
+        self.assertEqual(       # get same value
+            db_api.get_nwa_tenant_binding(
+                self.ssn, self.tenant1, self.nwa_tenant2).value_json,
+            {self.key2: self.value2})
+
+    def test_value_is_none(self):
+        self.assertTrue(
+            db_api.add_nwa_tenant_binding(
+                self.ssn, self.tenant1, self.nwa_tenant1, {self.key1: None}))
+        self.assertEqual(
+            db_api.get_nwa_tenant_binding(
+                self.ssn, self.tenant1, self.nwa_tenant1).value_json,
+            {self.key1: None})
+
+    def test_value_is_true(self):
+        self.assertTrue(
+            db_api.add_nwa_tenant_binding(
+                self.ssn, self.tenant2, self.nwa_tenant1, {self.key1: True}))
+        self.assertEqual(
+            db_api.get_nwa_tenant_binding(
+                self.ssn, self.tenant2, self.nwa_tenant1).value_json,
+            {self.key1: True})
+
+    def test_value_is_false(self):
+        self.assertTrue(
+            db_api.add_nwa_tenant_binding(
+                self.ssn, self.tenant2, self.nwa_tenant2, {self.key1: False}))
+        self.assertEqual(
+            db_api.get_nwa_tenant_binding(
+                self.ssn, self.tenant2, self.nwa_tenant2).value_json,
+            {self.key1: False})
 
 
 class TestGetNwaTenantBinding(base.BaseTestCase):
@@ -136,29 +211,6 @@ class TestGetNwaTenantBinding(base.BaseTestCase):
         self.session.query().filter().filter().all.side_effect = NoResultFound
         rc = db_api.get_nwa_tenant_binding(self.session,
                                            TENANT_ID, NWA_TENANT_ID)
-        self.assertIsNone(rc)
-
-
-class TestGetNwaTenantBindingByTid(base.BaseTestCase):
-    def setUp(self):
-        super(TestGetNwaTenantBindingByTid, self).setUp()
-        self.session = MagicMock()
-
-    def test_get_nwa_tenant_binding_by_tid(self):
-        self.session.query().filter().all = MagicMock(return_value=MagicMock())
-        rc = db_api.get_nwa_tenant_binding_by_tid(self.session, MagicMock())
-        self.assertIsNone(rc)
-
-    def test_get_nwa_tenant_binding_by_tid_1(self):
-        nwa = MagicMock()
-        nwa.json_key, nwa.json_value = 'a', 1
-        self.session.query().filter().all.return_value = [nwa]
-        rc = db_api.get_nwa_tenant_binding_by_tid(self.session, TENANT_ID)
-        self.assertEqual(rc.value_json, {'a': 1})
-
-    def test_get_nwa_tenant_binding_by_tid_no_result_found(self):
-        self.session.query().filter().all.side_effect = NoResultFound
-        rc = db_api.get_nwa_tenant_binding_by_tid(self.session, TENANT_ID)
         self.assertIsNone(rc)
 
 
