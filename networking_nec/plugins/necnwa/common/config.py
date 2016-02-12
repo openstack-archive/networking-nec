@@ -72,17 +72,6 @@ NWA_opts = [
            },
            { ... },
         ]""")),
-    cfg.StrOpt('port_map',
-               help=_("""Relations between each NIC of BM server and PFS port.
-        ex)
-        [
-            {
-               "controller_id": "PFC_POD02",
-               "logical_port_id": "SD-POD02_01",
-               "mac_address":"94:DE:80:12:9C:D4",
-               "pfs_port":"PP-cccc-0000-0000-2222-GBE0/1"
-            }, { ... },
-        ]""")),
     cfg.StrOpt('lbaas_driver',
                help=_("LBaaS Driver Name")),
     cfg.StrOpt('fwaas_driver',

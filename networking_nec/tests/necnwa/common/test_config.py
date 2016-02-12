@@ -52,6 +52,3 @@ class TestNWAConfig(base.BaseTestCase):
 
     def test_section_default_NWA_resource_group(self):
         self.assertIsNone(cfg.CONF.NWA.resource_group)
-
-    def test_section_default_NWA_port_map(self):
-        self.assertIsNone(cfg.CONF.NWA.port_map)
