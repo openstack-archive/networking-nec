@@ -12,6 +12,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+# pylint: disable=no-member
+# Silence pylint not complain about alembic.context.
+
 from logging import config as logging_config
 
 from alembic import context

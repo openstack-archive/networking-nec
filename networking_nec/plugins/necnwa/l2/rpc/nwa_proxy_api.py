@@ -35,11 +35,6 @@ class NECNWAProxyApi(object):
         else:
             return cctxt.cast(context, msg)
 
-    def get_tenant_queue(self, context):
-        return self._send_msg(
-            context, self.make_msg('get_tenant_ids')
-        )
-
     def create_general_dev(self, context, tenant_id, nwa_tenant_id, nwa_info):
         cctxt = self.client.prepare()
         return cctxt.cast(
