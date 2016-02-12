@@ -12,12 +12,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from neutron.common import constants as q_const
 from neutron.db import api as db_api
 from neutron.db import models_v2
 from neutron import manager
 from neutron.plugins.ml2 import db as db_ml2
 from neutron.plugins.ml2 import models as models_ml2
+from neutron_lib import constants
 from oslo_log import helpers
 from oslo_log import log as logging
 import oslo_messaging
@@ -89,7 +89,7 @@ class NwaL2ServerRpcCallback(object):
         plugin.update_port_status(
             rpc_context,
             port_id,
-            q_const.PORT_STATUS_ACTIVE
+            constants.PORT_STATUS_ACTIVE
         )
 
         # 3 serch db from port_id

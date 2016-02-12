@@ -12,7 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from neutron.common import constants
+from neutron.common import constants as n_const
 from neutron.common import utils
 from neutron.extensions import portbindings
 from neutron.extensions import providernet as prov_net
@@ -21,6 +21,7 @@ from neutron.plugins.ml2 import db
 from neutron.plugins.ml2 import driver_api as api
 from neutron.plugins.ml2.drivers.openvswitch.mech_driver \
     import mech_openvswitch as ovs
+from neutron_lib import constants
 from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_serialization import jsonutils
@@ -180,7 +181,7 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
                           nwa_info)
                 return
             if device_owner == constants.DEVICE_OWNER_DHCP and \
-                    device_id == constants.DEVICE_ID_RESERVED_DHCP_PORT:
+                    device_id == n_const.DEVICE_ID_RESERVED_DHCP_PORT:
                 nwa_info['device']['id'] = utils.get_dhcp_agent_device_id(
                     network_id,
                     context._port.get('binding:host_id')

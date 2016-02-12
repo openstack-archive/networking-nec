@@ -15,8 +15,8 @@
 from mock import MagicMock
 from sqlalchemy.orm import exc
 
-from neutron.common import exceptions as n_exc
 from neutron.tests import base
+from neutron_lib import exceptions as n_exc
 from oslo_log import log as logging
 from oslo_serialization import jsonutils
 

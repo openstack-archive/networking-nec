@@ -12,10 +12,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from neutron.common import constants
-from neutron.common import exceptions as n_exc
 from neutron.db import external_net_db
 from neutron.db import models_v2
+from neutron_lib import constants
+from neutron_lib import exceptions as n_exc
 from oslo_log import log as logging
 from oslo_serialization import jsonutils
 from sqlalchemy.orm import exc as sa_exc

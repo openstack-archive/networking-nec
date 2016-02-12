@@ -12,7 +12,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from neutron.common import constants as q_const
 from neutron.db import api as db_api
 from neutron.extensions import portbindings
 from neutron.extensions import portsecurity as psec
@@ -20,6 +19,7 @@ from neutron import manager
 from neutron.plugins.ml2 import db as db_ml2
 from neutron.plugins.ml2 import driver_api as api
 from neutron.plugins.ml2 import rpc
+from neutron_lib import constants
 from oslo_log import log as logging
 
 from networking_nec._i18n import _LW
@@ -84,11 +84,11 @@ class NwaML2ServerRpcCallbacks(rpc.RpcCallbacks):
             return {'device': device}
 
         if (not host or host == port_context.host):
-            new_status = (q_const.PORT_STATUS_BUILD if port['admin_state_up']
-                          else q_const.PORT_STATUS_DOWN)
+            new_status = (constants.PORT_STATUS_BUILD if port['admin_state_up']
+                          else constants.PORT_STATUS_DOWN)
             if (
                     port['status'] != new_status and
-                    port['status'] != q_const.PORT_STATUS_ACTIVE
+                    port['status'] != constants.PORT_STATUS_ACTIVE
             ):
                 plugin.update_port_status(rpc_context,
                                           port_id,
@@ -175,12 +175,12 @@ class NwaML2ServerRpcCallbacks(rpc.RpcCallbacks):
 
         port = port_context.current
 
-        new_status = (q_const.PORT_STATUS_BUILD if port['admin_state_up']
-                      else q_const.PORT_STATUS_DOWN)
+        new_status = (constants.PORT_STATUS_BUILD if port['admin_state_up']
+                      else constants.PORT_STATUS_DOWN)
 
         if (
                 port['status'] != new_status and
-                port['status'] != q_const.PORT_STATUS_ACTIVE
+                port['status'] != constants.PORT_STATUS_ACTIVE
         ):
             plugin.update_port_status(rpc_context,
                                       port_id,
