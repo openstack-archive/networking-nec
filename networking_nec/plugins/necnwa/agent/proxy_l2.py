@@ -23,7 +23,7 @@ from oslo_log import log as logging
 from oslo_serialization import jsonutils
 
 from networking_nec._i18n import _LE, _LI, _LW
-import networking_nec.plugins.necnwa.common.constants as nwa_const
+from networking_nec.plugins.necnwa.common import constants as nwa_const
 from networking_nec.plugins.necnwa.l2.rpc import nwa_l2_server_api
 from networking_nec.plugins.necnwa.l2.rpc import tenant_binding_api
 

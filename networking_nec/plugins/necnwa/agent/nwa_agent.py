@@ -29,7 +29,7 @@ from networking_nec.plugins.necnwa.agent import proxy_l2
 from networking_nec.plugins.necnwa.agent import proxy_tenant
 from networking_nec.plugins.necnwa.agent import server_manager
 from networking_nec.plugins.necnwa.common import config
-import networking_nec.plugins.necnwa.common.constants as nwa_const
+from networking_nec.plugins.necnwa.common import constants as nwa_const
 from networking_nec.plugins.necnwa.l2.rpc import nwa_agent_callback
 from networking_nec.plugins.necnwa.l2.rpc import nwa_proxy_callback
 from networking_nec.plugins.necnwa.l2.rpc import tenant_binding_api
