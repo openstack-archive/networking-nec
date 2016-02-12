@@ -56,7 +56,12 @@ NWA_opts = [
     cfg.BoolOpt('use_setting_fw_policy',
                 default=False,
                 help=_('Using setting_fw_policy as default')),
+    cfg.StrOpt('resource_group_file',
+               help=_("JSON file which defines relations between "
+                      "physical network of OpenStack and NWA.")),
     cfg.StrOpt('resource_group',
+               deprecated_for_removal=True,
+               deprecated_reason='In favor of resource_group_file option.',
                help=_("""
         Relations between physical network of OpenStack and NWA.
         ex)

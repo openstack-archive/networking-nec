@@ -24,10 +24,8 @@ from neutron.plugins.ml2.drivers.openvswitch.mech_driver \
 from neutron_lib import constants
 from oslo_config import cfg
 from oslo_log import log as logging
-from oslo_serialization import jsonutils
 
-from networking_nec._i18n import _, _LW, _LE
-from networking_nec.plugins.necnwa.common import config
+from networking_nec._i18n import _LW
 from networking_nec.plugins.necnwa.common import utils as nwa_com_utils
 from networking_nec.plugins.necnwa.l2 import db_api as nwa_db
 from networking_nec.plugins.necnwa.l2 import utils as nwa_l2_utils
@@ -39,15 +37,9 @@ LOG = logging.getLogger(__name__)
 class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
 
     def initialize(self):
-        resgrp = cfg.CONF.NWA.resource_group
-        try:
-            jsonutils.loads(resgrp)
-        except Exception as e:
-            LOG.error(_LE('NECNWA option error: %(error_msg)s\n'
-                          'resource_group = %(resource_group)'),
-                      {'error_msg': e,
-                       'resource_group': resgrp})
-            raise cfg.Error(_('NECNWA option parse error'))
+        self.resource_groups = nwa_com_utils.load_json_from_file(
+            'resource_group', cfg.CONF.NWA.resource_group_file,
+            cfg.CONF.NWA.resource_group, default_value=[])
 
     def create_port_precommit(self, context):
         __network_name, network_id = nwa_l2_utils.get_network_info(context)
@@ -56,9 +48,8 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
 
         if device_owner in (constants.DEVICE_OWNER_ROUTER_INTF,
                             constants.DEVICE_OWNER_ROUTER_GW):
-            res_grp = jsonutils.loads(config.CONF.NWA.resource_group)
 
-            grplst = [res['device_owner'] for res in res_grp]
+            grplst = [res['device_owner'] for res in self.resource_groups]
             if device_owner not in grplst:
                 LOG.warning(_LW("resource group miss match. "
                                 "device_owner=%s"), device_owner)
@@ -71,7 +62,8 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
             nwa_rt_tid = nwa_com_utils.get_nwa_tenant_id(rt_tid)
             LOG.debug("rt_tid=%s", rt_tid)
 
-            nwa_info = nwa_l2_utils.portcontext_to_nwa_info(context)
+            nwa_info = nwa_l2_utils.portcontext_to_nwa_info(
+                context, self.resource_groups)
             nwa_info['tenant_id'] = rt_tid
             nwa_info['nwa_tenant_id'] = nwa_rt_tid
             proxy = context._plugin.get_nwa_proxy(
@@ -84,7 +76,7 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
                 nwa_info
             )
 
-            for res in res_grp:
+            for res in self.resource_groups:
                 if res['device_owner'] != context._port['device_owner']:
                     continue
                 dummy_segment = db.get_dynamic_segment(
@@ -123,7 +115,8 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
             tenant_id, nwa_tenant_id = nwa_com_utils.get_tenant_info(context)
             LOG.debug('original_port=%s', context.original)
             LOG.debug('updated_port=%s', context.current)
-            nwa_info = nwa_l2_utils.portcontext_to_nwa_info(context, True)
+            nwa_info = nwa_l2_utils.portcontext_to_nwa_info(
+                context, self.resource_groups, True)
             proxy = context._plugin.get_nwa_proxy(tenant_id)
             proxy.delete_general_dev(
                 context.network._plugin_context,
@@ -159,7 +152,8 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
                 LOG.debug('nwa tenant not found')
                 return
 
-            nwa_info = nwa_l2_utils.portcontext_to_nwa_info(context)
+            nwa_info = nwa_l2_utils.portcontext_to_nwa_info(
+                context, self.resource_groups)
             nwa_info['tenant_id'] = rt_tid
             nwa_info['nwa_tenant_id'] = nwa_rt_tid
             proxy = context._plugin.get_nwa_proxy(rt_tid)
@@ -175,7 +169,8 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
         elif device_owner == '' and device_id == '':
             pass
         else:
-            nwa_info = nwa_l2_utils.portcontext_to_nwa_info(context)
+            nwa_info = nwa_l2_utils.portcontext_to_nwa_info(
+                context, self.resource_groups)
             if nwa_info.get('resource_group_name') is None:
                 LOG.debug('resource_group_name is None nwa_info=%s',
                           nwa_info)
@@ -199,8 +194,7 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
         __network_name, network_id = nwa_l2_utils.get_network_info(context)
         mappings = agent['configurations'].get('bridge_mappings', {})
 
-        grp = jsonutils.loads(config.CONF.NWA.resource_group)
-        for res in grp:
+        for res in self.resource_groups:
             if res['ResourceGroupName'] not in mappings:
                 continue
 
@@ -260,7 +254,8 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
         else:
             for provider in context.network.current['segments']:
                 physical_network = \
-                    nwa_l2_utils.get_physical_network(device_owner)
+                    nwa_l2_utils.get_physical_network(device_owner,
+                                                      self.resource_groups)
                 if provider.get(prov_net.PHYSICAL_NETWORK) != physical_network:
                     continue
                 segmentation_id = provider[prov_net.SEGMENTATION_ID]
@@ -287,7 +282,8 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
 
         LOG.debug('bind_port return=%s', rc)
 
-        nwa_info = nwa_l2_utils.portcontext_to_nwa_info(context)
+        nwa_info = nwa_l2_utils.portcontext_to_nwa_info(
+            context, self.resource_groups)
         proxy = context._plugin.get_nwa_proxy(tenant_id)
         proxy.create_general_dev(
             context.network._plugin_context,
