@@ -16,6 +16,7 @@ from neutron.common import topics
 from oslo_log import log as logging
 from oslo_serialization import jsonutils
 
+from networking_nec.common import utils
 from networking_nec.plugins.necnwa.l2.rpc import tenant_binding_api
 
 LOG = logging.getLogger(__name__)
@@ -29,6 +30,7 @@ class AgentProxyTenant(object):
         self.nwa_tenant_rpc = tenant_binding_api.TenantBindingServerRpcApi(
             topics.PLUGIN)
 
+    @utils.log_method_return_value
     def create_tenant(self, context, **kwargs):
         """create tenant
 
@@ -45,6 +47,7 @@ class AgentProxyTenant(object):
             'NWA_tenant_id': nwa_tenant_id
         }
 
+    @utils.log_method_return_value
     def delete_tenant(self, context, **kwargs):
         """delete tenant.
 
@@ -56,6 +59,7 @@ class AgentProxyTenant(object):
         __rcode, body = self.client.delete_tenant(nwa_tenant_id)
         return True, body
 
+    @utils.log_method_return_value
     def update_tenant_binding(
             self, context, tenant_id, nwa_tenant_id,
             nwa_data, nwa_created=False

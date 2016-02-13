@@ -20,9 +20,9 @@ from neutron.plugins.common import constants as n_constants
 from neutron.plugins.ml2 import driver_api as api
 from oslo_log import helpers
 from oslo_log import log as logging
-from oslo_serialization import jsonutils
 
 from networking_nec._i18n import _LE, _LI, _LW
+from networking_nec.common import utils
 from networking_nec.plugins.necnwa.common import constants as nwa_const
 from networking_nec.plugins.necnwa.l2.rpc import nwa_l2_server_api
 from networking_nec.plugins.necnwa.l2.rpc import tenant_binding_api
@@ -88,6 +88,7 @@ class AgentProxyL2(object):
         self.client = client
         self.proxy_tenant = proxy_tenant
 
+    @utils.log_method_return_value
     @helpers.log_method_call
     def _create_tenant_nw(self, context, **kwargs):
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
@@ -120,6 +121,7 @@ class AgentProxyL2(object):
 
                 return False, {}
 
+    @utils.log_method_return_value
     def _delete_tenant_nw(self, context, **kwargs):
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
         nwa_data = kwargs.get('nwa_data')
@@ -145,6 +147,7 @@ class AgentProxyL2(object):
 
     # TODO(amotoki): Address pylint too-many-locals error
     # pylint: disable=too-many-locals
+    @utils.log_method_return_value
     def _create_vlan(self, context, **kwargs):
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
         nwa_info = kwargs.get('nwa_info')
@@ -202,6 +205,7 @@ class AgentProxyL2(object):
 
         return True, nwa_data
 
+    @utils.log_method_return_value
     def _delete_vlan(self, context, **kwargs):
         tenant_id = kwargs.get('tenant_id')
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
@@ -290,11 +294,6 @@ class AgentProxyL2(object):
         if not nwa_data:
             rcode, nwa_data = self.proxy_tenant.create_tenant(context,
                                                               **kwargs)
-            LOG.info(_LI("_create_tenant.ret_val=%s"), jsonutils.dumps(
-                nwa_data,
-                indent=4,
-                sort_keys=True
-            ))
             if not self.proxy_tenant.update_tenant_binding(
                     context, tenant_id, nwa_tenant_id,
                     nwa_data, nwa_created=True):
@@ -304,11 +303,6 @@ class AgentProxyL2(object):
         if KEY_CREATE_TENANT_NW not in nwa_data:
             rcode, ret_val = self._create_tenant_nw(
                 context, nwa_data=nwa_data, **kwargs)
-            LOG.info(_LI("_create_tenant_nw.ret_val=%s"), jsonutils.dumps(
-                ret_val,
-                indent=4,
-                sort_keys=True
-            ))
             if not rcode:
                 return self.proxy_tenant.update_tenant_binding(
                     context, tenant_id, nwa_tenant_id, nwa_data,
@@ -320,12 +314,6 @@ class AgentProxyL2(object):
         if nw_vlan_key not in nwa_data:
             rcode, ret_val = self._create_vlan(context,
                                                nwa_data=nwa_data, **kwargs)
-            LOG.info(_LI("_create_vlan.ret_val=%s"), jsonutils.dumps(
-                ret_val,
-                indent=4,
-                sort_keys=True
-            ))
-
             if not rcode:
                 return self.proxy_tenant.update_tenant_binding(
                     context, tenant_id, nwa_tenant_id, nwa_data,
@@ -347,20 +335,9 @@ class AgentProxyL2(object):
                     nwa_created=nwa_created
                 )
             nwa_data = ret_val
-            LOG.info(_LI("_create_general_dev.ret_val=%s"), jsonutils.dumps(
-                ret_val,
-                indent=4,
-                sort_keys=True
-            ))
         else:
             ret_val = self._create_general_dev_data(
                 nwa_data=nwa_data, **kwargs)
-            LOG.info(_LI("_create_general_dev_data.ret_val=%s") %
-                     jsonutils.dumps(
-                         ret_val,
-                         indent=4,
-                         sort_keys=True
-            ))
             if ret_val:
                 nwa_data = ret_val
             # agent waits for notifier issue for libviert.
@@ -408,6 +385,7 @@ class AgentProxyL2(object):
 
         return nwa_data
 
+    @utils.log_method_return_value
     def _create_general_dev_data(self, **kwargs):
         nwa_info = kwargs.get('nwa_info')
         nwa_data = kwargs.get('nwa_data')
@@ -416,6 +394,7 @@ class AgentProxyL2(object):
 
         return nwa_data
 
+    @utils.log_method_return_value
     @helpers.log_method_call
     def _create_general_dev(self, context, **kwargs):
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
@@ -497,12 +476,6 @@ class AgentProxyL2(object):
         if 1 < gd_count:
             nwa_data = self._delete_general_dev_data(
                 nwa_data=nwa_data, **kwargs)
-            LOG.info(_LI("_delete_general_dev_data.ret_val=%s") %
-                     jsonutils.dumps(
-                         nwa_data,
-                         indent=4,
-                         sort_keys=True
-            ))
             return self.proxy_tenant.update_tenant_binding(
                 context, tenant_id, nwa_tenant_id, nwa_data
             )
@@ -510,11 +483,6 @@ class AgentProxyL2(object):
         # delete general dev
         rcode, ret_val = self._delete_general_dev(context,
                                                   nwa_data=nwa_data, **kwargs)
-        LOG.info(_LI("_delete_general_dev.ret_val=%s"), jsonutils.dumps(
-            nwa_data,
-            indent=4,
-            sort_keys=True
-        ))
         if not rcode:
             return self.proxy_tenant.update_tenant_binding(
                 context, tenant_id, nwa_tenant_id, nwa_data
@@ -534,11 +502,6 @@ class AgentProxyL2(object):
             nwa_data=nwa_data,
             **kwargs
         )
-        LOG.info(_LI("_delete_vlan.ret_val=%s"), jsonutils.dumps(
-            nwa_data,
-            indent=4,
-            sort_keys=True
-        ))
 
         if not result:
             # delete vlan error.
@@ -562,11 +525,6 @@ class AgentProxyL2(object):
             nwa_data=nwa_data,
             **kwargs
         )
-        LOG.info(_LI("_delete_tenant_nw.ret_val=%s"), jsonutils.dumps(
-            nwa_data,
-            indent=4,
-            sort_keys=True
-        ))
         if not result:
             return self.proxy_tenant.update_tenant_binding(
                 context, tenant_id, nwa_tenant_id, nwa_data
@@ -594,6 +552,7 @@ class AgentProxyL2(object):
             context, tenant_id, nwa_tenant_id
         )
 
+    @utils.log_method_return_value
     def _delete_general_dev_data(self, **kwargs):
         nwa_info = kwargs.get('nwa_info')
         nwa_data = kwargs.get('nwa_data')
@@ -622,6 +581,7 @@ class AgentProxyL2(object):
 
         return nwa_data
 
+    @utils.log_method_return_value
     @helpers.log_method_call
     def _delete_general_dev(self, context, **kwargs):
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
