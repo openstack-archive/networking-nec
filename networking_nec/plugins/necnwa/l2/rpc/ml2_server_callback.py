@@ -83,7 +83,7 @@ class NwaML2ServerRpcCallbacks(rpc.RpcCallbacks):
                          'network_id': port['network_id']})
             return {'device': device}
 
-        if (not host or host == port_context.host):
+        if not host or host == port_context.host:
             new_status = (constants.PORT_STATUS_BUILD if port['admin_state_up']
                           else constants.PORT_STATUS_DOWN)
             if (
