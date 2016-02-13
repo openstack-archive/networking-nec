@@ -24,6 +24,7 @@ from oslo_log import log as logging
 from networking_nec._i18n import _LE, _LI, _LW
 from networking_nec.common import utils
 from networking_nec.plugins.necnwa.common import constants as nwa_const
+from networking_nec.plugins.necnwa.common import exceptions as nwa_exc
 from networking_nec.plugins.necnwa.l2.rpc import nwa_l2_server_api
 from networking_nec.plugins.necnwa.l2.rpc import tenant_binding_api
 
@@ -36,6 +37,21 @@ WAIT_AGENT_NOTIFIER = 20
 
 VLAN_OWN_GDV = '_GD'
 VLAN_OWN_TFW = '_TFW'
+
+
+def catch_exception_and_update_tenant_binding(method):
+
+    def wrapper(obj, context, **kwargs):
+        try:
+            return method(obj, context, **kwargs)
+        except nwa_exc.AgentProxyException as e:
+            tenant_id = kwargs.get('tenant_id')
+            nwa_tenant_id = kwargs.get('nwa_tenant_id')
+            nwa_data = e.value
+            return obj.proxy_tenant.update_tenant_binding(
+                context, tenant_id, nwa_tenant_id, nwa_data)
+
+    return wrapper
 
 
 def check_vlan(network_id, nwa_data):
@@ -109,17 +125,13 @@ class AgentProxyL2(object):
                 resource_group_name
             )
 
-            if (
-                    rcode == 200 and
-                    body['status'] == 'SUCCESS'
-            ):
+            if rcode == 200 and body['status'] == 'SUCCESS':
                 LOG.debug("CreateTenantNW succeed.")
                 nwa_data[KEY_CREATE_TENANT_NW] = True
-                return True, nwa_data
+                return nwa_data
             else:
                 LOG.error(_LE("CreateTenantNW Failed."))
-
-                return False, {}
+                raise nwa_exc.AgentProxyException(value=nwa_data)
 
     @utils.log_method_return_value
     def _delete_tenant_nw(self, context, **kwargs):
@@ -133,17 +145,14 @@ class AgentProxyL2(object):
             nwa_tenant_id,
         )
 
-        if (
-                rcode == 200 and
-                body['status'] == 'SUCCESS'
-        ):
+        if rcode == 200 and body['status'] == 'SUCCESS':
             LOG.debug("DeleteTenantNW SUCCESS.")
             nwa_data.pop(KEY_CREATE_TENANT_NW)
         else:
             LOG.error(_LE("DeleteTenantNW %s."), body['status'])
-            return False, None
+            raise nwa_exc.AgentProxyException(value=nwa_data)
 
-        return True, nwa_data
+        return nwa_data
 
     def _update_nwa_data(self, nwa_data, nwa_info, result_data):
         network_id = nwa_info['network']['id']
@@ -174,7 +183,7 @@ class AgentProxyL2(object):
         nw_vlan_key = 'VLAN_' + network_id
         if nw_vlan_key in nwa_data:
             LOG.warning(_LW("aleady in vlan_key %s"), nw_vlan_key)
-            return True, nwa_data
+            return nwa_data
 
         rcode, body = self.client.create_vlan(
             self._dummy_ok,
@@ -194,9 +203,9 @@ class AgentProxyL2(object):
         else:
             # create vlan failed.
             LOG.error(_LE("CreateVlan Failed."))
-            return False, None
+            raise nwa_exc.AgentProxyException(value=nwa_data)
 
-        return True, nwa_data
+        return nwa_data
 
     @utils.log_method_return_value
     def _delete_vlan(self, context, **kwargs):
@@ -219,10 +228,7 @@ class AgentProxyL2(object):
             vlan_type
         )
 
-        if (
-                rcode == 200 and
-                body['status'] == 'SUCCESS'
-        ):
+        if rcode == 200 and body['status'] == 'SUCCESS':
             LOG.debug("DeleteVlan SUCCESS.")
 
             nw_net = 'NW_' + network_id
@@ -247,11 +253,12 @@ class AgentProxyL2(object):
             self.proxy_tenant.update_tenant_binding(
                 context, tenant_id, nwa_tenant_id, nwa_data
             )
-            return False, None
+            raise nwa_exc.AgentProxyException(value=nwa_data)
 
-        return True, nwa_data
+        return nwa_data
 
     @helpers.log_method_call
+    @catch_exception_and_update_tenant_binding
     def create_general_dev(self, context, **kwargs):
         """Create GeneralDev wrapper.
 
@@ -277,8 +284,7 @@ class AgentProxyL2(object):
 
         # create tenant
         if not nwa_data:
-            rcode, nwa_data = self.proxy_tenant.create_tenant(context,
-                                                              **kwargs)
+            nwa_data = self.proxy_tenant.create_tenant(context, **kwargs)
             if not self.proxy_tenant.update_tenant_binding(
                     context, tenant_id, nwa_tenant_id,
                     nwa_data, nwa_created=True):
@@ -286,34 +292,20 @@ class AgentProxyL2(object):
 
         # create tenant nw
         if KEY_CREATE_TENANT_NW not in nwa_data:
-            rcode, __ = self._create_tenant_nw(context,
-                                               nwa_data=nwa_data, **kwargs)
-            if not rcode:
-                return self.proxy_tenant.update_tenant_binding(
-                    context, tenant_id, nwa_tenant_id, nwa_data,
-                    nwa_created=False
-                )
+            # raise AgentProxyException if fail
+            self._create_tenant_nw(context, nwa_data=nwa_data, **kwargs)
 
         # create vlan
         nw_vlan_key = 'NW_' + network_id
         if nw_vlan_key not in nwa_data:
-            rcode, __ = self._create_vlan(context, nwa_data=nwa_data, **kwargs)
-            if not rcode:
-                return self.proxy_tenant.update_tenant_binding(
-                    context, tenant_id, nwa_tenant_id, nwa_data,
-                    nwa_created=False
-                )
+            # raise AgentProxyException if fail
+            self._create_vlan(context, nwa_data=nwa_data, **kwargs)
 
         # create general dev
         if not check_segment_gd(network_id, resource_group_name, nwa_data):
-            rcode, ret_val = self._create_general_dev(
+            # raise AgentProxyException if fail
+            nwa_data = self._create_general_dev(
                 context, nwa_data=nwa_data, **kwargs)
-            if not rcode:
-                return self.proxy_tenant.update_tenant_binding(
-                    context, tenant_id, nwa_tenant_id, nwa_data,
-                    nwa_created=False
-                )
-            nwa_data = ret_val
         else:
             ret_val = self._create_general_dev_data(
                 nwa_data=nwa_data, **kwargs)
@@ -401,16 +393,13 @@ class AgentProxyL2(object):
             port_type=port_type
         )
 
-        if (
-                rcode == 200 and
-                body['status'] == 'SUCCESS'
-        ):
+        if rcode == 200 and body['status'] == 'SUCCESS':
             LOG.debug("CreateGeneralDev SUCCESS")
 
             vlan_key = 'VLAN_' + network_id
             if vlan_key not in nwa_data:
                 LOG.error(_LE("not create vlan."))
-                return False, None
+                raise nwa_exc.AgentProxyException(value=nwa_data)
 
             seg_key = ('VLAN_' + network_id + '_' + resource_group_name +
                        VLAN_OWN_GDV)
@@ -423,11 +412,12 @@ class AgentProxyL2(object):
             self._append_device_for_gdv(nwa_info, nwa_data)
         else:
             LOG.debug("CreateGeneralDev %s", body['status'])
-            return False, None
+            raise nwa_exc.AgentProxyException(value=nwa_data)
 
-        return True, nwa_data
+        return nwa_data
 
     @helpers.log_method_call
+    @catch_exception_and_update_tenant_binding
     def delete_general_dev(self, context, **kwargs):
         """Delete GeneralDev.
 
@@ -435,6 +425,7 @@ class AgentProxyL2(object):
         @param kwargs:
         @return: dict of status and msg.
         """
+
         tenant_id = kwargs.get('tenant_id')
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
         nwa_info = kwargs.get('nwa_info')
@@ -459,74 +450,39 @@ class AgentProxyL2(object):
         if 1 < gd_count:
             nwa_data = self._delete_general_dev_data(
                 nwa_data=nwa_data, **kwargs)
-            return self.proxy_tenant.update_tenant_binding(
-                context, tenant_id, nwa_tenant_id, nwa_data
-            )
+            raise nwa_exc.AgentProxyException(value=nwa_data)
 
         # delete general dev
-        rcode, ret_val = self._delete_general_dev(context,
-                                                  nwa_data=nwa_data, **kwargs)
-        if not rcode:
-            return self.proxy_tenant.update_tenant_binding(
-                context, tenant_id, nwa_tenant_id, nwa_data
-            )
-        nwa_data = ret_val
+        # raise AgentProxyException if fail
+        nwa_data = self._delete_general_dev(context,
+                                            nwa_data=nwa_data, **kwargs)
         # delete general dev end
 
         # port check on segment.
         if check_vlan(network_id, nwa_data):
-            return self.proxy_tenant.update_tenant_binding(
-                context, tenant_id, nwa_tenant_id, nwa_data
-            )
+            raise nwa_exc.AgentProxyException(value=nwa_data)
 
         # delete vlan
-        result, ret_val = self._delete_vlan(
-            context,
-            nwa_data=nwa_data,
-            **kwargs
-        )
-
-        if not result:
-            # delete vlan error.
-            return self.proxy_tenant.update_tenant_binding(
-                context, tenant_id, nwa_tenant_id, nwa_data
-            )
-        nwa_data = ret_val
+        # raise AgentProxyException if fail
+        nwa_data = self._delete_vlan(context, nwa_data=nwa_data, **kwargs)
         # delete vlan end.
 
         # tenant network check.
         for k in nwa_data:
             if re.match('NW_.*', k):
-                return self.proxy_tenant.update_tenant_binding(
-                    context, tenant_id, nwa_tenant_id, nwa_data
-                )
+                raise nwa_exc.AgentProxyException(value=nwa_data)
 
-        # delete tenant network
         LOG.info(_LI("delete_tenant_nw"))
-        result, ret_val = self._delete_tenant_nw(
-            context,
-            nwa_data=nwa_data,
-            **kwargs
-        )
-        if not result:
-            return self.proxy_tenant.update_tenant_binding(
-                context, tenant_id, nwa_tenant_id, nwa_data
-            )
-        nwa_data = ret_val
-        # delete tenant network end
+        # raise AgentProxyException if fail
+        nwa_data = self._delete_tenant_nw(context, nwa_data=nwa_data, **kwargs)
 
         # delete tenant
         LOG.info(_LI("delete_tenant"))
-        result, ret_val = self.proxy_tenant.delete_tenant(
+        nwa_data = self.proxy_tenant.delete_tenant(
             context,
             nwa_data=nwa_data,
             **kwargs
         )
-        if not result:
-            return self.proxy_tenant.update_tenant_binding(
-                context, tenant_id, nwa_tenant_id, nwa_data
-            )
-        nwa_data = ret_val
         # delete tenant end.
 
         # delete nwa_tenant binding.
@@ -588,20 +544,17 @@ class AgentProxyL2(object):
             LOG.debug("DeleteGeneralDev Error: invalid response."
                       " rcode = %d" % rcode)
             # error port send to plugin
-            return False, None
+            raise nwa_exc.AgentProxyException(value=nwa_data)
 
-        if (
-                body['status'] == 'SUCCESS'
-        ):
+        if body['status'] == 'SUCCESS':
             LOG.debug("DeleteGeneralDev SUCCESS")
             nwa_data = self._delete_general_dev_data(**kwargs)
-
         else:
             LOG.debug("DeleteGeneralDev %s", body['status'])
-            return False, None
+            raise nwa_exc.AgentProxyException(value=nwa_data)
         # delete general dev end
 
-        return True, nwa_data
+        return nwa_data
 
     def _dummy_ok(self, context, rcode, jbody, *args, **kargs):
         pass
