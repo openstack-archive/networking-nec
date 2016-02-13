@@ -88,7 +88,7 @@ class AgentProxyL2(object):
         self.client = client
         self.proxy_tenant = proxy_tenant
 
-    @utils.log_method_return_value
+    @utils.log_method_return_value()
     @helpers.log_method_call
     def _create_tenant_nw(self, context, **kwargs):
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
@@ -121,7 +121,7 @@ class AgentProxyL2(object):
 
                 return False, {}
 
-    @utils.log_method_return_value
+    @utils.log_method_return_value()
     def _delete_tenant_nw(self, context, **kwargs):
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
         nwa_data = kwargs.get('nwa_data')
@@ -164,7 +164,7 @@ class AgentProxyL2(object):
             nwa_data[vp_net + '_VlanID'] = ''
         nwa_data[vp_net] = 'physical_network'
 
-    @utils.log_method_return_value
+    @utils.log_method_return_value()
     def _create_vlan(self, context, **kwargs):
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
         nwa_info = kwargs.get('nwa_info')
@@ -198,7 +198,7 @@ class AgentProxyL2(object):
 
         return True, nwa_data
 
-    @utils.log_method_return_value
+    @utils.log_method_return_value()
     def _delete_vlan(self, context, **kwargs):
         tenant_id = kwargs.get('tenant_id')
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
@@ -368,7 +368,7 @@ class AgentProxyL2(object):
 
         return nwa_data
 
-    @utils.log_method_return_value
+    @utils.log_method_return_value()
     def _create_general_dev_data(self, **kwargs):
         nwa_info = kwargs.get('nwa_info')
         nwa_data = kwargs.get('nwa_data')
@@ -377,7 +377,7 @@ class AgentProxyL2(object):
 
         return nwa_data
 
-    @utils.log_method_return_value
+    @utils.log_method_return_value()
     @helpers.log_method_call
     def _create_general_dev(self, context, **kwargs):
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
@@ -535,7 +535,7 @@ class AgentProxyL2(object):
             context, tenant_id, nwa_tenant_id
         )
 
-    @utils.log_method_return_value
+    @utils.log_method_return_value()
     def _delete_general_dev_data(self, **kwargs):
         nwa_info = kwargs.get('nwa_info')
         nwa_data = kwargs.get('nwa_data')
@@ -564,7 +564,7 @@ class AgentProxyL2(object):
 
         return nwa_data
 
-    @utils.log_method_return_value
+    @utils.log_method_return_value()
     @helpers.log_method_call
     def _delete_general_dev(self, context, **kwargs):
         nwa_tenant_id = kwargs.get('nwa_tenant_id')

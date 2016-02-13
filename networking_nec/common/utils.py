@@ -15,6 +15,7 @@
 import functools
 
 from oslo_log import log
+from oslo_utils import excutils
 
 
 LOG = log.getLogger(__name__)
@@ -25,18 +26,34 @@ def _get_full_class_name(cls):
                       getattr(cls, '__qualname__', cls.__name__))
 
 
-def log_method_return_value(method):
+class log_method_return_value(object):
 
-    @functools.wraps(method)
-    def wrapper(*args, **kwargs):
-        first_arg = args[0]
-        cls = first_arg if isinstance(first_arg, type) else first_arg.__class__
-        ret = method(*args, **kwargs)
-        data = {'class_name': _get_full_class_name(cls),
-                'method_name': method.__name__,
-                'ret': ret}
-        LOG.debug('%(class_name)s method %(method_name)s '
-                  'call returned %(ret)s', data)
-        return ret
+    def __init__(self, success_log_level=log.DEBUG,
+                 failure_log_level=log.ERROR):
+        self.success_log_level = success_log_level
+        self.failure_log_level = failure_log_level
 
-    return wrapper
+    def __call__(self, method):
+        @functools.wraps(method)
+        def wrapper(*args, **kwargs):
+            first_arg = args[0]
+            cls = (first_arg if isinstance(first_arg, type)
+                   else first_arg.__class__)
+            data = {'class_name': _get_full_class_name(cls),
+                    'method_name': method.__name__}
+            try:
+                ret = method(*args, **kwargs)
+                data['ret'] = ret
+                LOG.log(self.success_log_level,
+                        '%(class_name)s method %(method_name)s '
+                        'call returned %(ret)s', data)
+                return ret
+            except Exception as e:
+                with excutils.save_and_reraise_exception():
+                    data['exctype'] = e.__class__.__name__
+                    data['reason'] = e
+                    LOG.log(self.failure_log_level,
+                            '%(class_name)s method %(method_name)s '
+                            'call raised %(exctype)s: %(reason)s', data)
+
+        return wrapper
