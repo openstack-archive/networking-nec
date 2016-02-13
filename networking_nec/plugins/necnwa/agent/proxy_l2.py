@@ -145,19 +145,32 @@ class AgentProxyL2(object):
 
         return True, nwa_data
 
-    # TODO(amotoki): Address pylint too-many-locals error
-    # pylint: disable=too-many-locals
+    def _update_nwa_data(self, nwa_data, nwa_info, result_data):
+        network_id = nwa_info['network']['id']
+        nw_net = 'NW_' + network_id
+
+        nwa_data[nw_net] = nwa_info['network']['name']
+        nwa_data[nw_net + '_network_id'] = network_id
+        nwa_data[nw_net + '_subnet_id'] = nwa_info['subnet']['id']
+        nwa_data[nw_net + '_subnet'] = nwa_info['subnet']['netaddr']
+        nwa_data[nw_net + '_nwa_network_name'] = result_data['LogicalNWName']
+
+        vp_net = 'VLAN_' + network_id
+        nwa_data[vp_net + '_CreateVlan'] = ''
+
+        if result_data['VlanID'] != '':
+            nwa_data[vp_net + '_VlanID'] = result_data['VlanID']
+        else:
+            nwa_data[vp_net + '_VlanID'] = ''
+        nwa_data[vp_net] = 'physical_network'
+
     @utils.log_method_return_value
     def _create_vlan(self, context, **kwargs):
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
         nwa_info = kwargs.get('nwa_info')
         nwa_data = kwargs.get('nwa_data')
 
-        network_name = nwa_info['network']['name']
         vlan_type = nwa_info['network']['vlan_type']
-        subnet_id = nwa_info['subnet']['id']
-        netaddr = nwa_info['subnet']['netaddr']
-        mask = nwa_info['subnet']['mask']
         network_id = nwa_info['network']['id']
 
         nw_vlan_key = 'VLAN_' + network_id
@@ -170,34 +183,16 @@ class AgentProxyL2(object):
             self._dummy_ng,
             context,
             nwa_tenant_id,
-            netaddr,
-            mask,
+            nwa_info['subnet']['netaddr'],
+            nwa_info['subnet']['mask'],
             vlan_type=vlan_type,
             openstack_network_id=network_id
         )
 
-        if (
-                rcode == 200 and
-                body['status'] == 'SUCCESS'
-        ):
+        if rcode == 200 and body['status'] == 'SUCCESS':
             # create vlan succeed.
             LOG.debug("CreateVlan succeed.")
-            nw_net = 'NW_' + network_id
-            nwa_data[nw_net] = network_name
-            nwa_data[nw_net + '_network_id'] = network_id
-            nwa_data[nw_net + '_subnet_id'] = subnet_id
-            nwa_data[nw_net + '_subnet'] = netaddr
-            nwa_data[nw_net + '_nwa_network_name'] = \
-                body['resultdata']['LogicalNWName']
-
-            vp_net = nw_vlan_key
-            nwa_data[vp_net + '_CreateVlan'] = ''
-
-            if body['resultdata']['VlanID'] != '':
-                nwa_data[vp_net + '_VlanID'] = body['resultdata']['VlanID']
-            else:
-                nwa_data[vp_net + '_VlanID'] = ''
-            nwa_data[vp_net] = 'physical_network'
+            self._update_nwa_data(nwa_data, nwa_info, body['resultdata'])
         else:
             # create vlan failed.
             LOG.error(_LE("CreateVlan Failed."))
@@ -258,8 +253,6 @@ class AgentProxyL2(object):
 
         return True, nwa_data
 
-    # TODO(amotoki): Address pylint too-many-locals error
-    # pylint: disable=too-many-locals
     @helpers.log_method_call
     def create_general_dev(self, context, **kwargs):
         """Create GeneralDev wrapper.
@@ -274,21 +267,19 @@ class AgentProxyL2(object):
         nwa_info = kwargs.get('nwa_info')
 
         network_id = nwa_info['network']['id']
-        device_owner = nwa_info['device']['owner']
-        device_id = nwa_info['device']['id']
-        port_id = nwa_info['port']['id']
-        physical_network = nwa_info['physical_network']
+        # device_owner = nwa_info['device']['owner']
+        # device_id = nwa_info['device']['id']
+        # port_id = nwa_info['port']['id']
+        # physical_network = nwa_info['physical_network']
         resource_group_name = nwa_info['resource_group_name']
 
         LOG.debug("tenant_id=%s, network_id=%s, device_owner=%s" % (
-            tenant_id, network_id, device_owner
+            tenant_id, network_id, nwa_info['device']['owner']
         ))
 
         nwa_data = self.nwa_tenant_rpc.get_nwa_tenant_binding(
             context, tenant_id, nwa_tenant_id
         )
-
-        nwa_created = False
 
         # create tenant
         if not nwa_data:
@@ -301,38 +292,32 @@ class AgentProxyL2(object):
 
         # create tenant nw
         if KEY_CREATE_TENANT_NW not in nwa_data:
-            rcode, ret_val = self._create_tenant_nw(
-                context, nwa_data=nwa_data, **kwargs)
+            rcode, __ = self._create_tenant_nw(context,
+                                               nwa_data=nwa_data, **kwargs)
             if not rcode:
                 return self.proxy_tenant.update_tenant_binding(
                     context, tenant_id, nwa_tenant_id, nwa_data,
-                    nwa_created=nwa_created
+                    nwa_created=False
                 )
 
         # create vlan
         nw_vlan_key = 'NW_' + network_id
         if nw_vlan_key not in nwa_data:
-            rcode, ret_val = self._create_vlan(context,
-                                               nwa_data=nwa_data, **kwargs)
+            rcode, __ = self._create_vlan(context, nwa_data=nwa_data, **kwargs)
             if not rcode:
                 return self.proxy_tenant.update_tenant_binding(
                     context, tenant_id, nwa_tenant_id, nwa_data,
-                    nwa_created=nwa_created
+                    nwa_created=False
                 )
 
         # create general dev
-        skip_generaldev = False
-
-        if check_segment_gd(network_id, resource_group_name, nwa_data):
-            skip_generaldev = True
-
-        if not skip_generaldev:
+        if not check_segment_gd(network_id, resource_group_name, nwa_data):
             rcode, ret_val = self._create_general_dev(
                 context, nwa_data=nwa_data, **kwargs)
             if not rcode:
                 return self.proxy_tenant.update_tenant_binding(
                     context, tenant_id, nwa_tenant_id, nwa_data,
-                    nwa_created=nwa_created
+                    nwa_created=False
                 )
             nwa_data = ret_val
         else:
@@ -346,22 +331,26 @@ class AgentProxyL2(object):
 
         ret = self.proxy_tenant.update_tenant_binding(
             context, tenant_id, nwa_tenant_id, nwa_data,
-            nwa_created=nwa_created
+            nwa_created=False
         )
 
-        vlan_id = int(nwa_data['VLAN_' + network_id + '_' +
-                               resource_group_name + '_GD_VlanID'], 10)
-
-        segment = {api.PHYSICAL_NETWORK: physical_network,
-                   api.NETWORK_TYPE: n_constants.TYPE_VLAN,
-                   api.SEGMENTATION_ID: vlan_id}
+        segment = {
+            api.PHYSICAL_NETWORK: nwa_info['physical_network'],
+            api.NETWORK_TYPE: n_constants.TYPE_VLAN,
+            api.SEGMENTATION_ID: self._get_vlan_id(nwa_data, network_id,
+                                                   resource_group_name)
+        }
 
         self.nwa_l2_rpc.update_port_state_with_notifier(
-            context, device_id, self.agent_top.agent_id,
-            port_id, segment, network_id
+            context, nwa_info['device']['id'], self.agent_top.agent_id,
+            nwa_info['port']['id'], segment, network_id
         )
 
         return ret
+
+    def _get_vlan_id(self, nwa_data, network_id, resource_group_name):
+        return int(nwa_data['VLAN_' + network_id + '_' +
+                            resource_group_name + '_GD_VlanID'], 10)
 
     def _append_device_for_gdv(self, nwa_info, nwa_data):
         network_name = nwa_info['network']['name']
