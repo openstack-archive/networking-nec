@@ -42,7 +42,10 @@ class AgentProxyTenant(object):
 
         # ignore result
         self.client.create_tenant(nwa_tenant_id)
-        return True, {
+        # NOTE(amotoki): At now this method never fails.
+        # If we need to handle a failure, raise nwa_exc.AgentProxyException
+        # and catch the exception in a caller.
+        return {
             'CreateTenant': True,
             'NWA_tenant_id': nwa_tenant_id
         }
@@ -57,7 +60,10 @@ class AgentProxyTenant(object):
         """
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
         __rcode, body = self.client.delete_tenant(nwa_tenant_id)
-        return True, body
+        # NOTE(amotoki): At now this method never fails.
+        # If we need to handle a failure, raise nwa_exc.AgentProxyException.
+        # and catch the exception in a caller.
+        return body
 
     @utils.log_method_return_value()
     def update_tenant_binding(
