@@ -24,43 +24,53 @@ class TestAgentProxyTenant(test_nwa_agent.TestNECNWANeutronAgentBase):
 
         self.nwacli.create_tenant.return_value = 200, {}
 
-        rcode, body = self.agent.proxy_tenant.create_tenant(
+        body = self.agent.proxy_tenant.create_tenant(
             self.context,
             nwa_tenant_id=nwa_tenant_id
         )
-
-        self.assertTrue(rcode)
-        self.assertIsInstance(body, dict)
+        exp_data = {
+            'CreateTenant': True,
+            'NWA_tenant_id': 'DC1_844eb55f21e84a289e9c22098d387e5d'
+        }
+        self.assertEqual(exp_data, body)
 
     def test__create_tenant_failed(self):
         nwa_tenant_id = 'DC1_844eb55f21e84a289e9c22098d387e5d'
         self.nwacli.create_tenant.return_value = 400, {}
-        rcode, body = self.agent.proxy_tenant.create_tenant(
+        body = self.agent.proxy_tenant.create_tenant(
             self.context,
             nwa_tenant_id=nwa_tenant_id
         )
-        self.assertTrue(rcode)
-        self.assertIsInstance(body, dict)
+        exp_data = {
+            'CreateTenant': True,
+            'NWA_tenant_id': 'DC1_844eb55f21e84a289e9c22098d387e5d'
+        }
+        self.assertEqual(exp_data, body)
 
     def test__delete_tenant(self):
         nwa_tenant_id = 'DC1_844eb55f21e84a289e9c22098d387e5d'
-        result, nwa_data = self.agent.proxy_tenant.delete_tenant(
+        nwa_data = self.agent.proxy_tenant.delete_tenant(
             self.context,
             nwa_tenant_id=nwa_tenant_id
         )
-
-        self.assertTrue(result)
         self.assertIsInstance(nwa_data, dict)
+        exp_data = {
+            'resultdata': {'LogicalNWName': 'LNW_BusinessVLAN_4000',
+                           'TenantFWName': 'T1',
+                           'VlanID': '4000'},
+            'status': 'SUCCESS'}
+        self.assertDictEqual(exp_data, nwa_data)
 
     def test__delete_tenant_failed(self):
         nwa_tenant_id = 'DC1_844eb55f21e84a289e9c22098d387e5d'
         self.nwacli.delete_tenant.return_value = 500, {}
-        result, nwa_data = self.agent.proxy_tenant.delete_tenant(
+        # TODO(amotoki): Even when 500 is returned, the target method will
+        # succeed. Ideally this should be fixed.
+        nwa_data = self.agent.proxy_tenant.delete_tenant(
             self.context,
             nwa_tenant_id=nwa_tenant_id
         )
-        self.assertIsInstance(nwa_data, dict)
-        self.assertTrue(result)
+        self.assertDictEqual({}, nwa_data)
 
     def test__update_tenant_binding_true(self):
         context = mock.MagicMock()
