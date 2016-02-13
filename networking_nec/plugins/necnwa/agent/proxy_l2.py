@@ -143,6 +143,8 @@ class AgentProxyL2(object):
 
         return True, nwa_data
 
+    # TODO(amotoki): Address pylint too-many-locals error
+    # pylint: disable=too-many-locals
     def _create_vlan(self, context, **kwargs):
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
         nwa_info = kwargs.get('nwa_info')
@@ -252,6 +254,8 @@ class AgentProxyL2(object):
 
         return True, nwa_data
 
+    # TODO(amotoki): Address pylint too-many-locals error
+    # pylint: disable=too-many-locals
     @helpers.log_method_call
     def create_general_dev(self, context, **kwargs):
         """Create GeneralDev wrapper.

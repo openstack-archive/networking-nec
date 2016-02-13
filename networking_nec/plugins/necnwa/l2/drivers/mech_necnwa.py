@@ -234,10 +234,7 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
     def _bind_port_nwa(self, context):
         tenant_id, nwa_tenant_id = nwa_com_utils.get_tenant_info(context)
         network_name, network_id = nwa_l2_utils.get_network_info(context)
-        device_id = context._port['device_id']
         device_owner = context._port['device_owner']
-        port_id = context._port['id']
-        mac_address = context._port['mac_address']
 
         if device_owner in (constants.DEVICE_OWNER_ROUTER_GW,
                             constants.DEVICE_OWNER_ROUTER_INTF):
@@ -269,10 +266,10 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
                   {'tenant_id': tenant_id,
                    'network_name': network_name,
                    'network_id': network_id,
-                   'device_id': device_id,
+                   'device_id': context._port['device_id'],
                    'device_owner': device_owner,
-                   'port_id': port_id,
-                   'mac_address': mac_address,
+                   'port_id': context._port['id'],
+                   'mac_address': context._port['mac_address'],
                    'subnet_ids': subnet_ids,
                    'segmentation_id': segmentation_id})
 

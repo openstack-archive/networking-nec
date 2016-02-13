@@ -85,53 +85,47 @@ def portcontext_to_nwa_info(context, resource_groups,
 
     port = context.original if use_original_port else context.current
     device_owner = port['device_owner']
-    device_id = port['device_id']
     vlan_type = 'PublicVLAN' if is_external_network(context, network_id) \
                 else 'BusinessVLAN'
 
-    port_id = port['id']
-
     dbcontext = context._plugin_context
 
-    if port['fixed_ips']:
-        ipaddr = port['fixed_ips'][0]['ip_address']
-        subnet_id = port['fixed_ips'][0]['subnet_id']
-        subnet = context._plugin.get_subnet(dbcontext, subnet_id)
-        netaddr = subnet['cidr'].split('/')[0]
-        mask = subnet['cidr'].split('/')[1]
-    else:
-        ipaddr = ''
-        subnet = ''
-        subnet_id = ''
-        netaddr = ''
-        mask = ''
-
-    macaddr = port['mac_address']
-
-    resource_group_name_nw = config.CONF.NWA.resource_group_name
-    resource_group_name = _get_resource_group_name(context, resource_groups,
-                                                   use_original_port)
-    physical_network = get_physical_network(device_owner, resource_groups,
-                                            resource_group_name)
-
-    return {
+    nwa_info = {
         'tenant_id': tenant_id,
         'nwa_tenant_id': nwa_tenant_id,
         'network': {'id': network_id,
                     'name': network_name,
                     'vlan_type': vlan_type},
-        'subnet': {'id': subnet_id,
-                   'netaddr': netaddr,
-                   'mask': mask},
         'device': {'owner': device_owner,
-                   'id': device_id},
-        'port': {'id': port_id,
-                 'ip': ipaddr,
-                 'mac': macaddr},
-        'resource_group_name': resource_group_name,
-        'resource_group_name_nw': resource_group_name_nw,
-        'physical_network': physical_network
+                   'id': port['device_id']},
     }
+
+    if port['fixed_ips']:
+        subnet_id = port['fixed_ips'][0]['subnet_id']
+        subnet = context._plugin.get_subnet(dbcontext, subnet_id)
+        nwa_info['subnet'] = {'id': subnet_id,
+                              'netaddr': subnet['cidr'].split('/')[0],
+                              'mask': subnet['cidr'].split('/')[1]}
+        nwa_info['port'] = {'id': port['id'],
+                            'ip': port['fixed_ips'][0]['ip_address'],
+                            'mac': port['mac_address']}
+    else:
+        nwa_info['subnet'] = {'id': '',
+                              'netaddr': '',
+                              'mask': ''}
+        nwa_info['port'] = {'id': port['id'],
+                            'ip': '',
+                            'mac': port['mac_address']}
+
+    resource_group_name = _get_resource_group_name(context, resource_groups,
+                                                   use_original_port)
+    nwa_info['resource_group_name'] = resource_group_name
+    nwa_info['resource_group_name_nw'] = config.CONF.NWA.resource_group_name
+    nwa_info['physical_network'] = get_physical_network(device_owner,
+                                                        resource_groups,
+                                                        resource_group_name)
+
+    return nwa_info
 
 
 # Private methods
