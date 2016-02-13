@@ -15,6 +15,9 @@
 import functools
 
 from oslo_log import log
+from oslo_utils import excutils
+
+from networking_nec._i18n import _LE
 
 
 LOG = log.getLogger(__name__)
@@ -30,13 +33,21 @@ def log_method_return_value(method):
     @functools.wraps(method)
     def wrapper(*args, **kwargs):
         first_arg = args[0]
-        cls = first_arg if isinstance(first_arg, type) else first_arg.__class__
-        ret = method(*args, **kwargs)
+        cls = (first_arg if isinstance(first_arg, type)
+               else first_arg.__class__)
         data = {'class_name': _get_full_class_name(cls),
-                'method_name': method.__name__,
-                'ret': ret}
-        LOG.debug('%(class_name)s method %(method_name)s '
-                  'call returned %(ret)s', data)
-        return ret
+                'method_name': method.__name__}
+        try:
+            ret = method(*args, **kwargs)
+            data['ret'] = ret
+            LOG.debug('%(class_name)s method %(method_name)s '
+                      'call returned %(ret)s', data)
+            return ret
+        except Exception as e:
+            with excutils.save_and_reraise_exception():
+                data['exctype'] = e.__class__.__name__
+                data['reason'] = e
+                LOG.error(_LE('%(class_name)s method %(method_name)s '
+                              'call raised %(exctype)s: %(reason)s'), data)
 
     return wrapper
