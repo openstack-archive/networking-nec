@@ -29,6 +29,7 @@ from networking_nec.plugins.necnwa.nwalib import workflow
 LOG = logging.getLogger(__name__)
 
 
+# pylint: disable=too-many-public-methods
 class NwaClient(nwa_restclient.NwaRestClient):
     '''Client class of NWA. '''
     pool = eventlet.GreenPool()

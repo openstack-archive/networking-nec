@@ -39,6 +39,7 @@ from networking_nec.plugins.necnwa.nwalib import client as nwa_cli
 LOG = logging.getLogger(__name__)
 
 
+# pylint: disable=too-many-instance-attributes
 class NECNWANeutronAgent(object):
 
     rpc_servers = {}
