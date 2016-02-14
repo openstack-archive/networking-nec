@@ -125,7 +125,7 @@ class NECNWAL2Plugin(ml2_plugin.Ml2Plugin):
             self.nwa_rpc.create_server(context, tenant_id)
             necnwa_api.add_nwa_tenant_queue(context.session, tenant_id)
         else:
-            LOG.warning(_LW('%s is not alive.') %
+            LOG.warning(_LW('%s is not alive.'),
                         nwa_const.NWA_AGENT_TYPE)
 
     def create_network(self, context, network):

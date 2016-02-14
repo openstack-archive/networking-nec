@@ -62,9 +62,11 @@ def check_segment(network_id, res_name, nwa_data, dev_type):
     matched = [k for k in nwa_data
                if dev_pat.match(k) and dev_type == nwa_data[k]]
     if matched:
-        LOG.debug("find device in network(id=%s),"
-                  " resource_group_name=%s, type=%s" %
-                  (network_id, res_name, dev_type))
+        LOG.debug("find device in network(id=%(network_id)s),"
+                  " resource_group_name=%(res_name)s, type=%(dev_type)s",
+                  {'network_id': network_id,
+                   'res_name': res_name,
+                   'dev_type': dev_type})
     return len(matched)
 
 
@@ -99,8 +101,10 @@ class AgentProxyL2(object):
         nwa_data = kwargs.get('nwa_data')
 
         if KEY_CREATE_TENANT_NW not in nwa_data:
-            LOG.debug("nwa_tenant_id=%s, resource_group_name_nw=%s" %
-                      (nwa_tenant_id, resource_group_name))
+            LOG.debug("nwa_tenant_id=%(nwa_tenant_id)s, "
+                      "resource_group_name_nw=%(resource_group_name)s",
+                      {'nwa_tenant_id': nwa_tenant_id,
+                       'resource_group_name': resource_group_name})
             rcode, body = self.client.create_tenant_nw(
                 self._dummy_ok,
                 self._dummy_ng,
@@ -267,9 +271,11 @@ class AgentProxyL2(object):
         network_id = nwa_info['network']['id']
         resource_group_name = nwa_info['resource_group_name']
 
-        LOG.debug("tenant_id=%s, network_id=%s, device_owner=%s" % (
-            tenant_id, network_id, nwa_info['device']['owner']
-        ))
+        LOG.debug("tenant_id=%(tenant_id)s, network_id=%(network_id)s, "
+                  "device_owner=%(device_owner)s",
+                  {'tenant_id': tenant_id,
+                   'network_id': network_id,
+                   'device_owner': nwa_info['device']['owner']})
 
         nwa_data = self.nwa_tenant_rpc.get_nwa_tenant_binding(
             context, tenant_id, nwa_tenant_id
@@ -449,7 +455,7 @@ class AgentProxyL2(object):
         if not nwa_data:
             LOG.error(_LE('nwa_tenant_binding not found.'
                           ' tenant_id=%(tenant_id)s,'
-                          ' nwa_tenant_id=%(nwa_tenant_id)s') %
+                          ' nwa_tenant_id=%(nwa_tenant_id)s'),
                       {'tenant_id': tenant_id,
                        'nwa_tenant_id': nwa_tenant_id})
             return {'result': 'FAILED'}
@@ -585,8 +591,8 @@ class AgentProxyL2(object):
             logical_name,
         )
         if rcode != 200:
-            LOG.debug("DeleteGeneralDev Error: invalid response."
-                      " rcode = %d" % rcode)
+            LOG.debug("DeleteGeneralDev Error: invalid response. rcode = %d",
+                      rcode)
             # error port send to plugin
             return False, None
 

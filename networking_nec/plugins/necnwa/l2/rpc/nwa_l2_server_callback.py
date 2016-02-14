@@ -110,8 +110,11 @@ class NwaL2ServerRpcCallback(object):
                           port_id)
         # 4 send notifier
         if port is not None:
-            LOG.debug("notifier port_update %s, %s, %s" %
-                      (network_type, segmentation_id, physical_network))
+            LOG.debug("notifier port_update %(net_type)s, %(seg_id)s, "
+                      "%(physnet)s",
+                      {'net_type': network_type,
+                       'seg_id': segmentation_id,
+                       'physnet': physical_network})
             plugin.notifier.port_update(
                 rpc_context, port,
                 network_type,
@@ -130,6 +133,6 @@ class NwaL2ServerRpcCallback(object):
             session, network_id, physical_network=physical_network,
         )
         if del_segment:
-            LOG.debug("release_dynamic_segment segment_id=%s" %
+            LOG.debug("release_dynamic_segment segment_id=%s",
                       del_segment['id'])
             db_ml2.delete_network_segment(session, del_segment['id'])

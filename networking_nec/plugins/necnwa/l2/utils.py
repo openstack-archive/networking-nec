@@ -51,7 +51,7 @@ def update_port_status(context, port_id, status):
         session = context.network._plugin_context.session
     try:
         port = session.query(models_v2.Port).filter_by(id=port_id).one()
-        LOG.debug("[DB] PORT STATE CHANGE %s -> %s" % (port['status'], status))
+        LOG.debug("[DB] PORT STATE CHANGE %s -> %s", (port['status'], status))
         LOG.debug("[DB] PORT ID %s", port_id)
         port['status'] = status
         session.merge(port)
