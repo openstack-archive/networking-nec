@@ -14,11 +14,10 @@
 
 from mock import MagicMock
 from mock import patch
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
+from neutron import context
 from neutron.extensions import providernet as prov_net
-from neutron.tests import base
+from neutron.tests.unit import testlib_api
 from neutron_lib import constants
 from oslo_log import log as logging
 from oslo_serialization import jsonutils
@@ -30,7 +29,7 @@ from networking_nec.plugins.necnwa.l2.drivers import mech_necnwa as mech
 LOG = logging.getLogger(__name__)
 
 
-class TestMechNwa(base.BaseTestCase):
+class TestMechNwa(testlib_api.SqlTestCaseLight):
     def setUp(self):
         super(TestMechNwa, self).setUp()
 
@@ -41,12 +40,7 @@ class TestMechNwa(base.BaseTestCase):
             _plugin_context = MagicMock()
             _binding = MagicMock()
 
-            engine = create_engine(
-                "mysql+pymysql://root:hatake4js@localhost/neutron",
-                encoding="utf-8")
-            Session = sessionmaker(bind=engine, autocommit=True)
-            Session = sessionmaker(autocommit=True)
-            _plugin_context.session = Session()
+            _plugin_context.session = context.get_admin_context().session
 
             def set_binding(self, segment_id, vif_type, vif_details,
                             status=None):

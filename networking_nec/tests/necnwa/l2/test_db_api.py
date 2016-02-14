@@ -66,7 +66,7 @@ class TestNWATenantBinding(base.BaseTestCase):
                          "<TenantBinding(T1,NWA-T1,{'key': 'value'})>")
 
 
-class TestAddNwaTenantBinding(testlib_api.SqlTestCase):
+class TestAddNwaTenantBinding(testlib_api.SqlTestCaseLight):
     nwa_tenant1 = 'NWA01'
     nwa_tenant2 = 'NWA02'
     tenant1 = 'ffffffffff0000000000000000000001'
