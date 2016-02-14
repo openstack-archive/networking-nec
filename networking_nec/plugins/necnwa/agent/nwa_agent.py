@@ -26,6 +26,7 @@ from oslo_service import loopingcall
 
 from networking_nec._i18n import _LE
 from networking_nec.plugins.necnwa.agent import proxy_l2
+from networking_nec.plugins.necnwa.agent import proxy_l3
 from networking_nec.plugins.necnwa.agent import proxy_tenant
 from networking_nec.plugins.necnwa.agent import server_manager
 from networking_nec.plugins.necnwa.common import config
@@ -33,6 +34,7 @@ from networking_nec.plugins.necnwa.common import constants as nwa_const
 from networking_nec.plugins.necnwa.l2.rpc import nwa_agent_callback
 from networking_nec.plugins.necnwa.l2.rpc import nwa_proxy_callback
 from networking_nec.plugins.necnwa.l2.rpc import tenant_binding_api
+from networking_nec.plugins.necnwa.l3.rpc import nwa_l3_proxy_callback
 from networking_nec.plugins.necnwa.nwalib import client as nwa_cli
 
 
@@ -71,7 +73,8 @@ class NECNWANeutronAgent(object):
         self.proxy_tenant = proxy_tenant.AgentProxyTenant(self, self.client)
         self.proxy_l2 = proxy_l2.AgentProxyL2(self, self.client,
                                               self.proxy_tenant)
-
+        self.proxy_l3 = proxy_l3.AgentProxyL3(self, self.client,
+                                              self.proxy_tenant, self.proxy_l2)
         self.setup_rpc()
 
         LOG.debug('NWA Agent state %s', self.agent_state)
@@ -90,6 +93,8 @@ class NECNWANeutronAgent(object):
             self.context, self.server_manager)
         self.callback_proxy = nwa_proxy_callback.NwaProxyCallback(
             self.context, self.proxy_l2)
+        self.callback_l3 = nwa_l3_proxy_callback.NwaL3ProxyCallback(
+            self.context, self.proxy_l2)
 
         # lbaas
         self.lbaas_driver = None
@@ -104,7 +109,9 @@ class NECNWANeutronAgent(object):
             pass
 
         # endpoints
-        self.endpoints = [self.callback_nwa]
+        self.endpoints = [self.callback_nwa,
+                          self.callback_proxy,
+                          self.callback_l3]
 
         # create connection
         self.conn = n_rpc.create_connection()
