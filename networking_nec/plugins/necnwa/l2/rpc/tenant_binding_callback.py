@@ -128,7 +128,7 @@ class TenantBindingServerRpcCallback(object):
             for queue in queues:
                 tenant_ids = [server['tenant_id'] for server in servers]
                 if queue.tenant_id in tenant_ids:
-                    LOG.info(_LI("RPC Server active(tid=%s)") %
+                    LOG.info(_LI("RPC Server active(tid=%s)"),
                              queue.tenant_id)
                     continue
                 else:

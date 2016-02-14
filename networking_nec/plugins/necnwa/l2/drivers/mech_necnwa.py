@@ -51,8 +51,8 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
 
             grplst = [res['device_owner'] for res in self.resource_groups]
             if device_owner not in grplst:
-                LOG.warning(_LW("resource group miss match. "
-                                "device_owner=%s"), device_owner)
+                LOG.warning(_LW("resource group miss match. device_owner=%s"),
+                            device_owner)
                 return
 
             rt_tid = nwa_l3_db.get_tenant_id_by_router(
@@ -256,7 +256,7 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
                 if provider.get(prov_net.PHYSICAL_NETWORK) != physical_network:
                     continue
                 segmentation_id = provider[prov_net.SEGMENTATION_ID]
-                LOG.debug("provider segmentation_id = %d" % segmentation_id)
+                LOG.debug("provider segmentation_id = %d", segmentation_id)
                 break
 
         LOG.debug("_bind_port_nwa %(tenant_id)s %(network_name)s "

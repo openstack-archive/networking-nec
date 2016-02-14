@@ -14,10 +14,7 @@
 
 
 from neutron.common import rpc as n_rpc
-from oslo_log import log as logging
 import oslo_messaging
-
-LOG = logging.getLogger(__name__)
 
 
 class NECNWAAgentApi(object):

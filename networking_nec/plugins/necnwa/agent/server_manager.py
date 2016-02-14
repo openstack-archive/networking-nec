@@ -48,8 +48,8 @@ class ServerManager(object):
 
         if tid in self.rpc_servers:
             LOG.warning(
-                _LW("already in message queue and server."
-                    " queue=%s") % self.rpc_servers[tid]['topic']
+                _LW("already in message queue and server. queue=%s"),
+                self.rpc_servers[tid]['topic']
             )
             return {'result': 'FAILED'}
 
