@@ -10,6 +10,10 @@ if [[ "$1" == "stack" && "$2" == "pre-install" ]]; then
     source_plugin
 elif [[ "$1" == "stack" && "$2" == "install" ]]; then
     setup_develop $NETWORKING_NEC_DIR
+elif [[ "$1" == "stack" && "$2" == "post-config" ]]; then
+    :
+elif [[ "$1" == "stack" && "$2" == "extra" ]]; then
+    :
 elif [[ "$1" == "unstack" ]]; then
     source_plugin
 elif [[ "$1" == "clean" ]]; then

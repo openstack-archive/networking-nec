@@ -4,9 +4,6 @@
 NEC_XTRACE=$(set +o | grep xtrace)
 set +o xtrace
 
-# Neutron NEC OpenFlow plugin
-# ---------------------------
-
 source $TOP_DIR/lib/neutron_plugins/ovs_base
 
 function neutron_plugin_create_nova_conf {
@@ -14,19 +11,21 @@ function neutron_plugin_create_nova_conf {
 }
 
 function neutron_plugin_install_agent_packages {
-    # SKIP_OVS_INSTALL is useful when we want to use Open vSwitch whose
-    # version is different from the version provided by the distribution.
-    if [[ "$SKIP_OVS_INSTALL" = "True" ]]; then
-        echo "You need to install Open vSwitch manually."
-        return
-    fi
     _neutron_ovs_base_install_agent_packages
 }
 
 function neutron_plugin_configure_common {
     Q_PLUGIN_CONF_PATH=etc/neutron/plugins/nec
-    Q_PLUGIN_CONF_FILENAME=nec.ini
-    Q_PLUGIN_CLASS="networking_nec.plugins.openflow.plugin.NECPluginV2"
+    Q_PLUGIN_CONF_FILENAME=necnwa.ini
+    Q_PLUGIN_CLASS="necnwa"
+    # Temporary use neutron L3RouterPlugin
+    Q_SERVICE_PLUGIN_CLASSES="router"
+    # Q_SERVICE_PLUGIN_CLASSES="necnwa_router"
+    local plugin_conf_src_abspath=${NETWORKING_NEC_DIR}/${Q_PLUGIN_CONF_PATH}
+    local plugin_conf_sys_abspath=/${Q_PLUGIN_CONF_PATH}
+    cp ${q_plugin_conf_abspath}/${Q_PLUGIN_CONF_FILENAME} ${plugin_conf_sys_abspath}/
+    cp ${q_plugin_conf_abspath}/resource_group.json ${plugin_conf_sys_abspath}/
+    chmod 0644 /${Q_PLUGIN_CONF_PATH}/${Q_PLUGIN_CONF_FILENAME}
 }
 
 function neutron_plugin_configure_debug_command {
@@ -41,70 +40,26 @@ function neutron_plugin_configure_l3_agent {
     _neutron_ovs_base_configure_l3_agent
 }
 
-function _neutron_plugin_setup_bridge {
-    if [[ "$SKIP_OVS_BRIDGE_SETUP" = "True" ]]; then
-        return
-    fi
-    # Increase debug level
-    sudo ovs-appctl vlog/set ANY:file:dbg
-    # Set up integration bridge
-    _neutron_ovs_base_setup_bridge $OVS_BRIDGE
-    # Generate datapath ID from HOST_IP
-    local dpid=$(printf "%07d%03d%03d%03d\n" ${HOST_IP//./ })
-    sudo ovs-vsctl --no-wait set Bridge $OVS_BRIDGE other-config:datapath-id=$dpid
-    sudo ovs-vsctl --no-wait set-fail-mode $OVS_BRIDGE secure
-    sudo ovs-vsctl --no-wait set-controller $OVS_BRIDGE tcp:$OFC_OFP_HOST:$OFC_OFP_PORT
-    if [ -n "$OVS_INTERFACE" ]; then
-        sudo ovs-vsctl --no-wait -- --may-exist add-port $OVS_BRIDGE $OVS_INTERFACE
-    fi
-    _neutron_setup_ovs_tunnels $OVS_BRIDGE
-}
-
 function neutron_plugin_configure_plugin_agent {
-    _neutron_plugin_setup_bridge
-
-    AGENT_BINARY="$NEUTRON_BIN_DIR/neutron-nec-agent"
-
-    _neutron_ovs_base_configure_firewall_driver
+    # NOTE: If we need to run ovs-agent on compute nodes,
+    # it is better to launch nwa-agent separately and
+    # use this method to launch ovs-agent. It would be simpler.
+    AGENT_BINARY="$NEUTRON_BIN_DIR/neutron-necnwa-agent"
 }
 
 function neutron_plugin_configure_service {
     iniset $NEUTRON_CONF DEFAULT api_extensions_path neutron/plugins/nec/extensions/
-    iniset /$Q_PLUGIN_CONF_FILE ofc host $OFC_API_HOST
-    iniset /$Q_PLUGIN_CONF_FILE ofc port $OFC_API_PORT
-    iniset /$Q_PLUGIN_CONF_FILE ofc driver $OFC_DRIVER
-    iniset /$Q_PLUGIN_CONF_FILE ofc api_retry_max OFC_RETRY_MAX
-    iniset /$Q_PLUGIN_CONF_FILE ofc api_retry_interval OFC_RETRY_INTERVAL
-
-    _neutron_ovs_base_configure_firewall_driver
+    iniset /$Q_PLUGIN_CONF_FILE NWA ServerURL $NECNWA_SERVER_URL
+    iniset /$Q_PLUGIN_CONF_FILE NWA AccessKeyId $NECNWA_ACCESS_KEY_ID
+    iniset /$Q_PLUGIN_CONF_FILE NWA SecretAccessKey $NECNWA_SECRET_ACCESS_KEY
 }
 
 function neutron_plugin_setup_interface_driver {
     local conf_file=$1
-    iniset $conf_file DEFAULT interface_driver neutron.agent.linux.interface.OVSInterfaceDriver
-    iniset $conf_file DEFAULT ovs_use_veth True
+    iniset $conf_file DEFAULT interface_driver openvswitch
 }
 
-# Utility functions
-# ---------------------------
-
-# Setup OVS tunnel manually
-function _neutron_setup_ovs_tunnels {
-    local bridge=$1
-    local id=0
-    GRE_LOCAL_IP=${GRE_LOCAL_IP:-$HOST_IP}
-    if [ -n "$GRE_REMOTE_IPS" ]; then
-        for ip in ${GRE_REMOTE_IPS//:/ }; do
-            if [[ "$ip" == "$GRE_LOCAL_IP" ]]; then
-                continue
-            fi
-            sudo ovs-vsctl --no-wait add-port $bridge gre$id -- \
-                set Interface gre$id type=gre options:remote_ip=$ip
-            id=`expr $id + 1`
-        done
-    fi
-}
-
+# Used by DevStack exercises/neutron-adv-test.sh
 function neutron_plugin_check_adv_test_requirements {
     is_service_enabled q-agt && is_service_enabled q-dhcp && return 0
 }
