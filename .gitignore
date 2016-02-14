@@ -5,6 +5,7 @@
 dist/
 
 # Unit test / coverage reports
+cover/
 .coverage
 .tox
 .testrepository
