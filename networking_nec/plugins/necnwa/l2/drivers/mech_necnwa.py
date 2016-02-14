@@ -12,11 +12,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from neutron.common import constants as n_const
+from neutron.common import constants as neutron_const
 from neutron.common import utils
 from neutron.extensions import portbindings
 from neutron.extensions import providernet as prov_net
-from neutron.plugins.common import constants as n_constants
+from neutron.plugins.common import constants as plugin_const
 from neutron.plugins.ml2 import db
 from neutron.plugins.ml2 import driver_api as api
 from neutron.plugins.ml2.drivers.openvswitch.mech_driver \
@@ -88,7 +88,7 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
                 if not dummy_segment:
                     dummy_segment = {
                         api.PHYSICAL_NETWORK: res['ResourceGroupName'],
-                        api.NETWORK_TYPE: n_constants.TYPE_VLAN,
+                        api.NETWORK_TYPE: plugin_const.TYPE_VLAN,
                         api.SEGMENTATION_ID: 0
                     }
                     db.add_network_segment(
@@ -176,7 +176,7 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
                           nwa_info)
                 return
             if device_owner == constants.DEVICE_OWNER_DHCP and \
-                    device_id == n_const.DEVICE_ID_RESERVED_DHCP_PORT:
+                    device_id == neutron_const.DEVICE_ID_RESERVED_DHCP_PORT:
                 nwa_info['device']['id'] = utils.get_dhcp_agent_device_id(
                     network_id,
                     context._port.get('binding:host_id')
@@ -207,7 +207,7 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
                 if not dummy_segment:
                     dummy_segment = {
                         api.PHYSICAL_NETWORK: res['ResourceGroupName'],
-                        api.NETWORK_TYPE: n_constants.TYPE_VLAN,
+                        api.NETWORK_TYPE: plugin_const.TYPE_VLAN,
                         api.SEGMENTATION_ID: 0
                     }
                     db.add_network_segment(

@@ -16,7 +16,7 @@ import re
 import time
 
 from neutron.common import topics
-from neutron.plugins.common import constants as n_constants
+from neutron.plugins.common import constants as plugin_const
 from neutron.plugins.ml2 import driver_api as api
 from oslo_log import helpers
 from oslo_log import log as logging
@@ -336,7 +336,7 @@ class AgentProxyL2(object):
 
         segment = {
             api.PHYSICAL_NETWORK: nwa_info['physical_network'],
-            api.NETWORK_TYPE: n_constants.TYPE_VLAN,
+            api.NETWORK_TYPE: plugin_const.TYPE_VLAN,
             api.SEGMENTATION_ID: self._get_vlan_id(nwa_data, network_id,
                                                    resource_group_name)
         }

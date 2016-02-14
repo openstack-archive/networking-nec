@@ -13,9 +13,9 @@
 #    under the License.
 
 import mock
-from neutron.common import constants as q_const
 from neutron.extensions import portbindings
 from neutron.tests import base
+from neutron_lib import constants
 
 from networking_nec.plugins.necnwa.l2 import plugin
 from networking_nec.plugins.necnwa.l2.rpc import ml2_server_callback
@@ -48,7 +48,7 @@ class TestNECNWAServerRpcCallbacks(base.BaseTestCase):
             current = {'network_id': 'a70fed9f-52b8-4290-a3ed-cdcc837b78d8',
                        portbindings.VIF_TYPE: 'vlan',
                        'admin_state_up': True,
-                       'status': q_const.PORT_STATUS_DOWN,
+                       'status': constants.PORT_STATUS_DOWN,
                        'mac_address': '00:0c:29:1f:f5:1c',
                        'fixed_ips': '192.168.1.1',
                        'device_owner': 'compute:DC01_KVM01_ZONE01',

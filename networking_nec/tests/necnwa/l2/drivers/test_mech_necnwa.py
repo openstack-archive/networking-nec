@@ -17,9 +17,9 @@ from mock import patch
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from neutron.common import constants
 from neutron.extensions import providernet as prov_net
 from neutron.tests import base
+from neutron_lib import constants
 from oslo_log import log as logging
 from oslo_serialization import jsonutils
 
