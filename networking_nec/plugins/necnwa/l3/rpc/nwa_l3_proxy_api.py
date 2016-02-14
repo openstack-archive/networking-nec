@@ -12,46 +12,52 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from oslo_log import log as logging
 
-from neutron.common import rpc as n_rpc
-import oslo_messaging
+LOG = logging.getLogger(__name__)
 
 
-class NECNWAProxyApi(object):
-    BASE_RPC_API_VERSION = '1.0'
+class NwaL3ProxyApi(object):
 
-    def __init__(self, topic, tenant_id):
-        target = oslo_messaging.Target(topic='%s-%s' % (topic, tenant_id),
-                                       version=self.BASE_RPC_API_VERSION)
-        self._client = n_rpc.get_client(target)
+    def __init__(self, client):
+        self.client = client
 
-    @property
-    def client(self):
-        return self._client
-
-    def _send_msg(self, context, msg, blocking=False):
-        cctxt = self.client.prepare()
-        if blocking:
-            return cctxt.call(context, msg)
-        else:
-            return cctxt.cast(context, msg)
-
-    def create_general_dev(self, context, tenant_id, nwa_tenant_id, nwa_info):
+    def create_tenant_fw(self, context, tenant_id, nwa_tenant_id, nwa_info):
         cctxt = self.client.prepare()
         return cctxt.cast(
             context,
-            'create_general_dev',
+            'create_tenant_fw',
             tenant_id=tenant_id,
             nwa_tenant_id=nwa_tenant_id,
             nwa_info=nwa_info
         )
 
-    def delete_general_dev(self, context, tenant_id, nwa_tenant_id, nwa_info):
+    def delete_tenant_fw(self, context, tenant_id, nwa_tenant_id, nwa_info):
         cctxt = self.client.prepare()
         return cctxt.cast(
             context,
-            'delete_general_dev',
+            'delete_tenant_fw',
             tenant_id=tenant_id,
             nwa_tenant_id=nwa_tenant_id,
             nwa_info=nwa_info
+        )
+
+    def setting_nat(self, context, tenant_id, nwa_tenant_id, floating):
+        cctxt = self.client.prepare()
+        return cctxt.cast(
+            context,
+            'setting_nat',
+            tenant_id=tenant_id,
+            nwa_tenant_id=nwa_tenant_id,
+            floating=floating
+        )
+
+    def delete_nat(self, context, tenant_id, nwa_tenant_id, floating):
+        cctxt = self.client.prepare()
+        return cctxt.cast(
+            context,
+            'delete_nat',
+            tenant_id=tenant_id,
+            nwa_tenant_id=nwa_tenant_id,
+            floating=floating
         )

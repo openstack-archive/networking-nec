@@ -26,10 +26,12 @@ from oslo_config import cfg
 from oslo_log import log as logging
 
 from networking_nec._i18n import _LW
+from networking_nec.plugins.necnwa.common import exceptions as nwa_exc
 from networking_nec.plugins.necnwa.common import utils as nwa_com_utils
 from networking_nec.plugins.necnwa.l2 import db_api as nwa_db
 from networking_nec.plugins.necnwa.l2 import utils as nwa_l2_utils
 from networking_nec.plugins.necnwa.l3 import db_api as nwa_l3_db
+from networking_nec.plugins.necnwa.l3.rpc.nwa_l3_proxy_api import NwaL3ProxyApi
 
 LOG = logging.getLogger(__name__)
 
@@ -41,70 +43,24 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
             'resource_group', cfg.CONF.NWA.resource_group_file,
             cfg.CONF.NWA.resource_group, default_value=[])
 
+    def _get_l2api_proxy(self, context, tenant_id):
+        proxy = context._plugin.get_nwa_proxy(tenant_id, context)
+        return proxy
+
+    def _get_l3api_proxy(self, context, tenant_id):
+        proxy = context._plugin.get_nwa_proxy(tenant_id,
+                                              context.network._plugin_context)
+        return NwaL3ProxyApi(proxy.client)
+
     def create_port_precommit(self, context):
-        __network_name, network_id = nwa_l2_utils.get_network_info(context)
         device_owner = context._port['device_owner']
-        device_id = context._port['device_id']
-
-        if device_owner in (constants.DEVICE_OWNER_ROUTER_INTF,
-                            constants.DEVICE_OWNER_ROUTER_GW):
-
-            grplst = [res['device_owner'] for res in self.resource_groups]
-            if device_owner not in grplst:
-                LOG.warning(_LW("resource group miss match. device_owner=%s"),
-                            device_owner)
-                return
-
-            rt_tid = nwa_l3_db.get_tenant_id_by_router(
-                context.network._plugin_context.session,
-                device_id
-            )
-            nwa_rt_tid = nwa_com_utils.get_nwa_tenant_id(rt_tid)
-            LOG.debug("rt_tid=%s", rt_tid)
-
-            nwa_info = nwa_l2_utils.portcontext_to_nwa_info(
-                context, self.resource_groups)
-            nwa_info['tenant_id'] = rt_tid
-            nwa_info['nwa_tenant_id'] = nwa_rt_tid
-            proxy = context._plugin.get_nwa_proxy(
-                rt_tid, context.network._plugin_context
-            )
-            proxy.create_tenant_fw(
-                context.network._plugin_context,
-                rt_tid,
-                nwa_rt_tid,
-                nwa_info
-            )
-
-            for res in self.resource_groups:
-                if res['device_owner'] != context._port['device_owner']:
-                    continue
-                dummy_segment = db.get_dynamic_segment(
-                    context.network._plugin_context.session,
-                    network_id,
-                    physical_network=res['ResourceGroupName']
-                )
-                LOG.debug("1st: dummy segment is %s", dummy_segment)
-                if not dummy_segment:
-                    dummy_segment = {
-                        api.PHYSICAL_NETWORK: res['ResourceGroupName'],
-                        api.NETWORK_TYPE: plugin_const.TYPE_VLAN,
-                        api.SEGMENTATION_ID: 0
-                    }
-                    db.add_network_segment(
-                        context.network._plugin_context.session,
-                        network_id, dummy_segment, is_dynamic=True)
-
-                LOG.debug("2nd: dummy segment is %s", dummy_segment)
-                context.set_binding(
-                    dummy_segment[api.ID],
-                    self.vif_type,
-                    {portbindings.CAP_PORT_FILTER: True,
-                     portbindings.OVS_HYBRID_PLUG: True}
-                )
-        else:
+        if device_owner not in (constants.DEVICE_OWNER_ROUTER_INTF,
+                                constants.DEVICE_OWNER_ROUTER_GW):
             LOG.warning(_LW("device owner missmatch device_owner=%s"),
                         device_owner)
+            return
+        self._l3_create_tenant_fw(context)
+        self._bind_segment_to_vif_type(context)
 
     def update_port_precommit(self, context):
         new_port = context.current
@@ -112,22 +68,12 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
         if (not new_port['device_id'] and orig_port['device_id'] and
                 not new_port['device_owner'] and orig_port['device_owner']):
             # device_id and device_owner are clear on VM deleted.
-            tenant_id, nwa_tenant_id = nwa_com_utils.get_tenant_info(context)
             LOG.debug('original_port=%s', context.original)
             LOG.debug('updated_port=%s', context.current)
-            nwa_info = nwa_l2_utils.portcontext_to_nwa_info(
-                context, self.resource_groups, True)
-            proxy = context._plugin.get_nwa_proxy(tenant_id)
-            proxy.delete_general_dev(
-                context.network._plugin_context,
-                tenant_id,
-                nwa_tenant_id,
-                nwa_info
-            )
+            self._l2_delete_general_dev(context, use_original_port=True)
 
     def delete_port_precommit(self, context):
         tenant_id, nwa_tenant_id = nwa_com_utils.get_tenant_info(context)
-        __network_name, network_id = nwa_l2_utils.get_network_info(context)
         device_owner = context._port['device_owner']
         device_id = context._port['device_id']
 
@@ -138,107 +84,63 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
 
         if device_owner in (constants.DEVICE_OWNER_ROUTER_GW,
                             constants.DEVICE_OWNER_ROUTER_INTF):
-            rt_tid = nwa_l3_db.get_tenant_id_by_router(
-                context.network._plugin_context.session,
-                device_id
-            )
-            nwa_rt_tid = nwa_com_utils.get_nwa_tenant_id(rt_tid)
-
-            recode = nwa_db.get_nwa_tenant_binding(
-                context.network._plugin_context.session,
-                rt_tid, nwa_rt_tid)
-
-            if not recode:
-                LOG.debug('nwa tenant not found')
-                return
-
-            nwa_info = nwa_l2_utils.portcontext_to_nwa_info(
-                context, self.resource_groups)
-            nwa_info['tenant_id'] = rt_tid
-            nwa_info['nwa_tenant_id'] = nwa_rt_tid
-            proxy = context._plugin.get_nwa_proxy(rt_tid)
-            proxy.delete_tenant_fw(
-                context.network._plugin_context,
-                rt_tid,
-                nwa_rt_tid,
-                nwa_info
-            )
-
+            self._l3_delete_tenant_fw(context)
         elif device_owner == constants.DEVICE_OWNER_FLOATINGIP:
             pass
         elif device_owner == '' and device_id == '':
             pass
         else:
-            nwa_info = nwa_l2_utils.portcontext_to_nwa_info(
-                context, self.resource_groups)
-            if nwa_info.get('resource_group_name') is None:
-                LOG.debug('resource_group_name is None nwa_info=%s',
-                          nwa_info)
-                return
-            if device_owner == constants.DEVICE_OWNER_DHCP and \
-                    device_id == neutron_const.DEVICE_ID_RESERVED_DHCP_PORT:
-                nwa_info['device']['id'] = utils.get_dhcp_agent_device_id(
-                    network_id,
-                    context._port.get('binding:host_id')
-                )
-
-            proxy = context._plugin.get_nwa_proxy(tenant_id)
-            proxy.delete_general_dev(
-                context.network._plugin_context,
-                tenant_id,
-                nwa_tenant_id,
-                nwa_info
-            )
+            self._l2_delete_general_dev(context)
 
     def try_to_bind_segment_for_agent(self, context, segment, agent):
-        __network_name, network_id = nwa_l2_utils.get_network_info(context)
-        mappings = agent['configurations'].get('bridge_mappings', {})
-
-        for res in self.resource_groups:
-            if res['ResourceGroupName'] not in mappings:
-                continue
-
-            if res['device_owner'] == context._port['device_owner']:
-
-                dummy_segment = db.get_dynamic_segment(
-                    context.network._plugin_context.session,
-                    network_id, physical_network=res['ResourceGroupName'])
-
-                if not dummy_segment:
-                    dummy_segment = {
-                        api.PHYSICAL_NETWORK: res['ResourceGroupName'],
-                        api.NETWORK_TYPE: plugin_const.TYPE_VLAN,
-                        api.SEGMENTATION_ID: 0
-                    }
-                    db.add_network_segment(
-                        context.network._plugin_context.session,
-                        network_id, dummy_segment, is_dynamic=True)
-
-                context.set_binding(dummy_segment[api.ID],
-                                    self.vif_type,
-                                    {portbindings.CAP_PORT_FILTER: True,
-                                     portbindings.OVS_HYBRID_PLUG: True})
-
-                self._bind_port_nwa(context)
+        if self._bind_segment_to_vif_type(context, agent):
+            device_owner = context._port['device_owner']
+            if device_owner not in (constants.DEVICE_OWNER_ROUTER_GW,
+                                    constants.DEVICE_OWNER_ROUTER_INTF):
+                self._bind_port_nwa_debug_message(context)
+                self._l2_create_general_dev(context)
                 return True
-
         LOG.warning(_LW("binding segment not found for agent=%s"), agent)
-
         return super(
             NECNWAMechanismDriver, self
         ).try_to_bind_segment_for_agent(context, segment, agent)
 
-    def bind_port(self, context):
-        super(NECNWAMechanismDriver, self).bind_port(context)
+    def _bind_segment_to_vif_type(self, context, agent=None):
+        mappings = {}
+        if agent:
+            mappings = agent['configurations'].get('bridge_mappings', {})
 
-    def _bind_port_nwa(self, context):
-        tenant_id, nwa_tenant_id = nwa_com_utils.get_tenant_info(context)
+        for res in self.resource_groups:
+            if agent and res['ResourceGroupName'] not in mappings:
+                continue
+            if res['device_owner'] != context._port['device_owner']:
+                continue
+
+            network_id = context.network.current['id']
+            dummy_segment = db.get_dynamic_segment(
+                context.network._plugin_context.session,
+                network_id, physical_network=res['ResourceGroupName'])
+            LOG.debug("1st: dummy segment is %s", dummy_segment)
+            if not dummy_segment:
+                dummy_segment = {
+                    api.PHYSICAL_NETWORK: res['ResourceGroupName'],
+                    api.NETWORK_TYPE: plugin_const.TYPE_VLAN,
+                    api.SEGMENTATION_ID: 0
+                }
+                db.add_network_segment(
+                    context.network._plugin_context.session,
+                    network_id, dummy_segment, is_dynamic=True)
+            LOG.debug("2nd: dummy segment is %s", dummy_segment)
+            context.set_binding(dummy_segment[api.ID],
+                                self.vif_type,
+                                {portbindings.CAP_PORT_FILTER: True,
+                                 portbindings.OVS_HYBRID_PLUG: True})
+            return True
+        return False
+
+    def _bind_port_nwa_debug_message(self, context):
         network_name, network_id = nwa_l2_utils.get_network_info(context)
         device_owner = context._port['device_owner']
-
-        if device_owner in (constants.DEVICE_OWNER_ROUTER_GW,
-                            constants.DEVICE_OWNER_ROUTER_INTF):
-            return
 
         subnet_ids = []
         if 'fixed_ips' in context._port:
@@ -250,21 +152,18 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
             segmentation_id = context.network.current[prov_net.SEGMENTATION_ID]
         else:
             for provider in context.network.current['segments']:
-                physical_network = \
-                    nwa_l2_utils.get_physical_network(device_owner,
-                                                      self.resource_groups)
-                if provider.get(prov_net.PHYSICAL_NETWORK) != physical_network:
-                    continue
-                segmentation_id = provider[prov_net.SEGMENTATION_ID]
-                LOG.debug("provider segmentation_id = %d", segmentation_id)
-                break
+                if (provider.get(prov_net.PHYSICAL_NETWORK) ==
+                        nwa_l2_utils.get_physical_network(
+                            device_owner, self.resource_groups)):
+                    segmentation_id = provider[prov_net.SEGMENTATION_ID]
+                    break
 
-        LOG.debug("_bind_port_nwa %(tenant_id)s %(network_name)s "
+        LOG.debug("provider segmentation_id = %d", segmentation_id)
+        LOG.debug("_bind_port_nwa %(network_name)s "
                   "%(network_id)s %(device_id)s %(device_owner)s "
                   "%(port_id)s %(mac_address)s %(subnet_ids)s "
                   "%(segmentation_id)d",
-                  {'tenant_id': tenant_id,
-                   'network_name': network_name,
+                  {'network_name': network_name,
                    'network_id': network_id,
                    'device_id': context._port['device_id'],
                    'device_owner': device_owner,
@@ -273,18 +172,84 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
                    'subnet_ids': subnet_ids,
                    'segmentation_id': segmentation_id})
 
+    def _l2_create_general_dev(self, context):
+        kwargs = self._make_l2api_kwargs(context)
+        proxy = self._get_l2api_proxy(context, kwargs['tenant_id'])
+        proxy.create_general_dev(context.network._plugin_context, **kwargs)
+
+    def _l2_delete_general_dev(self, context, use_original_port=False):
+        kwargs = self._make_l2api_kwargs(context,
+                                         use_original_port=use_original_port)
+        proxy = self._get_l2api_proxy(context, kwargs['tenant_id'])
+        kwargs['nwa_info'] = self._revert_dhcp_agent_device_id(
+            context, kwargs['nwa_info'])
+        proxy.delete_general_dev(context.network._plugin_context, **kwargs)
+
+    def _make_l2api_kwargs(self, context, use_original_port=False):
+        tenant_id, nwa_tenant_id = nwa_com_utils.get_tenant_info(context)
         rc = nwa_db.get_nwa_tenant_binding(
             context.network._plugin_context.session,
             tenant_id, nwa_tenant_id)
+        if not rc:
+            raise nwa_exc.TenantNotFound(tenant_id=tenant_id)
 
-        LOG.debug('bind_port return=%s', rc)
+        nwa_info = nwa_l2_utils.portcontext_to_nwa_info(
+            context, self.resource_groups, use_original_port)
+        if not nwa_info.get('resource_group_name'):
+            raise ValueError('resource_group_name is None. nwa_info=%s' %
+                             nwa_info)
+        return {
+            'tenant_id': tenant_id,
+            'nwa_tenant_id': nwa_tenant_id,
+            'nwa_info': nwa_info
+        }
+
+    def _revert_dhcp_agent_device_id(self, context, nwa_info):
+        device_owner = context._port['device_owner']
+        device_id = context._port['device_id']
+        if device_owner == constants.DEVICE_OWNER_DHCP and \
+                device_id == neutron_const.DEVICE_ID_RESERVED_DHCP_PORT:
+            # get device_id of dhcp agent even if it is reserved.
+            nwa_info['device']['id'] = utils.get_dhcp_agent_device_id(
+                context.network.current['id'],
+                context._port.get('binding:host_id')
+            )
+        return nwa_info
+
+    def _l3_create_tenant_fw(self, context):
+        device_owner = context._port['device_owner']
+        grplst = [res['device_owner'] for res in self.resource_groups]
+        if device_owner not in grplst:
+            raise nwa_exc.ResourceGroupNameNotFound(device_owner=device_owner)
+
+        kwargs = self._make_l3api_kwargs(context)
+        proxy = self._get_l3api_proxy(context, kwargs['tenant_id'])
+        proxy.create_tenant_fw(context.network._plugin_context, **kwargs)
+
+    def _l3_delete_tenant_fw(self, context):
+        kwargs = self._make_l3api_kwargs(context)
+        proxy = self._get_l3api_proxy(context, kwargs['tenant_id'])
+        proxy.delete_tenant_fw(context.network._plugin_context, **kwargs)
+
+    def _make_l3api_kwargs(self, context):
+        rt_tid = nwa_l3_db.get_tenant_id_by_router(
+            context.network._plugin_context.session,
+            context._port['device_id']
+        )
+        nwa_rt_tid = nwa_com_utils.get_nwa_tenant_id(rt_tid)
+
+        rc = nwa_db.get_nwa_tenant_binding(
+            context.network._plugin_context.session,
+            rt_tid, nwa_rt_tid)
+        if not rc:
+            raise nwa_exc.TenantNotFound(tenant_id=rt_tid)
 
         nwa_info = nwa_l2_utils.portcontext_to_nwa_info(
             context, self.resource_groups)
-        proxy = context._plugin.get_nwa_proxy(tenant_id)
-        proxy.create_general_dev(
-            context.network._plugin_context,
-            tenant_id,
-            nwa_tenant_id,
-            nwa_info
-        )
+        nwa_info['tenant_id'] = rt_tid           # overwrite by router's
+        nwa_info['nwa_tenant_id'] = nwa_rt_tid   # tenant_id and nwa_tenant_id
+        return {
+            'tenant_id': rt_tid,
+            'nwa_tenant_id': nwa_rt_tid,
+            'nwa_info': nwa_info
+        }

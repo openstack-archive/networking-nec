@@ -25,6 +25,10 @@ class NWAUtilsError(n_exc.NeutronException):
     message = _('NWAUtils Error %(msg)s')
 
 
+class TenantNotFound(n_exc.NeutronException):
+    message = _('NWA Tenant %(tenant_id)s not found')
+
+
 class ResourceGroupNameNotFound(n_exc.NotFound):
     message = _("ResourceGroupName %(device_owner)s could not be found")
 
