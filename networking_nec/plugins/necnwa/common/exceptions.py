@@ -27,3 +27,9 @@ class NWAUtilsError(n_exc.NeutronException):
 
 class ResourceGroupNameNotFound(n_exc.NotFound):
     message = _("ResourceGroupName %(device_owner)s could not be found")
+
+
+class AgentProxyException(Exception):
+    def __init__(self, value=None):
+        super(AgentProxyException, self).__init__()
+        self.value = value

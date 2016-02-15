@@ -17,6 +17,7 @@ from copy import deepcopy
 import mock
 
 from networking_nec.plugins.necnwa.agent import proxy_l2
+from networking_nec.plugins.necnwa.common import exceptions as nwa_exc
 from networking_nec.tests.necnwa.agent import test_data
 from networking_nec.tests.necnwa.agent import test_nwa_agent
 
@@ -33,7 +34,9 @@ class TestAgentProxyL2(test_nwa_agent.TestNECNWANeutronAgentBase):
             'resource_group_name_nw': resource_group_name,
         }
         self.nwacli.create_tenant_nw.return_value = 500, {}
-        result, nwa_data2 = self.agent.proxy_l2._create_tenant_nw(
+        e = self.assertRaises(
+            nwa_exc.AgentProxyException,
+            self.agent.proxy_l2._create_tenant_nw,
             self.context,
             tenant_id=tenant_id,
             nwa_tenant_id=nwa_tenant_id,
@@ -41,8 +44,8 @@ class TestAgentProxyL2(test_nwa_agent.TestNECNWANeutronAgentBase):
             nwa_data=nwa_data1,
             nwa_info=nwa_info,
         )
-        self.assertEqual(nwa_data1, nwa_data2)
-        self.assertFalse(result)
+        ret_val = e.value
+        self.assertEqual(ret_val, nwa_data1)
 
     def test__create_vlan_succeed1(self):
         tenant_id = '844eb55f21e84a289e9c22098d387e5d'
@@ -53,13 +56,27 @@ class TestAgentProxyL2(test_nwa_agent.TestNECNWANeutronAgentBase):
         ret_vln = deepcopy(test_data.result_vln)
         ret_vln['resultdata']['VlanID'] = '300'
         self.nwacli.create_vlan.return_value = (200, ret_vln)
-        result, nwa_data = self.agent.proxy_l2._create_vlan(
+        result = self.agent.proxy_l2._create_vlan(
             self.context,
             tenant_id=tenant_id,
             nwa_tenant_id=nwa_tenant_id,
             nwa_info=nwa_info,
             nwa_data=nwa_data
         )
+        exp_data = {
+            'NW_546a8551-5c2b-4050-a769-cc3c962fc5cf': 'net100',
+            'NW_546a8551-5c2b-4050-a769-cc3c962fc5cf_network_id':
+            '546a8551-5c2b-4050-a769-cc3c962fc5cf',
+            'NW_546a8551-5c2b-4050-a769-cc3c962fc5cf_nwa_network_name':
+            'LNW_BusinessVLAN_100',
+            'NW_546a8551-5c2b-4050-a769-cc3c962fc5cf_subnet': '192.168.100.0',
+            'NW_546a8551-5c2b-4050-a769-cc3c962fc5cf_subnet_id':
+            '7dabadaa-06fc-45fb-af0b-33384cf291c4',
+            'VLAN_546a8551-5c2b-4050-a769-cc3c962fc5cf': 'physical_network',
+            'VLAN_546a8551-5c2b-4050-a769-cc3c962fc5cf_CreateVlan': '',
+            'VLAN_546a8551-5c2b-4050-a769-cc3c962fc5cf_VlanID': '300'
+        }
+        self.assertDictEqual(exp_data, result)
 
     def test__create_vlan_fail1(self):
         tenant_id = '844eb55f21e84a289e9c22098d387e5d'
@@ -68,7 +85,9 @@ class TestAgentProxyL2(test_nwa_agent.TestNECNWANeutronAgentBase):
         nwa_data = {'NW_546a8551-5c2b-4050-a769-cc3c962fc5cf': 'net100'}
         nwa_info = deepcopy(test_data.nwa_info_add_intf)
         self.nwacli.create_vlan.return_value = 500, {}
-        result, nwa_data = self.agent.proxy_l2._create_vlan(
+        self.assertRaises(
+            nwa_exc.AgentProxyException,
+            self.agent.proxy_l2._create_vlan,
             self.context,
             tenant_id=tenant_id,
             nwa_tenant_id=nwa_tenant_id,
@@ -110,13 +129,14 @@ class TestAgentProxyL2(test_nwa_agent.TestNECNWANeutronAgentBase):
         nwa_info = deepcopy(test_data.nwa_info_add_intf)
         self.nwacli.create_vlan.return_value = (200,
                                                 deepcopy(test_data.result_dvl))
-        result, nwa_data = self.agent.proxy_l2._delete_vlan(
+        result = self.agent.proxy_l2._delete_vlan(
             self.context,
             tenant_id=tenant_id,
             nwa_tenant_id=nwa_tenant_id,
             nwa_info=nwa_info,
             nwa_data=nwa_data
         )
+        self.assertDictEqual(nwa_data, result)
 
     @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.get_nwa_tenant_binding')  # noqa
     @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.set_nwa_tenant_binding')  # noqa
