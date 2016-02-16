@@ -1,0 +1,8 @@
+Code-Review+2: Akihiro Motoki <amotoki@gmail.com>
+Workflow+1: Akihiro Motoki <amotoki@gmail.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Tue, 16 Feb 2016 19:51:19 +0000
+Reviewed-on: https://review.openstack.org/280870
+Project: openstack/networking-nec
+Branch: refs/heads/master
