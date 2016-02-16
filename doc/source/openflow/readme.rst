@@ -1,6 +1,20 @@
-============
-Introduction
-============
+===================================
+Introduction of NEC OpenFlow plugin
+===================================
+
+.. toctree::
+   :maxdepth: 1
+
+   Installation <installation>
+   Settings <settings>
+   DevStack support <devstack>
+
+.. warning::
+
+   NEC OpenFlow plugin was deprecated in OpenStack Liberty release (2015.2)
+   and removed during Mitaka development cycle.
+   Note that the production support will be continued based
+   on the production support policy.
 
 NEC OpenFlow plugin talks to OpenFlow Controller and each Neutron
 would be mapped to an virtual layer-2 network slice on an OpenFlow
@@ -20,5 +34,5 @@ This plugin consists of two components:
   between a VIF and a switch port from local Open vSwitch and reports
   it to the plugin.
 
-.. image:: images/nec-openflow-plugin-desgin.png
+.. image:: ../images/nec-openflow-plugin-desgin.png
    :width: 700px

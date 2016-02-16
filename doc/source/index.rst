@@ -8,58 +8,50 @@ Neutron plugins/drivers for NEC networking products
 ===================================================
 
 ``networking-nec`` library provides Neutron plugins/drivers
-for `NEC SDN`_ networking products` (mainly OpenFlow related at now)
-and `Trema`_ `Sliceable Switch`_ (reference implementation).
+for `NEC SDN <http://www.necam.com/SDN/>`_ networking products`.
 
-* Documentation:
-
-  * http://pythonhosted.org/networking-nec/
-  * https://wiki.openstack.org/wiki/Neutron/NEC_OpenFlow_Plugin
-
-* Source:
-
-  * http://git.openstack.org/cgit/openstack/networking-nec
-  * https://github.com/openstack/networking-nec
-
+* Documentation: http://pythonhosted.org/networking-nec/
+* Source: http://git.openstack.org/cgit/openstack/networking-nec
 * Bugs: http://bugs.launchpad.net/networking-nec
 * License: Apache License 2.0
 
+NEC NWA plugin
+==============
+
+In Mitaka release, NWA plugin was added as a new integration layer
+with NEC NWA (Network Automation) product.
+NWA plugin consists of layer-2 core plugin, layer-3 service plugin,
+FWaaS service plugin and LBaaS driver.
+
+NEC OpenFlow plugin
+===================
+
+NEC OpenFlow plugin in Liberty or older releases supported
+`NEC ProgrammableFlow controller <http://www.necam.com/SDN/>`_ and
+`Trema <https://github.com/trema/trema>`_
+`Sliceable Switch <https://github.com/trema/apps/tree/master/sliceable_switch>`_
+(as reference implementation).
+
 .. warning::
 
-   The current plugin, NEC OpenFlow plugin, is deprecated in
-   OpenStack Liberty release (2015.2).
-   A new driver for NEC NWA (Network Automation) product is coming.
+   NEC OpenFlow plugin was deprecated in OpenStack Liberty release (2015.2)
+   and removed during Mitaka development cycle.
    Note that the production support will be continued based
    on the production support policy.
 
-.. note::
-
-   In 2015.1 release (Kilo development cycle) in OpenStack, Neutron
-   community decided to decompose vendor plugins/drivers from the neutron
-   code repo to address many pain points. NEC OpenFlow Neutron plugin is
-   maintained in a separate module.
-
-User Guide
-----------
-
 .. toctree::
    :maxdepth: 2
 
-   Introduction <readme>
-   installation
-   settings
+   Introduction <openflow/readme>
+   Installation <openflow/installation>
+   Settings <openflow/settings>
+   DevStack support <openflow/devstack>
 
 Developers Guide
-----------------
+================
 
 .. toctree::
    :maxdepth: 2
 
-   DevStack support <devstack>
    tips
    contributing
-
-
-.. _NEC SDN: http://www.necam.com/SDN/
-.. _Trema: https://github.com/trema/trema
-.. _Sliceable Switch: https://github.com/trema/apps/tree/master/sliceable_switch
