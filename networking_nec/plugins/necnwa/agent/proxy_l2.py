@@ -23,6 +23,7 @@ from oslo_log import log as logging
 
 from networking_nec._i18n import _LE, _LI, _LW
 from networking_nec.common import utils
+from networking_nec.plugins.necnwa.agent import proxy_tenant as tenant_util
 from networking_nec.plugins.necnwa.common import constants as nwa_const
 from networking_nec.plugins.necnwa.common import exceptions as nwa_exc
 from networking_nec.plugins.necnwa.l2.rpc import nwa_l2_server_api
@@ -37,21 +38,6 @@ WAIT_AGENT_NOTIFIER = 20
 
 VLAN_OWN_GDV = '_GD'
 VLAN_OWN_TFW = '_TFW'
-
-
-def catch_exception_and_update_tenant_binding(method):
-
-    def wrapper(obj, context, **kwargs):
-        try:
-            return method(obj, context, **kwargs)
-        except nwa_exc.AgentProxyException as e:
-            tenant_id = kwargs.get('tenant_id')
-            nwa_tenant_id = kwargs.get('nwa_tenant_id')
-            nwa_data = e.value
-            return obj.proxy_tenant.update_tenant_binding(
-                context, tenant_id, nwa_tenant_id, nwa_data)
-
-    return wrapper
 
 
 def check_vlan(network_id, nwa_data):
@@ -250,7 +236,7 @@ class AgentProxyL2(object):
         return nwa_data
 
     @helpers.log_method_call
-    @catch_exception_and_update_tenant_binding
+    @tenant_util.catch_exception_and_update_tenant_binding
     def create_general_dev(self, context, **kwargs):
         """Create GeneralDev wrapper.
 
@@ -408,7 +394,7 @@ class AgentProxyL2(object):
         return nwa_data
 
     @helpers.log_method_call
-    @catch_exception_and_update_tenant_binding
+    @tenant_util.catch_exception_and_update_tenant_binding
     def delete_general_dev(self, context, **kwargs):
         """Delete GeneralDev.
 

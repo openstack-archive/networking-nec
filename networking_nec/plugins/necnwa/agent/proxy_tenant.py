@@ -17,9 +17,25 @@ from oslo_log import log as logging
 from oslo_serialization import jsonutils
 
 from networking_nec.common import utils
+from networking_nec.plugins.necnwa.common import exceptions as nwa_exc
 from networking_nec.plugins.necnwa.l2.rpc import tenant_binding_api
 
 LOG = logging.getLogger(__name__)
+
+
+def catch_exception_and_update_tenant_binding(method):
+
+    def wrapper(obj, context, **kwargs):
+        try:
+            return method(obj, context, **kwargs)
+        except nwa_exc.AgentProxyException as e:
+            tenant_id = kwargs.get('tenant_id')
+            nwa_tenant_id = kwargs.get('nwa_tenant_id')
+            nwa_data = e.value
+            return obj.proxy_tenant.update_tenant_binding(
+                context, tenant_id, nwa_tenant_id, nwa_data)
+
+    return wrapper
 
 
 class AgentProxyTenant(object):

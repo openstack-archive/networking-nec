@@ -18,7 +18,7 @@ from oslo_log import helpers
 from oslo_log import log as logging
 
 from networking_nec._i18n import _LI
-from networking_nec.plugins.necnwa.agent import proxy_l2 as agent_proxy_l2
+from networking_nec.plugins.necnwa.agent import proxy_tenant as tenant_util
 from networking_nec.plugins.necnwa.common import exceptions as nwa_exc
 
 LOG = logging.getLogger(__name__)
@@ -34,7 +34,7 @@ class NwaL2Network(object):
         self._proxy_l2 = proxy_l2
 
     @helpers.log_method_call
-    @agent_proxy_l2.catch_exception_and_update_tenant_binding
+    @tenant_util.catch_exception_and_update_tenant_binding
     def start(self, context, **kwargs):
         tenant_id = kwargs.get('tenant_id')
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
@@ -68,7 +68,7 @@ class NwaL2Network(object):
         return nwa_data
 
     @helpers.log_method_call
-    @agent_proxy_l2.catch_exception_and_update_tenant_binding
+    @tenant_util.catch_exception_and_update_tenant_binding
     def terminate(self, context, **kwargs):
         tenant_id = kwargs.get('tenant_id')
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
