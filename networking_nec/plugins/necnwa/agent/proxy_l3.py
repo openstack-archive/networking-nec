@@ -30,11 +30,10 @@ from networking_nec.plugins.necnwa.common import exceptions as nwa_exc
 from networking_nec.plugins.necnwa.l2.rpc import nwa_l2_server_api
 from networking_nec.plugins.necnwa.l2.rpc import tenant_binding_api
 from networking_nec.plugins.necnwa.l3.rpc import nwa_l3_server_api
+from networking_nec.plugins.necnwa.nwalib import data_utils
 
 
 LOG = logging.getLogger(__name__)
-
-VLAN_OWN_TFW = '_TFW'
 
 
 # pylint: disable=too-many-instance-attributes
@@ -63,11 +62,11 @@ class AgentProxyL3(object):
     @l2.catch_exception_and_update_tenant_binding
     def create_tenant_fw(self, context, **kwargs):
         nwa_data = self.nwa_l2_network.start(context, **kwargs)
-        dev_key = 'DEV_' + kwargs['nwa_info']['device']['id']
-        net_key = dev_key + '_' + kwargs['nwa_info']['network']['id']
-        if dev_key not in nwa_data:
-            nwa_data = self._create_tenant_fw(nwa_data, context, **kwargs)
-        elif net_key not in nwa_data:
+        device_id = kwargs['nwa_info']['device']['id']
+        network_id = kwargs['nwa_info']['network']['id']
+        dev_key = data_utils.get_device_key(device_id)
+        net_key = data_utils.get_device_net_key(device_id, network_id)
+        if dev_key not in nwa_data or net_key not in nwa_data:
             nwa_data = self._create_tenant_fw(nwa_data, context, **kwargs)
         else:
             LOG.warning(_LW("unknown device."))
@@ -79,16 +78,14 @@ class AgentProxyL3(object):
             kwargs['tenant_id'], kwargs['nwa_tenant_id'],
             nwa_data
         )
-        vlan_id = int(nwa_data['VLAN_' +
-                               kwargs['nwa_info']['network']['id'] +
-                               '_' +
-                               kwargs['nwa_info']['resource_group_name_nw'] +
-                               VLAN_OWN_TFW +
-                               '_VlanID'],
-                      10)
+        resource_group_name_nw = kwargs['nwa_info']['resource_group_name_nw']
+        vlan_id = data_utils.get_vp_net_vlan_id(nwa_data, network_id,
+                                                resource_group_name_nw,
+                                                nwa_const.NWA_DEVICE_TFW)
+
         self.nwa_l2_rpc.update_port_state_with_notifier(
             context,
-            kwargs['nwa_info']['device']['id'],
+            device_id,
             self.agent_top.agent_id,
             kwargs['nwa_info']['port']['id'],
             {
@@ -96,18 +93,19 @@ class AgentProxyL3(object):
                 api.NETWORK_TYPE: n_constants.TYPE_VLAN,
                 api.SEGMENTATION_ID: vlan_id
             },
-            kwargs['nwa_info']['network']['id']
+            network_id
         )
         return ret
 
     @utils.log_method_return_value
     def _create_tenant_fw(self, nwa_data, context, **kwargs):
+        device_id = kwargs['nwa_info']['device']['id']
         network_id = kwargs['nwa_info']['network']['id']
         rcode, body = self.client.create_tenant_fw(
             kwargs['nwa_tenant_id'],
             kwargs['nwa_info']['resource_group_name'],
             kwargs['nwa_info']['port']['ip'],
-            nwa_data['NW_' + network_id + '_nwa_network_name'],
+            data_utils.get_vlan_logical_name(nwa_data, network_id),
             kwargs['nwa_info']['network']['vlan_type']
         )
         if rcode != 200 or body['status'] != 'SUCCESS':
@@ -115,32 +113,20 @@ class AgentProxyL3(object):
 
         LOG.debug("CreateTenantFW SUCCESS.")
 
-        dev_key = 'DEV_' + kwargs['nwa_info']['device']['id']
-        net_key = dev_key + '_' + kwargs['nwa_info']['network']['id']
         tfw_name = body['resultdata']['TenantFWName']
         resource_group_name_nw = kwargs['nwa_info']['resource_group_name_nw']
 
-        nwa_data[dev_key] = 'device_id'
-        nwa_data[dev_key +
-                 '_device_owner'] = kwargs['nwa_info']['device']['owner']
-        nwa_data[dev_key + '_TenantFWName'] = tfw_name
-
-        nwa_data[net_key] = kwargs['nwa_info']['network']['name']
-        nwa_data[net_key + '_ip_address'] = kwargs['nwa_info']['port']['ip']
-        nwa_data[net_key + '_mac_address'] = kwargs['nwa_info']['port']['mac']
-        nwa_data[net_key + '_' +
-                 resource_group_name_nw] = nwa_const.NWA_DEVICE_TFW
-        nwa_data[net_key + '_TenantFWName'] = tfw_name
-
-        vlan_key = 'VLAN_' + network_id
-        seg_key = ('VLAN_' + network_id + '_' +
-                   resource_group_name_nw + VLAN_OWN_TFW)
-
-        if nwa_data[vlan_key + '_CreateVlan'] == '':
-            nwa_data[seg_key + '_VlanID'] = body['resultdata']['VlanID']
-        else:
-            nwa_data[seg_key + '_VlanID'] = nwa_data[vlan_key + '_VlanID']
-        nwa_data[seg_key] = 'physical_network'
+        data_utils.set_tfw_device_data(nwa_data, device_id,
+                                       tfw_name, kwargs['nwa_info'])
+        data_utils.set_tfw_interface_data(nwa_data, device_id, network_id,
+                                          resource_group_name_nw,
+                                          tfw_name, kwargs['nwa_info'])
+        vlan_id = data_utils.get_vlan_id(network_id, nwa_data,
+                                         body['resultdata'])
+        data_utils.set_vp_net_data(nwa_data, network_id,
+                                   resource_group_name_nw,
+                                   nwa_const.NWA_DEVICE_TFW,
+                                   vlan_id)
 
         if self.tenant_fw_create_hook:
             self.tenant_fw_create_hook(context, tfw_name, **kwargs)
@@ -166,9 +152,9 @@ class AgentProxyL3(object):
 
         rcode, body = self.client.update_tenant_fw(
             kwargs['nwa_tenant_id'],
-            nwa_data['DEV_' + device_id + '_TenantFWName'],
+            data_utils.get_tfw_device_name(nwa_data, device_id),
             kwargs['nwa_info']['port']['ip'],
-            nwa_data['NW_' + network_id + '_nwa_network_name'],
+            data_utils.get_vlan_logical_name(nwa_data, network_id),
             kwargs['nwa_info']['network']['vlan_type'],
             connect='connect')
 
@@ -178,22 +164,17 @@ class AgentProxyL3(object):
         LOG.debug("UpdateTenantFW succeed.")
         resource_group_name_nw = kwargs['nwa_info']['resource_group_name_nw']
         tfw_name = body['resultdata']['TenantFWName']
-        net_key = 'DEV_' + device_id + '_' + network_id
-        nwa_data[net_key] = kwargs['nwa_info']['network']['name']
-        nwa_data[net_key + '_ip_address'] = kwargs['nwa_info']['port']['ip']
-        nwa_data[net_key + '_mac_address'] = kwargs['nwa_info']['port']['mac']
-        nwa_data[net_key + '_TenantFWName'] = tfw_name
-        nwa_data[net_key + '_' +
-                 resource_group_name_nw] = nwa_const.NWA_DEVICE_TFW
 
-        vlan_key = 'VLAN_' + network_id
-        seg_key = ('VLAN_' + network_id + '_' +
-                   resource_group_name_nw + VLAN_OWN_TFW)
-        if nwa_data[vlan_key + '_CreateVlan'] == '':
-            nwa_data[seg_key + '_VlanID'] = body['resultdata']['VlanID']
-        else:
-            nwa_data[seg_key + '_VlanID'] = nwa_data[vlan_key + '_VlanID']
-        nwa_data[seg_key] = 'physical_network'
+        data_utils.set_tfw_interface_data(nwa_data, device_id, network_id,
+                                          resource_group_name_nw,
+                                          tfw_name, kwargs['nwa_info'])
+        vlan_id = data_utils.get_vlan_id(network_id, nwa_data,
+                                         body['resultdata'])
+        data_utils.set_vp_net_data(nwa_data, network_id,
+                                   resource_group_name_nw,
+                                   nwa_const.NWA_DEVICE_TFW,
+                                   vlan_id)
+
         if self.tenant_fw_connect_hook:
             self.tenant_fw_connect_hook(context, tfw_name, **kwargs)
         return nwa_data
@@ -211,7 +192,7 @@ class AgentProxyL3(object):
 
         device_id = kwargs['nwa_info']['device']['id']
         network_id = kwargs['nwa_info']['network']['id']
-        device_name = nwa_data['DEV_' + device_id + '_TenantFWName']
+        device_name = data_utils.get_tfw_device_name(nwa_data, device_id)
 
         if self.tenant_fw_disconnect_hook:
             self.tenant_fw_disconnect_hook(context, device_name, **kwargs)
@@ -220,7 +201,7 @@ class AgentProxyL3(object):
             kwargs['nwa_tenant_id'],
             device_name,
             kwargs['nwa_info']['port']['ip'],
-            nwa_data['NW_' + network_id + '_nwa_network_name'],
+            data_utils.get_vlan_logical_name(nwa_data, network_id),
             kwargs['nwa_info']['network']['vlan_type'],
             connect='disconnect'
         )
@@ -232,24 +213,17 @@ class AgentProxyL3(object):
 
         LOG.debug("UpdateTenantFW(disconnect) SUCCESS.")
         resource_group_name_nw = kwargs['nwa_info']['resource_group_name_nw']
-        net_key = 'DEV_' + device_id + '_' + network_id
-        nwa_data.pop(net_key)
-        nwa_data.pop(net_key + '_ip_address')
-        nwa_data.pop(net_key + '_mac_address')
-        nwa_data.pop(net_key + '_TenantFWName')
-        nwa_data.pop(net_key + '_' + resource_group_name_nw)
 
-        vp_net = ('VLAN_' + network_id + '_' + resource_group_name_nw +
-                  VLAN_OWN_TFW)
-        tfw_key = vp_net + '_FW_TFW' + device_id
-
-        if tfw_key in nwa_data.keys():
-            nwa_data.pop(tfw_key)
+        data_utils.strip_interface_data(nwa_data, device_id, network_id,
+                                        resource_group_name_nw)
+        data_utils.strip_tfw_data_if_exist(nwa_data, device_id, network_id,
+                                           resource_group_name_nw)
 
         if not l2.check_segment_tfw(network_id, resource_group_name_nw,
                                     nwa_data):
-            nwa_data.pop(vp_net)
-            nwa_data.pop(vp_net + '_VlanID')
+            data_utils.strip_vp_net_data(nwa_data, network_id,
+                                         resource_group_name_nw,
+                                         nwa_const.NWA_DEVICE_TFW)
         return nwa_data
 
     @helpers.log_method_call
@@ -261,11 +235,12 @@ class AgentProxyL3(object):
         @return: resutl(succeed = True, other = False), data(nwa_data or None)
         """
         nwa_data = kwargs.get('nwa_data')
+        nwa_info = kwargs['nwa_info']
 
-        network_id = kwargs['nwa_info']['network']['id']
-        device_id = kwargs['nwa_info']['device']['id']
+        network_id = nwa_info['network']['id']
+        device_id = nwa_info['device']['id']
 
-        device_name = nwa_data['DEV_' + device_id + '_TenantFWName']
+        device_name = data_utils.get_tfw_device_name(nwa_info, device_id)
         if self.tenant_fw_delete_hook:
             self.tenant_fw_delete_hook(context, device_name, **kwargs)
 
@@ -281,30 +256,19 @@ class AgentProxyL3(object):
 
         LOG.debug("DeleteTenantFW SUCCESS.")
 
-        resource_group_name_nw = kwargs['nwa_info']['resource_group_name_nw']
+        resource_group_name_nw = nwa_info['resource_group_name_nw']
         # delete recode
-        dev_key = 'DEV_' + device_id
-        net_key = dev_key + '_' + network_id
-        nwa_data.pop(dev_key)
-        nwa_data.pop(dev_key + '_device_owner')
-        nwa_data.pop(dev_key + '_TenantFWName')
-
-        nwa_data.pop(net_key)
-        nwa_data.pop(net_key + '_ip_address')
-        nwa_data.pop(net_key + '_mac_address')
-        nwa_data.pop(net_key + '_TenantFWName')
-        nwa_data.pop(net_key + '_' + resource_group_name_nw)
-
-        vp_net = ('VLAN_' + network_id + '_' + resource_group_name_nw +
-                  VLAN_OWN_TFW)
-        tfw_key = vp_net + '_FW_TFW' + device_id
-        if tfw_key in nwa_data.keys():
-            nwa_data.pop(tfw_key)
+        data_utils.strip_device_data(nwa_data, device_id)
+        data_utils.strip_interface_data(nwa_data, device_id, network_id,
+                                        resource_group_name_nw)
+        data_utils.strip_tfw_data_if_exist(nwa_data, device_id, network_id,
+                                           resource_group_name_nw)
 
         if not l2.check_segment_tfw(network_id, resource_group_name_nw,
                                     nwa_data):
-            nwa_data.pop(vp_net)
-            nwa_data.pop(vp_net + '_VlanID')
+            data_utils.strip_vp_net_data(nwa_data, network_id,
+                                         resource_group_name_nw,
+                                         nwa_const.NWA_DEVICE_TFW)
         return nwa_data
 
     @utils.log_method_return_value
@@ -388,19 +352,17 @@ class AgentProxyL3(object):
             LOG.debug('already in use NAT key =%s', nat_key)
             raise nwa_exc.AgentProxyException(value=None)
 
-        vlan_logical_name = nwa_data['NW_' +
-                                     floating['floating_network_id'] +
-                                     '_nwa_network_name']
-        vlan_type = 'PublicVLAN'
-        floating_ip = floating['floating_ip_address']
-        fixed_ip = floating['fixed_ip_address']
-        dev_name = nwa_data['DEV_' + floating['device_id'] + '_TenantFWName']
+        vlan_logical_name = data_utils.get_vlan_logical_name(
+            nwa_data, floating['floating_network_id'])
+        dev_name = data_utils.get_tfw_device_name(nwa_data,
+                                                  floating['device_id'])
 
         # setting nat
         rcode, body = self.client.setting_nat(
             nwa_tenant_id,
-            vlan_logical_name,
-            vlan_type, fixed_ip, floating_ip, dev_name, data=floating
+            vlan_logical_name, 'PublicVLAN',
+            floating['fixed_ip_address'],
+            floating['floating_ip_address'], dev_name, data=floating
         )
 
         if rcode != 200 or body['status'] != 'SUCCESS':
@@ -409,14 +371,7 @@ class AgentProxyL3(object):
             raise nwa_exc.AgentProxyException(value=None)
         else:
             LOG.debug("SettingNat SUCCESS")
-            data = floating
-            nwa_data['NAT_' + data['id']] = data['device_id']
-            nwa_data['NAT_' + data['id'] +
-                     '_network_id'] = data['floating_network_id']
-            nwa_data['NAT_' + data['id'] +
-                     '_floating_ip_address'] = data['floating_ip_address']
-            nwa_data['NAT_' + data['id'] +
-                     '_fixed_ip_address'] = data['fixed_ip_address']
+            data_utils.set_floatingip_data(nwa_data, floating)
             return nwa_data
 
     @helpers.log_method_call
@@ -442,22 +397,20 @@ class AgentProxyL3(object):
 
     @helpers.log_method_call
     def _delete_nat(self, context, **kwargs):
-        nwa_tenant_id = kwargs.get('nwa_tenant_id')
         nwa_data = kwargs.get('nwa_data')
         floating = kwargs.get('floating')
 
-        vlan_logical_name = nwa_data[
-            'NW_' + floating['floating_network_id'] + '_nwa_network_name']
-        vlan_type = 'PublicVLAN'
-        floating_ip = floating['floating_ip_address']
-        fixed_ip = floating['fixed_ip_address']
-        dev_name = nwa_data['DEV_' + floating['device_id'] + '_TenantFWName']
+        vlan_logical_name = data_utils.get_vlan_logical_name(
+            nwa_data, floating['floating_network_id'])
+        dev_name = data_utils.get_tfw_device_name(nwa_data,
+                                                  floating['device_id'])
 
         # setting nat
         rcode, body = self.client.delete_nat(
-            nwa_tenant_id,
-            vlan_logical_name,
-            vlan_type, fixed_ip, floating_ip, dev_name, data=floating)
+            kwargs.get('nwa_tenant_id'),
+            vlan_logical_name, 'PublicVLAN',
+            floating['fixed_ip_address'],
+            floating['floating_ip_address'], dev_name, data=floating)
 
         if rcode != 200 or body['status'] != 'SUCCESS':
             LOG.debug("DeleteNat Error: invalid responce."
@@ -465,9 +418,5 @@ class AgentProxyL3(object):
             raise nwa_exc.AgentProxyException(value=None)
         else:
             LOG.debug("DeleteNat SUCCESS")
-            data = floating
-            nwa_data.pop('NAT_' + data['id'])
-            nwa_data.pop('NAT_' + data['id'] + '_network_id')
-            nwa_data.pop('NAT_' + data['id'] + '_floating_ip_address')
-            nwa_data.pop('NAT_' + data['id'] + '_fixed_ip_address')
+            data_utils.strip_floatingip_data(nwa_data, floating)
             return nwa_data
