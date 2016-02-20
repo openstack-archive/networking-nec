@@ -105,9 +105,6 @@ class AgentProxyL3(object):
     def _create_tenant_fw(self, nwa_data, context, **kwargs):
         network_id = kwargs['nwa_info']['network']['id']
         rcode, body = self.client.create_tenant_fw(
-            self._dummy_ok,
-            self._dummy_ng,
-            context,
             kwargs['nwa_tenant_id'],
             kwargs['nwa_info']['resource_group_name'],
             kwargs['nwa_info']['port']['ip'],
@@ -173,9 +170,6 @@ class AgentProxyL3(object):
         network_id = kwargs['nwa_info']['network']['id']
 
         rcode, body = self.client.update_tenant_fw(
-            self._dummy_ok,
-            self._dummy_ng,
-            context,
             kwargs['nwa_tenant_id'],
             nwa_data['DEV_' + device_id + '_TenantFWName'],
             kwargs['nwa_info']['port']['ip'],
@@ -227,9 +221,6 @@ class AgentProxyL3(object):
             self.tenant_fw_disconnect_hook(context, device_name, **kwargs)
 
         rcode, body = self.client.update_tenant_fw(
-            self._dummy_ok,
-            self._dummy_ng,
-            context,
             kwargs['nwa_tenant_id'],
             device_name,
             kwargs['nwa_info']['port']['ip'],
@@ -284,9 +275,6 @@ class AgentProxyL3(object):
             self.tenant_fw_delete_hook(context, device_name, **kwargs)
 
         rcode, body = self.client.delete_tenant_fw(
-            self._dummy_ok,
-            self._dummy_ng,
-            context,
             kwargs['nwa_tenant_id'],
             device_name,
             'TFW'
@@ -432,9 +420,7 @@ class AgentProxyL3(object):
 
         # setting nat
         rcode, body = self.client.setting_nat(
-            self._dummy_ok,
-            self._dummy_ng,
-            context, nwa_tenant_id,
+            nwa_tenant_id,
             vlan_logical_name,
             vlan_type, fixed_ip, floating_ip, dev_name, data=floating
         )
@@ -488,9 +474,7 @@ class AgentProxyL3(object):
 
         # setting nat
         rcode, body = self.client.delete_nat(
-            self._dummy_ok,
-            self._dummy_ng,
-            context, nwa_tenant_id,
+            nwa_tenant_id,
             vlan_logical_name,
             vlan_type, fixed_ip, floating_ip, dev_name, data=floating
         )
@@ -513,9 +497,3 @@ class AgentProxyL3(object):
             constants.FLOATINGIP_STATUS_ACTIVE if rcode else
             constants.FLOATINGIP_STATUS_ERROR
         )
-
-    def _dummy_ok(self, context, rcode, jbody, *args, **kargs):
-        pass
-
-    def _dummy_ng(self, context, rcode, jbody, *args, **kargs):
-        pass

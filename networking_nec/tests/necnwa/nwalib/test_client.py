@@ -32,7 +32,6 @@ from networking_nec.plugins.necnwa.nwalib import workflow
 load_tests = testscenarios.load_tests_apply_scenarios
 
 TENANT_ID = 'OpenT9004'
-CONTEXT = MagicMock()
 
 # create general dev
 DC_RESOURCE_GROUP_POD1 = 'OpenStack/DC1/Common/Pod1Grp/Pod1'
@@ -40,31 +39,6 @@ DC_RESOURCE_GROUP_POD2 = 'OpenStack/DC1/Common/Pod2Grp/Pod2'
 
 # create tenant nw
 DC_RESOURCE_GROUP_APP1 = 'OpenStack/DC1/Common/App1Grp/App1'
-
-RESULTS = {}
-
-
-def ok1(ctx, http_status, rj, *args, **kwargs):
-    RESULTS['success'] = {
-        'context': ctx,
-        'http_status': http_status,
-        'result': rj
-    }
-
-
-def ng1(ctx, http_status, rj, *args, **kwargs):
-    RESULTS['failure'] = {
-        'context': ctx,
-        'http_status': http_status,
-        'result': rj
-    }
-    if kwargs.get('exception', None):
-        RESULTS['failure']['exception'] = kwargs['exception']
-
-
-def init_async():
-    global RESULTS
-    RESULTS = {}
 
 
 class TestNwaClientBase(base.BaseTestCase):
@@ -188,7 +162,6 @@ class TestNwaClient(TestNwaClientBase):
         self.nwa.wait_workflow_done(MagicMock())
 
     def create_vlan(self):
-        init_async()
         vlan_type = 'PublicVLAN'
         ipaddr = '172.16.0.0'
         mask = '28'
@@ -199,39 +172,36 @@ class TestNwaClient(TestNwaClientBase):
         return rt
 
     def delete_nat(self):
-        init_async()
         vlan_name = 'LNW_BusinessVLAN_100'
         vlan_type = 'BusinessVLAN'
         local_ip = '172.16.1.5'
         global_ip = '10.0.1.5'
         fw_name = 'TFW77'
         rt = self.nwa.delete_nat(
-            ok1, ng1, CONTEXT, TENANT_ID,
+            TENANT_ID,
             vlan_name, vlan_type, local_ip, global_ip, fw_name
         )
         return rt
 
     def setting_nat(self):
-        init_async()
         vlan_name = 'LNW_BusinessVLAN_101'
         vlan_type = 'BusinessVLAN'
         local_ip = '172.16.1.6'
         global_ip = '10.0.1.6'
         fw_name = 'TFW78'
         rt = self.nwa.setting_nat(
-            ok1, ng1, CONTEXT, TENANT_ID,
+            TENANT_ID,
             vlan_name, vlan_type, local_ip, global_ip, fw_name
         )
         return rt
 
     def update_tenant_fw(self):
-        init_async()
         vlan_name = 'LNW_BusinessVLAN_101'
         vlan_type = 'BusinessVLAN'
         vlan_devaddr = '192.168.6.254'
         fw_name = 'TFW79'
         rt = self.nwa.update_tenant_fw(
-            ok1, ng1, CONTEXT, TENANT_ID,
+            TENANT_ID,
             fw_name, vlan_devaddr,
             vlan_name, vlan_type
         )
@@ -295,7 +265,6 @@ class TestNwaClient(TestNwaClientBase):
 class TestNwaClientScenario(TestNwaClientBase):
 
     def create_general_dev(self, vlan_name):
-        init_async()
         dcresgrp_name = 'Common/App/Pod3'
         rd, rj = self.nwa.create_general_dev(
             TENANT_ID,
@@ -306,7 +275,6 @@ class TestNwaClientScenario(TestNwaClientBase):
         return rd, rj
 
     def delete_general_dev(self, vlan_name):
-        init_async()
         dcresgrp_name = 'Common/App/Pod3'
         rd, rj = self.nwa.delete_general_dev(
             TENANT_ID,
@@ -426,7 +394,6 @@ class TestUtNwaClient(base.BaseTestCase):
         vlan_name = 'LNW_BusinessVLAN_49'
         vlan_type = 'BusinessVLAN'
         self.nwa.create_tenant_fw(
-            mock.ANY, mock.ANY, mock.ANY,
             self.tenant_id, DC_RESOURCE_GROUP_APP1,
             vlan_devaddr, vlan_name, vlan_type
         )
@@ -449,7 +416,6 @@ class TestUtNwaClient(base.BaseTestCase):
         vlan_name = 'LNW_BusinessVLAN_49'
         vlan_type = 'BusinessVLAN'
         self.nwa.update_tenant_fw(
-            mock.ANY, mock.ANY, mock.ANY,
             self.tenant_id,
             device_name, mock.sentinel.vlan_devaddr,
             vlan_name, vlan_type, 'connect'
@@ -472,7 +438,6 @@ class TestUtNwaClient(base.BaseTestCase):
         device_name = 'TFW0'
         device_type = 'TFW'
         self.nwa.delete_tenant_fw(
-            mock.ANY, mock.ANY, mock.ANY,
             self.tenant_id,
             device_name, device_type,
         )
@@ -493,7 +458,6 @@ class TestUtNwaClient(base.BaseTestCase):
         local_ip = '172.16.0.2'
         global_ip = '10.0.0.10'
         self.nwa.setting_nat(
-            mock.ANY, mock.ANY, mock.ANY,
             self.tenant_id,
             vlan_name, vlan_type, local_ip, global_ip, fw_name
         )
@@ -537,7 +501,6 @@ class TestUtNwaClient(base.BaseTestCase):
         global_ip = '10.0.0.10'
 
         self.nwa.delete_nat(
-            mock.ANY, mock.ANY, mock.ANY,
             self.tenant_id,
             vlan_name, vlan_type, local_ip, global_ip, fw_name
         )
