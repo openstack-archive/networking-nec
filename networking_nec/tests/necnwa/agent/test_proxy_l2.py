@@ -492,24 +492,6 @@ class TestAgentProxyL2(test_nwa_agent.TestNECNWANeutronAgentBase):
             nwa_info=nwa_info
         )
 
-    def test__dummy_ok(self):
-        context = mock.MagicMock()
-        rcode = mock.MagicMock()
-        jbody = mock.MagicMock()
-        args = mock.MagicMock()
-        kwargs = mock.MagicMock()
-
-        self.agent.proxy_l2._dummy_ok(context, rcode, jbody, args, kwargs)
-
-    def test__dummy_ng(self):
-        context = mock.MagicMock()
-        rcode = mock.MagicMock()
-        jbody = mock.MagicMock()
-        args = mock.MagicMock()
-        kwargs = mock.MagicMock()
-
-        self.agent.proxy_l2._dummy_ng(context, rcode, jbody, args, kwargs)
-
     #####
     # appendix.
     @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.get_nwa_tenant_binding')  # noqa

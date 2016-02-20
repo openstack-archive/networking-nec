@@ -44,40 +44,53 @@ class NwaClient(nwa_restclient.NwaRestClient):
 
     # --- Tenant Network ---
 
-    def _create_tenant_nw(self, tenant_id, dc_resource_group_name):
+    def create_tenant_nw(self, tenant_id, dc_resource_group_name):
         body = {
             "TenantID": tenant_id,
             "CreateNW_DCResourceGroupName": dc_resource_group_name,
             'CreateNW_OperationType': 'CreateTenantNW'
         }
-        return self.post, workflow.NwaWorkflow.path('CreateTenantNW'), body
+        return self.call_workflow_new(
+            tenant_id,
+            self.post, workflow.NwaWorkflow.path('CreateTenantNW'), body
+        )
 
-    def _delete_tenant_nw(self, tenant_id):
+    def delete_tenant_nw(self, tenant_id):
         body = {
             "TenantID": tenant_id,
         }
-        return self.post, workflow.NwaWorkflow.path('DeleteTenantNW'), body
+        return self.call_workflow_new(
+            tenant_id,
+            self.post, workflow.NwaWorkflow.path('DeleteTenantNW'), body
+        )
 
     # --- VLan ---
 
-    def _create_vlan(self, tenant_id, vlan_type, ipaddr, mask, openid):
+    def create_vlan(self, tenant_id, ipaddr, mask,
+                    vlan_type='BusinessVLAN', openstack_network_id=None):
         body = {
             'TenantID': tenant_id,
             'CreateNW_VlanType1': vlan_type,
             'CreateNW_IPSubnetAddress1': ipaddr,
             'CreateNW_IPSubnetMask1': mask
         }
-        if openid:
-            body['CreateNW_VlanLogicalID1'] = openid
-        return self.post, workflow.NwaWorkflow.path('CreateVLAN'), body
+        if openstack_network_id:
+            body['CreateNW_VlanLogicalID1'] = openstack_network_id
+        return self.call_workflow_new(
+            tenant_id,
+            self.post, workflow.NwaWorkflow.path('CreateVLAN'), body
+        )
 
-    def _delete_vlan(self, tenant_id, vlan_name, vlan_type):
+    def delete_vlan(self, tenant_id, logical_name, vlan_type='BusinessVLAN'):
         body = {
             'TenantID': tenant_id,
-            'DeleteNW_VlanLogicalName1': vlan_name,
+            'DeleteNW_VlanLogicalName1': logical_name,
             'DeleteNW_VlanType1': vlan_type
         }
-        return self.post, workflow.NwaWorkflow.path('DeleteVLAN'), body
+        return self.call_workflow_new(
+            tenant_id,
+            self.post, workflow.NwaWorkflow.path('DeleteVLAN'), body
+        )
 
     # --- Tenant FW ---
 
@@ -224,43 +237,49 @@ class NwaClient(nwa_restclient.NwaRestClient):
 
     # --- General Dev ---
 
-    def _create_general_dev(self, tenant_id, dc_resource_group_name,
-                            vlan_logical_name, vlan_type,
-                            port_type, open_id=None, nocache=False):
+    def create_general_dev(self, tenant_id, dc_resource_group_name,
+                           logical_name, vlan_type='BusinessVLAN',
+                           port_type=None, openstack_network_id=None):
         body = {
             'CreateNW_DeviceType1': 'GeneralDev',
             'TenantID': tenant_id,
-            'CreateNW_VlanLogicalName1': vlan_logical_name,
+            'CreateNW_VlanLogicalName1': logical_name,
             'CreateNW_VlanType1': vlan_type,
             'CreateNW_DCResourceGroupName': dc_resource_group_name
         }
-        if vlan_logical_name and open_id:
+        if logical_name and openstack_network_id:
             LOG.warning(_LW('VLAN logical name and id to be specified '
                             'in the exclusive.'))
-        if open_id:
-            body['CreateNW_VlanLogicalID1'] = open_id
+        if openstack_network_id:
+            body['CreateNW_VlanLogicalID1'] = openstack_network_id
         if port_type:
             body['CreateNW_PortType1'] = port_type
-        return self.post, workflow.NwaWorkflow.path('CreateGeneralDev'), body
+        return self.call_workflow_new(
+            tenant_id,
+            self.post, workflow.NwaWorkflow.path('CreateGeneralDev'), body
+        )
 
-    def _delete_general_dev(self, tenant_id, dc_resource_group_name,
-                            vlan_logical_name, vlan_type,
-                            port_type, open_id=None, nocache=False):
+    def delete_general_dev(self, tenant_id, dc_resource_group_name,
+                           logical_name, vlan_type='BusinessVLAN',
+                           port_type=None, openstack_network_id=None):
         body = {
             'DeleteNW_DeviceType1': 'GeneralDev',
             'TenantID': tenant_id,
-            'DeleteNW_VlanLogicalName1': vlan_logical_name,
+            'DeleteNW_VlanLogicalName1': logical_name,
             'DeleteNW_VlanType1': vlan_type,
             'DeleteNW_DCResourceGroupName': dc_resource_group_name
         }
-        if vlan_logical_name and open_id:
+        if logical_name and openstack_network_id:
             LOG.warning(_LW('VLAN logical name and id to be specified '
                             'in the exclusive.'))
-        if open_id:
-            body['DeleteNW_VlanLogicalID1'] = open_id
+        if openstack_network_id:
+            body['DeleteNW_VlanLogicalID1'] = openstack_network_id
         if port_type:
             body['DeleteNW_PortType1'] = port_type
-        return self.post, workflow.NwaWorkflow.path('DeleteGeneralDev'), body
+        return self.call_workflow_new(
+            tenant_id,
+            self.post, workflow.NwaWorkflow.path('DeleteGeneralDev'), body
+        )
 
     def workflowinstance(self, execution_id):
         return self.get('/umf/workflowinstance/' + execution_id)
@@ -346,6 +365,28 @@ class NwaClient(nwa_restclient.NwaRestClient):
             failure(ctx, http_status, None, *args, **kwargs)
         return http_status, rj
 
+    # TODO(amotoki): call_workflow and apply_async should be removed eventually
+    def call_workflow_new(self, tenant_id, post, url, body):
+        # post, url, body = make_request(tenant_id, *args, **kwargs)
+        try:
+            wkf = nwa_sem.Semaphore.get_tenant_semaphore(tenant_id)
+            if wkf.sem.locked():
+                LOG.info(_LI('NWA sem %s(count)s: %(name)s %(url)s %(body)s'),
+                         {'count': wkf.sem.balance,
+                          'name': post.__name__,
+                          'url': url,
+                          'body': body})
+            with wkf.sem:
+                n = copy.copy(self)
+                n.workflow_polling_log_post_data(url, body)
+                http_status, rj = n.workflow_kick_and_wait(post, url, body)
+                return http_status, rj
+        except Exception as e:
+            LOG.exception(_LE('%s'), e)
+            # TODO(amotoki): rj is not defined, so it does not work.
+            # Need to check the return value is correct or not.
+            return -1, None
+
     def wait_workflow_done(self, thr):
         LOG.debug('*** start wait')
         thr.wait()
@@ -421,32 +462,6 @@ class NwaClient(nwa_restclient.NwaRestClient):
         )
 
     # --- async api; workflow ---
-
-    def create_tenant_nw(self, ok, ng, ctx, tenant_id,
-                         dc_resource_group_name):
-        return self.apply_async(
-            self._create_tenant_nw, ok, ng, ctx, tenant_id,
-            dc_resource_group_name
-        )
-
-    def delete_tenant_nw(self, ok, ng, ctx, tenant_id):
-        return self.apply_async(
-            self._delete_tenant_nw, ok, ng, ctx, tenant_id
-        )
-
-    def create_vlan(self, ok, ng, ctx, tenant_id, ipaddr, mask,
-                    vlan_type='BusinessVLAN', openstack_network_id=None):
-        return self.apply_async(
-            self._create_vlan, ok, ng, ctx, tenant_id,
-            vlan_type, ipaddr, mask, openstack_network_id
-        )
-
-    def delete_vlan(self, ok, ng, ctx, tenant_id, logical_name,
-                    vlan_type='BusinessVLAN'):
-        return self.apply_async(
-            self._delete_vlan, ok, ng, ctx, tenant_id,
-            logical_name, vlan_type
-        )
 
     def create_tenant_fw(self, ok, ng, ctx, tenant_id,
                          dc_resource_group_name,
@@ -544,30 +559,6 @@ class NwaClient(nwa_restclient.NwaRestClient):
         return self.apply_async(
             self._delete_tenant_lb, ok, ng, ctx, tenant_id,
             device_name
-        )
-
-    def create_general_dev(self, ok, ng, ctx, tenant_id,
-                           dc_resource_group_name, logical_name,
-                           vlan_type='BusinessVLAN',
-                           port_type=None,
-                           openstack_network_id=None):
-        return self.apply_async(
-            self._create_general_dev, ok, ng, ctx, tenant_id,
-            dc_resource_group_name, logical_name,
-            vlan_type, port_type, openstack_network_id,
-            nocache=nwa_sem.Semaphore.create_general_dev_history
-        )
-
-    def delete_general_dev(self, ok, ng, ctx, tenant_id,
-                           dc_resource_group_name, logical_name,
-                           vlan_type='BusinessVLAN',
-                           port_type=None,
-                           openstack_network_id=None):
-        return self.apply_async(
-            self._delete_general_dev, ok, ng, ctx, tenant_id,
-            dc_resource_group_name, logical_name,
-            vlan_type, port_type, openstack_network_id,
-            nocache=nwa_sem.Semaphore.delete_general_dev_history
         )
 
 

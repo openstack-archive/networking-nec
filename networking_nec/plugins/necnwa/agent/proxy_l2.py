@@ -122,9 +122,6 @@ class AgentProxyL2(object):
                       {'nwa_tenant_id': nwa_tenant_id,
                        'resource_group_name': resource_group_name})
             rcode, body = self.client.create_tenant_nw(
-                self._dummy_ok,
-                self._dummy_ng,
-                context,
                 nwa_tenant_id,
                 resource_group_name
             )
@@ -143,9 +140,6 @@ class AgentProxyL2(object):
         nwa_data = kwargs.get('nwa_data')
 
         rcode, body = self.client.delete_tenant_nw(
-            self._dummy_ok,
-            self._dummy_ng,
-            context,
             nwa_tenant_id,
         )
 
@@ -190,9 +184,6 @@ class AgentProxyL2(object):
             return nwa_data
 
         rcode, body = self.client.create_vlan(
-            self._dummy_ok,
-            self._dummy_ng,
-            context,
             nwa_tenant_id,
             nwa_info['subnet']['netaddr'],
             nwa_info['subnet']['mask'],
@@ -224,9 +215,6 @@ class AgentProxyL2(object):
 
         # delete vlan
         rcode, body = self.client.delete_vlan(
-            self._dummy_ok,
-            self._dummy_ng,
-            context,
             nwa_tenant_id,
             nwa_data['NW_' + network_id + '_nwa_network_name'],
             vlan_type
@@ -390,9 +378,6 @@ class AgentProxyL2(object):
 
         logical_name = nwa_data['NW_' + network_id + '_nwa_network_name']
         rcode, body = self.client.create_general_dev(
-            self._dummy_ok,
-            self._dummy_ng,
-            context,
             nwa_tenant_id,
             resource_group_name,
             logical_name,
@@ -539,9 +524,6 @@ class AgentProxyL2(object):
         # delete general dev
         logical_name = nwa_data['NW_' + network_id + '_nwa_network_name']
         rcode, body = self.client.delete_general_dev(
-            self._dummy_ok,
-            self._dummy_ng,
-            context,
             nwa_tenant_id,
             resource_group,
             logical_name,
@@ -561,9 +543,3 @@ class AgentProxyL2(object):
         # delete general dev end
 
         return nwa_data
-
-    def _dummy_ok(self, context, rcode, jbody, *args, **kargs):
-        pass
-
-    def _dummy_ng(self, context, rcode, jbody, *args, **kargs):
-        pass

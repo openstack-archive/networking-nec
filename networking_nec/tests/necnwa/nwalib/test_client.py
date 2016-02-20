@@ -224,7 +224,7 @@ class TestNwaClient(TestNwaClientBase):
         ipaddr = '172.16.0.0'
         mask = '28'
         rt = self.nwa.create_vlan(
-            ok1, ng1, CONTEXT, TENANT_ID,
+            TENANT_ID,
             vlan_type, ipaddr, mask
         )
         return rt
@@ -364,7 +364,7 @@ class TestNwaClientScenario(TestNwaClientBase):
         init_async()
         dcresgrp_name = 'Common/App/Pod3'
         rd, rj = self.nwa.create_general_dev(
-            ok1, ng1, CONTEXT, TENANT_ID,
+            TENANT_ID,
             dcresgrp_name, vlan_name
         )
         self.assertEqual(rd, 200)
@@ -375,7 +375,7 @@ class TestNwaClientScenario(TestNwaClientBase):
         init_async()
         dcresgrp_name = 'Common/App/Pod3'
         rd, rj = self.nwa.delete_general_dev(
-            ok1, ng1, CONTEXT, TENANT_ID,
+            TENANT_ID,
             dcresgrp_name, vlan_name
         )
         self.assertEqual(rd, 200)
@@ -422,57 +422,68 @@ class TestUtNwaClient(base.BaseTestCase):
         self.nwa = client.NwaClient(load_workflow_list=False)
         self.tenant_id = 'OpenT9004'
 
-    def test__create_tenant_nw(self):
-        method, url, body = self.nwa._create_tenant_nw(
+    @patch('networking_nec.plugins.necnwa.nwalib.client.NwaClient.'
+           'call_workflow_new')
+    def test_create_tenant_nw(self, call_wf):
+        self.nwa.create_tenant_nw(
             self.tenant_id,
             DC_RESOURCE_GROUP_APP1
         )
-        self.assertEqual(method, self.nwa.post)
-        self.assertRegex(url, workflow.NwaWorkflow.path('CreateTenantNW'))
-        self.assertIsInstance(body, dict)
-        self.assertEqual(body['TenantID'], self.tenant_id)
-        self.assertEqual(body['CreateNW_DCResourceGroupName'],
-                         DC_RESOURCE_GROUP_APP1)
-        self.assertEqual(body['CreateNW_OperationType'], 'CreateTenantNW')
+        call_wf.assert_called_once_with(
+            self.tenant_id,
+            self.nwa.post,
+            workflow.NwaWorkflow.path('CreateTenantNW'),
+            {'TenantID': self.tenant_id,
+             'CreateNW_DCResourceGroupName': DC_RESOURCE_GROUP_APP1,
+             'CreateNW_OperationType': 'CreateTenantNW'})
 
-    def test__delete_tenant_nw(self):
-        method, url, body = self.nwa._delete_tenant_nw(
-            self.tenant_id
-        )
-        self.assertEqual(method, self.nwa.post)
-        self.assertRegex(url, workflow.NwaWorkflow.path('DeleteTenantNW'))
-        self.assertIsInstance(body, dict)
-        self.assertEqual(body['TenantID'], self.tenant_id)
+    @patch('networking_nec.plugins.necnwa.nwalib.client.NwaClient.'
+           'call_workflow_new')
+    def test_delete_tenant_nw(self, call_wf):
+        self.nwa.delete_tenant_nw(self.tenant_id)
+        call_wf.assert_called_once_with(
+            self.tenant_id,
+            self.nwa.post,
+            workflow.NwaWorkflow.path('DeleteTenantNW'),
+            {'TenantID': self.tenant_id})
 
-    def test__create_vlan(self):
+    @patch('networking_nec.plugins.necnwa.nwalib.client.NwaClient.'
+           'call_workflow_new')
+    def test_create_vlan(self, call_wf):
         vlan_type = 'BusinessVLAN'
         ipaddr = '10.0.0.0'
         mask = 24
         open_nid = 'UUID'
-        method, url, body = self.nwa._create_vlan(
-            self.tenant_id, vlan_type, ipaddr, mask, open_nid
-        )
-        self.assertEqual(method, self.nwa.post)
-        self.assertRegex(url, workflow.NwaWorkflow.path('CreateVLAN'))
-        self.assertIsInstance(body, dict)
-        self.assertEqual(body['TenantID'], self.tenant_id)
-        self.assertEqual(body['CreateNW_IPSubnetMask1'], mask)
-        self.assertEqual(body['CreateNW_IPSubnetAddress1'], ipaddr)
-        self.assertEqual(body['CreateNW_VlanType1'], vlan_type)
-        self.assertEqual(body['CreateNW_VlanLogicalID1'], open_nid)
 
-    def test__delete_vlan(self):
+        self.nwa.create_vlan(
+            self.tenant_id, ipaddr, mask, vlan_type, open_nid
+        )
+
+        call_wf.assert_called_once_with(
+            self.tenant_id,
+            self.nwa.post,
+            workflow.NwaWorkflow.path('CreateVLAN'),
+            {'TenantID': self.tenant_id,
+             'CreateNW_IPSubnetMask1': mask,
+             'CreateNW_IPSubnetAddress1': ipaddr,
+             'CreateNW_VlanType1': vlan_type,
+             'CreateNW_VlanLogicalID1': open_nid})
+
+    @patch('networking_nec.plugins.necnwa.nwalib.client.NwaClient.'
+           'call_workflow_new')
+    def test_delete_vlan(self, call_wf):
         vlan_name = 'LNW_BusinessVLAN_49'
         vlan_type = 'BusinessVLAN'
-        method, url, body = self.nwa._delete_vlan(
+        self.nwa.delete_vlan(
             self.tenant_id, vlan_name, vlan_type
         )
-        self.assertEqual(method, self.nwa.post)
-        self.assertRegex(url, workflow.NwaWorkflow.path('DeleteVLAN'))
-        self.assertIsInstance(body, dict)
-        self.assertEqual(body['TenantID'], self.tenant_id)
-        self.assertEqual(body['DeleteNW_VlanLogicalName1'], vlan_name)
-        self.assertEqual(body['DeleteNW_VlanType1'], vlan_type)
+        call_wf.assert_called_once_with(
+            self.tenant_id,
+            self.nwa.post,
+            workflow.NwaWorkflow.path('DeleteVLAN'),
+            {'TenantID': self.tenant_id,
+             'DeleteNW_VlanLogicalName1': vlan_name,
+             'DeleteNW_VlanType1': vlan_type})
 
     def test__create_tenant_fw(self):
         vlan_devaddr = '10.0.0.254'
@@ -581,40 +592,49 @@ class TestUtNwaClient(base.BaseTestCase):
         self.assertEqual(body['LocalIP'], local_ip)
         self.assertEqual(body['GlobalIP'], global_ip)
 
-    def test__create_general_dev(self):
+    @patch('networking_nec.plugins.necnwa.nwalib.client.NwaClient.'
+           'call_workflow_new')
+    def test_create_general_dev(self, call_wf):
         vlan_name = 'LNW_BusinessVLAN_49'
         vlan_type = 'BusinessVLAN'
         port_type = 'BM'
-        method, url, body = self.nwa._create_general_dev(
+        self.nwa.create_general_dev(
             self.tenant_id, DC_RESOURCE_GROUP_POD1,
             vlan_name, vlan_type, port_type, 'vlan-logical-id-1'
         )
-        self.assertEqual(method, self.nwa.post)
-        self.assertRegex(url, workflow.NwaWorkflow.path('CreateGeneralDev'))
-        self.assertIsInstance(body, dict)
-        self.assertEqual(body['TenantID'], self.tenant_id)
-        self.assertEqual(body['CreateNW_DCResourceGroupName'],
-                         DC_RESOURCE_GROUP_POD1)
-        self.assertEqual(body['CreateNW_VlanLogicalName1'], vlan_name)
-        self.assertEqual(body['CreateNW_VlanType1'], vlan_type)
-        self.assertEqual(body['CreateNW_PortType1'], port_type)
+        call_wf.assert_called_once_with(
+            self.tenant_id,
+            self.nwa.post,
+            workflow.NwaWorkflow.path('CreateGeneralDev'),
+            {'TenantID': self.tenant_id,
+             'CreateNW_DeviceType1': 'GeneralDev',
+             'CreateNW_DCResourceGroupName': DC_RESOURCE_GROUP_POD1,
+             'CreateNW_VlanLogicalName1': vlan_name,
+             'CreateNW_VlanType1': vlan_type,
+             'CreateNW_PortType1': port_type,
+             'CreateNW_VlanLogicalID1': 'vlan-logical-id-1'})
 
-    def test__delete_general_dev(self):
+    @patch('networking_nec.plugins.necnwa.nwalib.client.NwaClient.'
+           'call_workflow_new')
+    def test_delete_general_dev(self, call_wf):
         vlan_name = 'LNW_BusinessVLAN_49'
         vlan_type = 'BusinessVLAN'
         port_type = 'BM'
-        method, url, body = self.nwa._delete_general_dev(
+        self.nwa.delete_general_dev(
             self.tenant_id, DC_RESOURCE_GROUP_POD1,
             vlan_name, vlan_type, port_type, 'vlan-logical-id-2'
         )
-        self.assertEqual(method, self.nwa.post)
-        self.assertRegex(url, workflow.NwaWorkflow.path('DeleteGeneralDev'))
-        self.assertIsInstance(body, dict)
-        self.assertEqual(body['TenantID'], self.tenant_id)
-        self.assertEqual(body['DeleteNW_DCResourceGroupName'],
-                         DC_RESOURCE_GROUP_POD1)
-        self.assertEqual(body['DeleteNW_VlanLogicalName1'], vlan_name)
-        self.assertEqual(body['DeleteNW_VlanType1'], vlan_type)
+        call_wf.assert_called_once_with(
+            self.tenant_id,
+            self.nwa.post,
+            workflow.NwaWorkflow.path('DeleteGeneralDev'),
+            {'TenantID': self.tenant_id,
+             'DeleteNW_DeviceType1': 'GeneralDev',
+             'DeleteNW_DCResourceGroupName': DC_RESOURCE_GROUP_POD1,
+             'DeleteNW_VlanLogicalName1': vlan_name,
+             'DeleteNW_VlanType1': vlan_type,
+             'DeleteNW_PortType1': port_type,
+             'DeleteNW_VlanLogicalID1': 'vlan-logical-id-2'})
 
 
 class TestSendQueueIsNotEmpty(base.BaseTestCase):
