@@ -15,6 +15,7 @@
 import copy
 import re
 
+import debtcollector
 import eventlet
 from oslo_log import log as logging
 import six
@@ -94,9 +95,13 @@ class NwaClient(nwa_restclient.NwaRestClient):
 
     # --- Tenant FW ---
 
-    def _create_tenant_fw(self, tenant_id, dc_resource_group_name,
-                          vlan_devaddr, vlan_logical_name,
-                          vlan_type='BusinessVLAN', router_id=None):
+    def create_tenant_fw(self, ok, ng, ctx, tenant_id,
+                         dc_resource_group_name,
+                         vlan_devaddr, vlan_logical_name,
+                         vlan_type='BusinessVLAN', router_id=None):
+        if ok or ng or ctx:
+            debtcollector.deprecate(
+                "Arguments 'ok', 'ng' and 'ctx' are unused.")
         body = {
             'CreateNW_DeviceType1': 'TFW',
             'TenantID': tenant_id,
@@ -105,11 +110,17 @@ class NwaClient(nwa_restclient.NwaRestClient):
             'CreateNW_VlanType1': vlan_type,
             'CreateNW_DCResourceGroupName': dc_resource_group_name
         }
-        return self.post, workflow.NwaWorkflow.path('CreateTenantFW'), body
+        return self.call_workflow_new(
+            tenant_id,
+            self.post, workflow.NwaWorkflow.path('CreateTenantFW'), body)
 
-    def _update_tenant_fw(self, tenant_id, device_name, vlan_devaddr,
-                          vlan_logical_name, vlan_type, connect=None,
-                          router_id=None, nocache=False):
+    def update_tenant_fw(self, ok, ng, ctx, tenant_id,
+                         device_name, vlan_devaddr,
+                         vlan_logical_name, vlan_type,
+                         connect=None, router_id=None):
+        if ok or ng or ctx:
+            debtcollector.deprecate(
+                "Arguments 'ok', 'ng' and 'ctx' are unused.")
         body = {
             'ReconfigNW_DeviceName1': device_name,
             'ReconfigNW_DeviceType1': 'TFW',
@@ -120,22 +131,33 @@ class NwaClient(nwa_restclient.NwaRestClient):
         }
         if connect:
             body['ReconfigNW_Vlan_ConnectDevice1'] = connect
-        return self.post, workflow.NwaWorkflow.path('UpdateTenantFW'), body
 
-    def _delete_tenant_fw(self, tenant_id, device_name, device_type,
-                          router_id=None):
+        return self.call_workflow_new(
+            tenant_id,
+            self.post, workflow.NwaWorkflow.path('UpdateTenantFW'), body)
+
+    def delete_tenant_fw(self, ok, ng, ctx, tenant_id,
+                         device_name, device_type, router_id=None):
+        if ok or ng or ctx:
+            debtcollector.deprecate(
+                "Arguments 'ok', 'ng' and 'ctx' are unused.")
         body = {
             'DeleteNW_DeviceName1': device_name,
             'DeleteNW_DeviceType1': device_type,
             'TenantID': tenant_id
         }
-        return self.post, workflow.NwaWorkflow.path('DeleteTenantFW'), body
+        return self.call_workflow_new(
+            tenant_id,
+            self.post, workflow.NwaWorkflow.path('DeleteTenantFW'), body)
 
     # --- Nat ---
 
-    def _setting_nat(self, tenant_id, vlan_logical_name, vlan_type,
-                     local_ip, global_ip, dev_name, data=None,
-                     router_id=None, nocache=False):
+    def setting_nat(self, ok, ng, ctx, tenant_id,
+                    vlan_logical_name, vlan_type,
+                    local_ip, global_ip, dev_name, data=None, router_id=None):
+        if ok or ng or ctx:
+            debtcollector.deprecate(
+                "Arguments 'ok', 'ng' and 'ctx' are unused.")
         body = {
             'ReconfigNW_DeviceName1': dev_name,
             'ReconfigNW_DeviceType1': 'TFW',
@@ -145,11 +167,16 @@ class NwaClient(nwa_restclient.NwaRestClient):
             'GlobalIP': global_ip,
             'TenantID': tenant_id,
         }
-        return self.post, workflow.NwaWorkflow.path('SettingNAT'), body
+        return self.call_workflow_new(
+            tenant_id,
+            self.post, workflow.NwaWorkflow.path('SettingNAT'), body)
 
-    def _delete_nat(self, tenant_id, vlan_logical_name, vlan_type,
-                    local_ip, global_ip, dev_name, data=None,
-                    router_id=None, nocache=False):
+    def delete_nat(self, ok, ng, ctx, tenant_id,
+                   vlan_logical_name, vlan_type,
+                   local_ip, global_ip, dev_name, data=None, router_id=None):
+        if ok or ng or ctx:
+            debtcollector.deprecate(
+                "Arguments 'ok', 'ng' and 'ctx' are unused.")
         body = {
             'DeleteNW_DeviceName1': dev_name,
             'DeleteNW_DeviceType1': 'TFW',
@@ -159,7 +186,9 @@ class NwaClient(nwa_restclient.NwaRestClient):
             'GlobalIP': global_ip,
             'TenantID': tenant_id,
         }
-        return self.post, workflow.NwaWorkflow.path('DeleteNAT'), body
+        return self.call_workflow_new(
+            tenant_id,
+            self.post, workflow.NwaWorkflow.path('DeleteNAT'), body)
 
     # --- FWaaS ---
 
@@ -463,69 +492,28 @@ class NwaClient(nwa_restclient.NwaRestClient):
 
     # --- async api; workflow ---
 
-    def create_tenant_fw(self, ok, ng, ctx, tenant_id,
-                         dc_resource_group_name,
-                         vlan_devaddr, vlan_logical_name,
-                         vlan_type='BusinessVLAN', router_id=None):
-        return self.apply_async(
-            self._create_tenant_fw, ok, ng, ctx, tenant_id,
-            dc_resource_group_name,
-            vlan_devaddr, vlan_logical_name,
-            vlan_type=vlan_type, router_id=router_id
-        )
-
-    def update_tenant_fw(self, ok, ng, ctx, tenant_id,
-                         device_name, vlan_devaddr,
-                         vlan_logical_name, vlan_type,
-                         connect=None, router_id=None):
-        return self.apply_async(
-            self._update_tenant_fw, ok, ng, ctx, tenant_id,
-            device_name, vlan_devaddr,
-            vlan_logical_name, vlan_type, connect=connect,
-            router_id=router_id, nocache=True
-        )
-
-    def delete_tenant_fw(self, ok, ng, ctx, tenant_id,
-                         device_name, device_type, router_id=None):
-        return self.apply_async(
-            self._delete_tenant_fw, ok, ng, ctx, tenant_id,
-            device_name, device_type, router_id=router_id
-        )
-
-    def setting_nat(self, ok, ng, ctx, tenant_id,
-                    vlan_logical_name, vlan_type,
-                    localip, global_ip, dev_name, data=None, router_id=None):
-        return self.apply_async(
-            self._setting_nat, ok, ng, ctx, tenant_id,
-            vlan_logical_name, vlan_type,
-            localip, global_ip, dev_name, data=data, router_id=router_id,
-            nocache=True
-        )
-
     def update_nat(self, ok, ng, ctx, tenant_id,
                    vlan_logical_name, vlan_type,
-                   localip, global_ip, dev_name, data=None, router_id=None):
-        def predel_nat(okctx, http_status, rj, *args, **kwargs):
-            return self.apply_async(
-                self._setting_nat, ok, ng, okctx, tenant_id,
-                vlan_logical_name, vlan_type,
-                localip, global_ip, dev_name, data=data, router_id=router_id)
+                   local_ip, global_ip, dev_name, data=None, router_id=None):
+        if ok or ng or ctx:
+            debtcollector.deprecate(
+                "Arguments 'ok', 'ng' and 'ctx' are unused.")
+        try:
+            http_status, rj = self.delete_nat(ok, ng, ctx, tenant_id,
+                                              vlan_logical_name, vlan_type,
+                                              local_ip, global_ip, dev_name,
+                                              data=data)
+        except Exception as e:
+            LOG.exception(_LE('%s'), e)
+            http_status = -1
+            rj = None
 
-        return self.apply_async(
-            self._delete_nat, predel_nat, predel_nat, ctx, tenant_id,
-            vlan_logical_name, vlan_type,
-            localip, global_ip, dev_name, data=data
-        )
+        self.setting_nat(ok, ng, ctx, tenant_id,
+                         vlan_logical_name, vlan_type,
+                         local_ip, global_ip, dev_name,
+                         data=data, router_id=router_id)
 
-    def delete_nat(self, ok, ng, ctx, tenant_id,
-                   vlan_logical_name, vlan_type,
-                   localip, global_ip, dev_name, data=None, router_id=None):
-        return self.apply_async(
-            self._delete_nat, ok, ng, ctx, tenant_id,
-            vlan_logical_name, vlan_type,
-            localip, global_ip, dev_name, data=data, router_id=router_id,
-            nocache=True
-        )
+        return http_status, rj
 
     def setting_fw_policy_async(self, ok, ng, ctx, tenant_id, fw_name, props):
         return self.apply_async(
