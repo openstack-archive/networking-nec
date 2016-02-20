@@ -38,39 +38,52 @@ resource_group_file = resource_group.json
 class TestConfig(base.BaseTestCase):
     '''Unit test for NwaClient config. '''
 
-    def test_nwa_config(self):
+    def setUp(self):
+        super(TestConfig, self).setUp()
         cfgfile = self.get_temp_file_path('nwa.ini')
         with open(cfgfile, 'w') as f:
             f.write(CONFIG_FILE_CONTENTS)
         cfg.CONF(args=[], default_config_files=[cfgfile])
-        nwa1 = client.NwaClient()
-        self.assertEqual(nwa1.host, '127.0.0.1')
-        self.assertEqual(nwa1.port, 12081)
-        self.assertFalse(nwa1.use_ssl)
-        self.assertEqual(nwa1.workflow_first_wait, 2)
-        self.assertEqual(nwa1.workflow_wait_sleep, 5)
-        self.assertEqual(nwa1.workflow_retry_count, 6)
+
+    def test_nwa_config(self):
+        nwa_client = client.NwaClient()
+        self.assertEqual(nwa_client.host, '127.0.0.1')
+        self.assertEqual(nwa_client.port, 12081)
+        self.assertFalse(nwa_client.use_ssl)
+        self.assertEqual(nwa_client.workflow_first_wait, 2)
+        self.assertEqual(nwa_client.workflow_wait_sleep, 5)
+        self.assertEqual(nwa_client.workflow_retry_count, 6)
+
+    def test_nwa_auth(self):
+        nwa_client = client.NwaClient()
         self.assertEqual(
-            nwa1.auth(
+            nwa_client.auth(
                 'Wed, 11 Feb 2015 17:24:51 GMT',
                 '/umf/tenant/DC1'
             ),
             b'SharedKeyLite 5g2ZMAdMwZ1gQqZagNqbJSrlopQUAUHILcP2nmxVs28='
             b':mNd/AZJdMawfhJpVUT/lQcH7fPMz+4AocKti1jD1lCI='
         )
-        headers = nwa1._make_headers('/')
+
+    def test_nwa_make_headers(self):
+        nwa_client = client.NwaClient()
+        headers = nwa_client._make_headers('/')
         self.assertEqual(headers.get('Content-Type'), 'application/json')
         self.assertIsNotNone(headers.get('X-UMF-API-Version'))
         self.assertIsNotNone(headers.get('Authorization'))
         self.assertIsNotNone(headers.get('Date'))
 
+    def test_nwa_config_with_arguments(self):
         host = '1.2.3.4'
         port = 12345
-        nwa2 = client.NwaClient(host=host, port=port, use_ssl=True)
-        self.assertEqual(nwa2.host, host)
-        self.assertEqual(nwa2.port, port)
-        self.assertTrue(nwa2.use_ssl)
-        auth = nwa2.define_auth_function('user', 'password')
+        nwa_client = client.NwaClient(host=host, port=port, use_ssl=True)
+        self.assertEqual(nwa_client.host, host)
+        self.assertEqual(nwa_client.port, port)
+        self.assertTrue(nwa_client.use_ssl)
+
+    def test_nwa_config_define_auth_function(self):
+        nwa_client = client.NwaClient()
+        auth = nwa_client.define_auth_function('user', 'password')
         self.assertEqual(
             auth(
                 'Wed, 11 Feb 2015 17:24:51 GMT',

@@ -80,12 +80,7 @@ class TestNwaClientBase(base.BaseTestCase):
             host=host, port=port, access_key_id=access_key_id,
             secret_access_key=secret_access_key
         )
-        self.nwa2 = client.NwaClient(
-            host=host, port=port, access_key_id=access_key_id,
-            secret_access_key=secret_access_key
-        )
         self.nwa.workflow_first_wait = 0
-        self.nwa2.workflow_first_wait = 0
 
 
 class TestNwaClient(TestNwaClientBase):
@@ -102,7 +97,6 @@ class TestNwaClient(TestNwaClientBase):
             elif node_type == 'PublicVLAN':
                 self.public_vlan = node
                 self.public_vlan_name = node['VLAN'][0]['LogicalName']
-        # print json.dumps(self.business_vlan, indent=4, sort_keys=True)
 
     def test_workflow_kick_and_wait_raise(self):
         call_ne = MagicMock(side_effect=nwa_exc.NwaException(200, 'm1', None))
@@ -256,18 +250,6 @@ class TestNwaClient(TestNwaClientBase):
         self.assertEqual(rj['status'], 'SUCCESS')
         self.assertEqual(post.call_count, 1)
 
-        post.reset_mock()                 # check no in history
-        rd, rj = self.delete_nat()
-        self.assertEqual(rd, 200)
-        self.assertEqual(rj['status'], 'SUCCESS')
-        self.assertEqual(post.call_count, 1)
-
-        post.reset_mock()                 # check no in history
-        rd, rj = self.delete_nat()
-        self.assertEqual(rd, 200)
-        self.assertEqual(rj['status'], 'SUCCESS')
-        self.assertEqual(post.call_count, 1)
-
     @patch('networking_nec.plugins.necnwa.nwalib'
            '.client.NwaClient.workflowinstance')
     @patch('networking_nec.plugins.necnwa.nwalib.restclient.RestClient.post')
@@ -281,18 +263,6 @@ class TestNwaClient(TestNwaClientBase):
         self.assertEqual(rj['status'], 'SUCCESS')
         self.assertEqual(post.call_count, 1)
 
-        post.reset_mock()                 # check no in history
-        rd, rj = self.setting_nat()
-        self.assertEqual(rd, 200)
-        self.assertEqual(rj['status'], 'SUCCESS')
-        self.assertEqual(post.call_count, 1)
-
-        post.reset_mock()                 # check no in history
-        rd, rj = self.setting_nat()
-        self.assertEqual(rd, 200)
-        self.assertEqual(rj['status'], 'SUCCESS')
-        self.assertEqual(post.call_count, 1)
-
     @patch('networking_nec.plugins.necnwa.nwalib'
            '.client.NwaClient.workflowinstance')
     @patch('networking_nec.plugins.necnwa.nwalib.restclient.RestClient.post')
@@ -301,18 +271,6 @@ class TestNwaClient(TestNwaClientBase):
         post.return_value = (200, {'status': 'SUCCESS', 'executionid': "01"})
         wki.return_value = (200, {'status': 'SUCCESS'})
 
-        rd, rj = self.update_tenant_fw()
-        self.assertEqual(rd, 200)
-        self.assertEqual(rj['status'], 'SUCCESS')
-        self.assertEqual(post.call_count, 1)
-
-        post.reset_mock()                 # check no in428 history
-        rd, rj = self.update_tenant_fw()
-        self.assertEqual(rd, 200)
-        self.assertEqual(rj['status'], 'SUCCESS')
-        self.assertEqual(post.call_count, 1)
-
-        post.reset_mock()                 # check no in history
         rd, rj = self.update_tenant_fw()
         self.assertEqual(rd, 200)
         self.assertEqual(rj['status'], 'SUCCESS')
