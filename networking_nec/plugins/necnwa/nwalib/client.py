@@ -16,6 +16,7 @@ import copy
 import re
 
 import debtcollector
+from debtcollector import removals
 import eventlet
 from oslo_log import log as logging
 import six
@@ -192,7 +193,12 @@ class NwaClient(nwa_restclient.NwaRestClient):
 
     # --- FWaaS ---
 
-    def _setting_fw_policy(self, tenant_id, fw_name, props):
+    @removals.remove(
+        message='It is no longer async. Use setting_fw_policy instead.')
+    def setting_fw_policy_async(self, tenant_id, fw_name, props):
+        return self.setting_fw_policy(tenant_id, fw_name, props)
+
+    def setting_fw_policy(self, tenant_id, fw_name, props):
         body = {
             'TenantID': tenant_id,
             'DCResourceType': 'TFW_Policy',
@@ -203,9 +209,11 @@ class NwaClient(nwa_restclient.NwaRestClient):
             },
             'Property': props
         }
-        return self.post, workflow.NwaWorkflow.path('SettingFWPolicy'), body
+        return self.call_workflow_new(
+            tenant_id,
+            self.post, workflow.NwaWorkflow.path('SettingFWPolicy'), body)
 
-    def _setting_lb_policy(self, tenant_id, lb_name, props):
+    def setting_lb_policy(self, tenant_id, lb_name, props):
         body = {
             'TenantID': tenant_id,
             'DCResourceType': 'LB_Policy',
@@ -216,12 +224,15 @@ class NwaClient(nwa_restclient.NwaRestClient):
             },
             'Property': props
         }
-        return self.post, workflow.NwaWorkflow.path('SettingLBPolicy'), body
+        return self.call_workflow_new(
+            tenant_id,
+            self.post, workflow.NwaWorkflow.path('SettingLBPolicy'), body)
 
     # --- LBaaS ---
 
-    def _create_tenant_lb(self, tenant_id, dc_resource_group_name,
-                          vlan_logical_name, vlan_type, vif_ipaddr):
+    def create_tenant_lb(self, tenant_id,
+                         dc_resource_group_name,
+                         vlan_logical_name, vlan_type, vif_ipaddr):
         body = {
             'CreateNW_DeviceType1': 'LB',
             'TenantID': tenant_id,
@@ -230,10 +241,12 @@ class NwaClient(nwa_restclient.NwaRestClient):
             'CreateNW_VlanType1': vlan_type,
             'CreateNW_DCResourceGroupName': dc_resource_group_name
         }
-        return self.post, workflow.NwaWorkflow.path('CreateTenantLB'), body
+        return self.call_workflow_new(
+            tenant_id,
+            self.post, workflow.NwaWorkflow.path('CreateTenantLB'), body)
 
-    def _update_tenant_lbn(self, tenant_id, device_name,
-                           actions):
+    def update_tenant_lbn(self, tenant_id,
+                          device_name, actions):
         body = {
             'ReconfigNW_DeviceName1': device_name,
             'ReconfigNW_DeviceType1': 'LB',
@@ -254,15 +267,20 @@ class NwaClient(nwa_restclient.NwaRestClient):
                     body['ReconfigNW_VlanType' + i] = 'PublicVLAN'
                 else:
                     body['ReconfigNW_VlanType' + i] = 'BusinessVLAN'
-        return self.post, workflow.NwaWorkflow.path('UpdateTenantLB'), body
 
-    def _delete_tenant_lb(self, tenant_id, device_name):
+        return self.call_workflow_new(
+            tenant_id,
+            self.post, workflow.NwaWorkflow.path('UpdateTenantLB'), body)
+
+    def delete_tenant_lb(self, tenant_id, device_name):
         body = {
             'DeleteNW_DeviceName1': device_name,
             'DeleteNW_DeviceType1': 'LB',
             'TenantID': tenant_id,
         }
-        return self.post, workflow.NwaWorkflow.path('DeleteTenantLB'), body
+        return self.call_workflow_new(
+            tenant_id,
+            self.post, workflow.NwaWorkflow.path('DeleteTenantLB'), body)
 
     # --- General Dev ---
 
@@ -473,23 +491,6 @@ class NwaClient(nwa_restclient.NwaRestClient):
                 new_nameid(_wf)
         workflow.NwaWorkflow.update_nameid(nameid)
 
-    def setting_fw_policy(self, tenant_id, fw_name, props):
-        rd = {'status': 'FAILED'}
-
-        def ok(ctx, hs, rj, *args, **kwargs):
-            rd['status'] = 'SUCCESS'
-            rd['http_status'] = hs
-            rd['result'] = rj
-
-        def ng(ctx, hs, rj, *args, **kwargs):
-            rd['http_status'] = hs
-            rd['result'] = rj
-            rd['exception'] = kwargs.get('exception', None)
-
-        return self.setting_fw_policy_async(
-            ok, ng, 0, tenant_id, fw_name, props
-        )
-
     # --- async api; workflow ---
 
     def update_nat(self, ok, ng, ctx, tenant_id,
@@ -514,40 +515,6 @@ class NwaClient(nwa_restclient.NwaRestClient):
                          data=data, router_id=router_id)
 
         return http_status, rj
-
-    def setting_fw_policy_async(self, ok, ng, ctx, tenant_id, fw_name, props):
-        return self.apply_async(
-            self._setting_fw_policy, ok, ng, ctx, tenant_id,
-            fw_name, props
-        )
-
-    def setting_lb_policy(self, ok, ng, ctx, tenant_id, lb_name, props):
-        return self.apply_async(
-            self._setting_lb_policy, ok, ng, ctx, tenant_id,
-            lb_name, props
-        )
-
-    def create_tenant_lb(self, ok, ng, ctx, tenant_id,
-                         dc_resource_group_name,
-                         vlan_logical_name, vlan_type, vif_ipaddr):
-        return self.apply_async(
-            self._create_tenant_lb, ok, ng, ctx, tenant_id,
-            dc_resource_group_name,
-            vlan_logical_name, vlan_type, vif_ipaddr
-        )
-
-    def update_tenant_lbn(self, ok, ng, ctx, tenant_id,
-                          device_name, actions):
-        return self.apply_async(
-            self._update_tenant_lbn, ok, ng, ctx, tenant_id,
-            device_name, actions
-        )
-
-    def delete_tenant_lb(self, ok, ng, ctx, tenant_id, device_name):
-        return self.apply_async(
-            self._delete_tenant_lb, ok, ng, ctx, tenant_id,
-            device_name
-        )
 
 
 def send_queue_is_not_empty():

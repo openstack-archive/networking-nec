@@ -345,7 +345,7 @@ class TestNwaClient(TestNwaClientBase):
         self.assertEqual(post.call_count, 1)
 
     @patch('networking_nec.plugins.necnwa.nwalib'
-           '.client.NwaClient.call_workflow')
+           '.client.NwaClient.call_workflow_new')
     def test_setting_fw_policy(self, cawk):
         cawk.return_value = (200, {'status': 'SUCCESS'})
         props = {'Property': 1}
@@ -576,23 +576,23 @@ class TestUtNwaClient(base.BaseTestCase):
              'LocalIP': local_ip,
              'GlobalIP': global_ip})
 
-    def test__setting_fw_policy(self):
+    @patch('networking_nec.plugins.necnwa.nwalib.client.NwaClient.'
+           'call_workflow_new')
+    def test_setting_fw_policy(self, call_wf):
         fw_name = 'TFW8'
         props = {'properties': [1]}
-        method, url, body = self.nwa._setting_fw_policy(
+        self.nwa.setting_fw_policy_async(
             self.tenant_id, fw_name, props
         )
-        self.assertEqual(method, self.nwa.post)
-        self.assertRegex(url, workflow.NwaWorkflow.path('SettingFWPolicy'))
-        self.assertIsInstance(body, dict)
-        self.assertEqual(body['TenantID'], self.tenant_id)
-        self.assertEqual(body['DCResourceType'], 'TFW_Policy')
-        self.assertEqual(body['DCResourceOperation'], 'Setting')
-        self.assertIsInstance(body['DeviceInfo'], dict)
-        self.assertEqual(body['Property'], props)
-        di = body['DeviceInfo']
-        self.assertEqual(di['DeviceName'], fw_name)
-        self.assertEqual(di['Type'], 'TFW')
+        call_wf.assert_called_once_with(
+            self.tenant_id,
+            self.nwa.post,
+            workflow.NwaWorkflow.path('SettingFWPolicy'),
+            {'TenantID': self.tenant_id,
+             'DCResourceType': 'TFW_Policy',
+             'DCResourceOperation': 'Setting',
+             'DeviceInfo': {'Type': 'TFW', 'DeviceName': fw_name},
+             'Property': props})
 
     @patch('networking_nec.plugins.necnwa.nwalib.client.NwaClient.'
            'call_workflow_new')
