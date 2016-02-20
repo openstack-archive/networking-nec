@@ -22,7 +22,6 @@ from oslo_log import log as logging
 import six
 
 from networking_nec._i18n import _LI, _LW, _LE
-from networking_nec.plugins.necnwa.nwalib import exceptions as nwa_exc
 from networking_nec.plugins.necnwa.nwalib import nwa_restclient
 from networking_nec.plugins.necnwa.nwalib import semaphore as nwa_sem
 from networking_nec.plugins.necnwa.nwalib import workflow
@@ -52,7 +51,7 @@ class NwaClient(nwa_restclient.NwaRestClient):
             "CreateNW_DCResourceGroupName": dc_resource_group_name,
             'CreateNW_OperationType': 'CreateTenantNW'
         }
-        return self.call_workflow_new(
+        return self.call_workflow(
             tenant_id,
             self.post, workflow.NwaWorkflow.path('CreateTenantNW'), body
         )
@@ -61,7 +60,7 @@ class NwaClient(nwa_restclient.NwaRestClient):
         body = {
             "TenantID": tenant_id,
         }
-        return self.call_workflow_new(
+        return self.call_workflow(
             tenant_id,
             self.post, workflow.NwaWorkflow.path('DeleteTenantNW'), body
         )
@@ -78,7 +77,7 @@ class NwaClient(nwa_restclient.NwaRestClient):
         }
         if openstack_network_id:
             body['CreateNW_VlanLogicalID1'] = openstack_network_id
-        return self.call_workflow_new(
+        return self.call_workflow(
             tenant_id,
             self.post, workflow.NwaWorkflow.path('CreateVLAN'), body
         )
@@ -89,7 +88,7 @@ class NwaClient(nwa_restclient.NwaRestClient):
             'DeleteNW_VlanLogicalName1': logical_name,
             'DeleteNW_VlanType1': vlan_type
         }
-        return self.call_workflow_new(
+        return self.call_workflow(
             tenant_id,
             self.post, workflow.NwaWorkflow.path('DeleteVLAN'), body
         )
@@ -111,7 +110,7 @@ class NwaClient(nwa_restclient.NwaRestClient):
             'CreateNW_VlanType1': vlan_type,
             'CreateNW_DCResourceGroupName': dc_resource_group_name
         }
-        return self.call_workflow_new(
+        return self.call_workflow(
             tenant_id,
             self.post, workflow.NwaWorkflow.path('CreateTenantFW'), body)
 
@@ -133,7 +132,7 @@ class NwaClient(nwa_restclient.NwaRestClient):
         if connect:
             body['ReconfigNW_Vlan_ConnectDevice1'] = connect
 
-        return self.call_workflow_new(
+        return self.call_workflow(
             tenant_id,
             self.post, workflow.NwaWorkflow.path('UpdateTenantFW'), body)
 
@@ -147,7 +146,7 @@ class NwaClient(nwa_restclient.NwaRestClient):
             'DeleteNW_DeviceType1': device_type,
             'TenantID': tenant_id
         }
-        return self.call_workflow_new(
+        return self.call_workflow(
             tenant_id,
             self.post, workflow.NwaWorkflow.path('DeleteTenantFW'), body)
 
@@ -168,7 +167,7 @@ class NwaClient(nwa_restclient.NwaRestClient):
             'GlobalIP': global_ip,
             'TenantID': tenant_id,
         }
-        return self.call_workflow_new(
+        return self.call_workflow(
             tenant_id,
             self.post, workflow.NwaWorkflow.path('SettingNAT'), body)
 
@@ -187,9 +186,32 @@ class NwaClient(nwa_restclient.NwaRestClient):
             'GlobalIP': global_ip,
             'TenantID': tenant_id,
         }
-        return self.call_workflow_new(
+        return self.call_workflow(
             tenant_id,
             self.post, workflow.NwaWorkflow.path('DeleteNAT'), body)
+
+    def update_nat(self, ok, ng, ctx, tenant_id,
+                   vlan_logical_name, vlan_type,
+                   local_ip, global_ip, dev_name, data=None, router_id=None):
+        if ok or ng or ctx:
+            debtcollector.deprecate(
+                "Arguments 'ok', 'ng' and 'ctx' are unused.")
+        try:
+            http_status, rj = self.delete_nat(ok, ng, ctx, tenant_id,
+                                              vlan_logical_name, vlan_type,
+                                              local_ip, global_ip, dev_name,
+                                              data=data)
+        except Exception as e:
+            LOG.exception(_LE('%s'), e)
+            http_status = -1
+            rj = None
+
+        self.setting_nat(ok, ng, ctx, tenant_id,
+                         vlan_logical_name, vlan_type,
+                         local_ip, global_ip, dev_name,
+                         data=data, router_id=router_id)
+
+        return http_status, rj
 
     # --- FWaaS ---
 
@@ -209,24 +231,9 @@ class NwaClient(nwa_restclient.NwaRestClient):
             },
             'Property': props
         }
-        return self.call_workflow_new(
+        return self.call_workflow(
             tenant_id,
             self.post, workflow.NwaWorkflow.path('SettingFWPolicy'), body)
-
-    def setting_lb_policy(self, tenant_id, lb_name, props):
-        body = {
-            'TenantID': tenant_id,
-            'DCResourceType': 'LB_Policy',
-            'DCResourceOperation': 'Setting',
-            'DeviceInfo': {
-                'Type': 'LB',
-                'DeviceName': lb_name,
-            },
-            'Property': props
-        }
-        return self.call_workflow_new(
-            tenant_id,
-            self.post, workflow.NwaWorkflow.path('SettingLBPolicy'), body)
 
     # --- LBaaS ---
 
@@ -241,7 +248,7 @@ class NwaClient(nwa_restclient.NwaRestClient):
             'CreateNW_VlanType1': vlan_type,
             'CreateNW_DCResourceGroupName': dc_resource_group_name
         }
-        return self.call_workflow_new(
+        return self.call_workflow(
             tenant_id,
             self.post, workflow.NwaWorkflow.path('CreateTenantLB'), body)
 
@@ -268,7 +275,7 @@ class NwaClient(nwa_restclient.NwaRestClient):
                 else:
                     body['ReconfigNW_VlanType' + i] = 'BusinessVLAN'
 
-        return self.call_workflow_new(
+        return self.call_workflow(
             tenant_id,
             self.post, workflow.NwaWorkflow.path('UpdateTenantLB'), body)
 
@@ -278,9 +285,24 @@ class NwaClient(nwa_restclient.NwaRestClient):
             'DeleteNW_DeviceType1': 'LB',
             'TenantID': tenant_id,
         }
-        return self.call_workflow_new(
+        return self.call_workflow(
             tenant_id,
             self.post, workflow.NwaWorkflow.path('DeleteTenantLB'), body)
+
+    def setting_lb_policy(self, tenant_id, lb_name, props):
+        body = {
+            'TenantID': tenant_id,
+            'DCResourceType': 'LB_Policy',
+            'DCResourceOperation': 'Setting',
+            'DeviceInfo': {
+                'Type': 'LB',
+                'DeviceName': lb_name,
+            },
+            'Property': props
+        }
+        return self.call_workflow(
+            tenant_id,
+            self.post, workflow.NwaWorkflow.path('SettingLBPolicy'), body)
 
     # --- General Dev ---
 
@@ -301,7 +323,7 @@ class NwaClient(nwa_restclient.NwaRestClient):
             body['CreateNW_VlanLogicalID1'] = openstack_network_id
         if port_type:
             body['CreateNW_PortType1'] = port_type
-        return self.call_workflow_new(
+        return self.call_workflow(
             tenant_id,
             self.post, workflow.NwaWorkflow.path('CreateGeneralDev'), body
         )
@@ -323,7 +345,7 @@ class NwaClient(nwa_restclient.NwaRestClient):
             body['DeleteNW_VlanLogicalID1'] = openstack_network_id
         if port_type:
             body['DeleteNW_PortType1'] = port_type
-        return self.call_workflow_new(
+        return self.call_workflow(
             tenant_id,
             self.post, workflow.NwaWorkflow.path('DeleteGeneralDev'), body
         )
@@ -367,54 +389,7 @@ class NwaClient(nwa_restclient.NwaRestClient):
             LOG.error(_LE('NWA workflow: %s'), e)
         return (http_status, None)
 
-    def call_workflow(self, make_request, tenant_id, *args, **kwargs):
-        post, url, body = make_request(tenant_id, *args, **kwargs)
-        wkf = nwa_sem.Semaphore.get_tenant_semaphore(tenant_id)
-        if wkf.sem.locked():
-            LOG.info(_LI('NWA sem %s(count)s: %(name)s %(url)s %(body)s'),
-                     {'count': wkf.sem.balance,
-                      'name': post.__name__,
-                      'url': url,
-                      'body': body})
-        with wkf.sem:
-            n = copy.copy(self)
-            n.workflow_polling_log_post_data(url, body)
-            http_status, rj = n.workflow_kick_and_wait(post, url, body)
-            return http_status, rj
-
-    def apply_async(self, make_request, success, failure, ctx, tenant_id,
-                    *args, **kwargs):
-        http_status = -1
-        try:
-            http_status, rj = self.call_workflow(
-                make_request, tenant_id, *args, **kwargs
-            )
-            if isinstance(rj, dict) and rj.get('status') == 'SUCCESS':
-                success(ctx, http_status, rj, *args, **kwargs)
-            else:
-                failure(ctx, http_status, rj, *args, **kwargs)
-
-        except nwa_exc.NwaException as e:
-            http_status = e.http_status
-            if isinstance(e.orgexc.args[0], IOError):
-                kwargs['exception'] = {
-                    'errno': e.orgexc.args[0][0],
-                    'message': e.orgexc.args[0][1]
-                }
-            else:
-                kwargs['exception'] = {
-                    'errno': 0,
-                    'message': str(e.orgexc)
-                }
-            failure(ctx, http_status, None, *args, **kwargs)
-        except Exception as e:
-            LOG.exception(_LE('%s'), e)
-            failure(ctx, http_status, None, *args, **kwargs)
-        return http_status, rj
-
-    # TODO(amotoki): call_workflow and apply_async should be removed eventually
-    def call_workflow_new(self, tenant_id, post, url, body):
-        # post, url, body = make_request(tenant_id, *args, **kwargs)
+    def call_workflow(self, tenant_id, post, url, body):
         try:
             wkf = nwa_sem.Semaphore.get_tenant_semaphore(tenant_id)
             if wkf.sem.locked():
@@ -490,31 +465,6 @@ class NwaClient(nwa_restclient.NwaRestClient):
             for _wf in rj.get('Workflows'):
                 new_nameid(_wf)
         workflow.NwaWorkflow.update_nameid(nameid)
-
-    # --- async api; workflow ---
-
-    def update_nat(self, ok, ng, ctx, tenant_id,
-                   vlan_logical_name, vlan_type,
-                   local_ip, global_ip, dev_name, data=None, router_id=None):
-        if ok or ng or ctx:
-            debtcollector.deprecate(
-                "Arguments 'ok', 'ng' and 'ctx' are unused.")
-        try:
-            http_status, rj = self.delete_nat(ok, ng, ctx, tenant_id,
-                                              vlan_logical_name, vlan_type,
-                                              local_ip, global_ip, dev_name,
-                                              data=data)
-        except Exception as e:
-            LOG.exception(_LE('%s'), e)
-            http_status = -1
-            rj = None
-
-        self.setting_nat(ok, ng, ctx, tenant_id,
-                         vlan_logical_name, vlan_type,
-                         local_ip, global_ip, dev_name,
-                         data=data, router_id=router_id)
-
-        return http_status, rj
 
 
 def send_queue_is_not_empty():

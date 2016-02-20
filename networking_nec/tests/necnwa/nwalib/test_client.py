@@ -21,7 +21,6 @@ from neutron.tests import base
 
 from networking_nec.plugins.necnwa.nwalib import client
 from networking_nec.plugins.necnwa.nwalib import exceptions as nwa_exc
-from networking_nec.plugins.necnwa.nwalib import semaphore as nwa_sem
 from networking_nec.plugins.necnwa.nwalib import workflow
 
 # the below code is required to load test scenarios.
@@ -154,40 +153,15 @@ class TestNwaClient(TestNwaClientBase):
         call = MagicMock()
         call.__name__ = 'POST'
 
-        def mkreq(tid, b, nocache=None):
-            return call, 'url_' + str(tid), 'body_' + str(b)
-
         wkaw.return_value = 200, '0'
-        hst, rd = self.nwa.call_workflow(mkreq, '0', '0')
+        hst, rd = self.nwa.call_workflow('0', call, 'url_0', 'body_0')
         self.assertEqual(hst, 200)
         self.assertEqual(rd, '0')
 
         wkaw.return_value = 201, '1'
-        hst, rd = self.nwa.call_workflow(mkreq, '1', '1')
+        hst, rd = self.nwa.call_workflow('1', call, 'url_1', 'body_1')
         self.assertEqual(hst, 201)
         self.assertEqual(rd, '1')
-
-        # 'nocache' in kwargs
-        wkaw.return_value = 202, '2'
-        hst, rd = self.nwa.call_workflow(mkreq, '2', '2', nocache=True)
-        self.assertEqual(hst, 202)
-        self.assertEqual(rd, '2')
-
-        # 'nocache' is hook function
-        wkaw.return_value = 203, '3'
-
-        def hook(self, *args, **kwargs):
-            self.assertEqual(args[0].__name__, 'POST')
-            self.assertEqual(args[1], 'url_3')
-            self.assertEqual(args[2], 'body_3')
-            self.assertEqual(args[3], 203)
-            self.assertEqual(args[4], '3')
-
-        s = nwa_sem.Semaphore()
-        s.hook = hook
-        hst, rd = self.nwa.call_workflow(mkreq, '3', '3', nocache=s.hook)
-        self.assertEqual(hst, 203)
-        self.assertEqual(rd, '3')
 
     def test_get_reserved_dc_resource(self):
         self.nwa.get_reserved_dc_resource(TENANT_ID)
@@ -425,7 +399,7 @@ class TestUtNwaClient(base.BaseTestCase):
         self.tenant_id = 'OpenT9004'
 
     @patch('networking_nec.plugins.necnwa.nwalib.client.NwaClient.'
-           'call_workflow_new')
+           'call_workflow')
     def test_create_tenant_nw(self, call_wf):
         self.nwa.create_tenant_nw(
             self.tenant_id,
@@ -440,7 +414,7 @@ class TestUtNwaClient(base.BaseTestCase):
              'CreateNW_OperationType': 'CreateTenantNW'})
 
     @patch('networking_nec.plugins.necnwa.nwalib.client.NwaClient.'
-           'call_workflow_new')
+           'call_workflow')
     def test_delete_tenant_nw(self, call_wf):
         self.nwa.delete_tenant_nw(self.tenant_id)
         call_wf.assert_called_once_with(
@@ -450,7 +424,7 @@ class TestUtNwaClient(base.BaseTestCase):
             {'TenantID': self.tenant_id})
 
     @patch('networking_nec.plugins.necnwa.nwalib.client.NwaClient.'
-           'call_workflow_new')
+           'call_workflow')
     def test_create_vlan(self, call_wf):
         vlan_type = 'BusinessVLAN'
         ipaddr = '10.0.0.0'
@@ -472,7 +446,7 @@ class TestUtNwaClient(base.BaseTestCase):
              'CreateNW_VlanLogicalID1': open_nid})
 
     @patch('networking_nec.plugins.necnwa.nwalib.client.NwaClient.'
-           'call_workflow_new')
+           'call_workflow')
     def test_delete_vlan(self, call_wf):
         vlan_name = 'LNW_BusinessVLAN_49'
         vlan_type = 'BusinessVLAN'
@@ -488,7 +462,7 @@ class TestUtNwaClient(base.BaseTestCase):
              'DeleteNW_VlanType1': vlan_type})
 
     @patch('networking_nec.plugins.necnwa.nwalib.client.NwaClient.'
-           'call_workflow_new')
+           'call_workflow')
     def test_create_tenant_fw(self, call_wf):
         vlan_devaddr = '10.0.0.254'
         vlan_name = 'LNW_BusinessVLAN_49'
@@ -510,7 +484,7 @@ class TestUtNwaClient(base.BaseTestCase):
              'CreateNW_VlanType1': vlan_type})
 
     @patch('networking_nec.plugins.necnwa.nwalib.client.NwaClient.'
-           'call_workflow_new')
+           'call_workflow')
     def test_update_tenant_fw(self, call_wf):
         device_name = 'TFW0'
         device_type = 'TFW'
@@ -535,7 +509,7 @@ class TestUtNwaClient(base.BaseTestCase):
              'ReconfigNW_Vlan_ConnectDevice1': 'connect'})
 
     @patch('networking_nec.plugins.necnwa.nwalib.client.NwaClient.'
-           'call_workflow_new')
+           'call_workflow')
     def test_delete_tenant_fw(self, call_wf):
         device_name = 'TFW0'
         device_type = 'TFW'
@@ -553,7 +527,7 @@ class TestUtNwaClient(base.BaseTestCase):
              'DeleteNW_DeviceType1': device_type})
 
     @patch('networking_nec.plugins.necnwa.nwalib.client.NwaClient.'
-           'call_workflow_new')
+           'call_workflow')
     def test_setting_nat(self, call_wf):
         fw_name = 'TFW8'
         vlan_name = 'LNW_PublicVLAN_46'
@@ -578,7 +552,7 @@ class TestUtNwaClient(base.BaseTestCase):
              'GlobalIP': global_ip})
 
     @patch('networking_nec.plugins.necnwa.nwalib.client.NwaClient.'
-           'call_workflow_new')
+           'call_workflow')
     def test_setting_fw_policy(self, call_wf):
         fw_name = 'TFW8'
         props = {'properties': [1]}
@@ -596,7 +570,7 @@ class TestUtNwaClient(base.BaseTestCase):
              'Property': props})
 
     @patch('networking_nec.plugins.necnwa.nwalib.client.NwaClient.'
-           'call_workflow_new')
+           'call_workflow')
     def test_delete_nat(self, call_wf):
         fw_name = 'TFW8'
         vlan_name = 'LNW_PublicVLAN_46'
@@ -623,7 +597,7 @@ class TestUtNwaClient(base.BaseTestCase):
              'GlobalIP': global_ip})
 
     @patch('networking_nec.plugins.necnwa.nwalib.client.NwaClient.'
-           'call_workflow_new')
+           'call_workflow')
     def test_create_general_dev(self, call_wf):
         vlan_name = 'LNW_BusinessVLAN_49'
         vlan_type = 'BusinessVLAN'
@@ -645,7 +619,7 @@ class TestUtNwaClient(base.BaseTestCase):
              'CreateNW_VlanLogicalID1': 'vlan-logical-id-1'})
 
     @patch('networking_nec.plugins.necnwa.nwalib.client.NwaClient.'
-           'call_workflow_new')
+           'call_workflow')
     def test_delete_general_dev(self, call_wf):
         vlan_name = 'LNW_BusinessVLAN_49'
         vlan_type = 'BusinessVLAN'
