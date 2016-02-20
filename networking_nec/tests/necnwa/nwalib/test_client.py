@@ -345,18 +345,19 @@ class TestNwaClient(TestNwaClientBase):
         self.assertEqual(post.call_count, 1)
 
     @patch('networking_nec.plugins.necnwa.nwalib'
-           '.client.NwaClient.call_workflow_new')
-    def test_setting_fw_policy(self, cawk):
-        cawk.return_value = (200, {'status': 'SUCCESS'})
+           '.client.NwaClient.workflowinstance')
+    @patch('networking_nec.plugins.necnwa.nwalib.restclient.RestClient.post')
+    def test_setting_fw_policy(self, post, wki):
+        post.__name__ = 'post'
+        post.return_value = (200, {'status': 'SUCCESS', 'executionid': "01"})
+        wki.return_value = (200, {'status': 'SUCCESS'})
+
         props = {'Property': 1}
         fw_name = 'TFW8'
+
         rd, rj = self.nwa.setting_fw_policy(TENANT_ID, fw_name, props)
         self.assertEqual(rd, 200)
         self.assertEqual(rj['status'], 'SUCCESS')
-
-        cawk.return_value = (500, None)
-        rd, rj = self.nwa.setting_fw_policy(TENANT_ID, fw_name, props)
-        self.assertEqual(rd, 500)
 
 
 class TestNwaClientScenario(TestNwaClientBase):
