@@ -96,13 +96,16 @@ def check_segment_tfw(network_id, res_name, nwa_data):
 
 class AgentProxyL2(object):
 
-    def __init__(self, agent_top, client, proxy_tenant):
+    def __init__(self, agent_top, client):
         self.nwa_tenant_rpc = tenant_binding_api.TenantBindingServerRpcApi(
             topics.PLUGIN)
         self.nwa_l2_rpc = nwa_l2_server_api.NwaL2ServerRpcApi(topics.PLUGIN)
         self.agent_top = agent_top
         self.client = client
-        self.proxy_tenant = proxy_tenant
+
+    @property
+    def proxy_tenant(self):
+        return self.agent_top.proxy_tenant
 
     @utils.log_method_return_value
     @helpers.log_method_call

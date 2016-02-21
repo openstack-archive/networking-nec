@@ -71,10 +71,8 @@ class NECNWANeutronAgent(object):
 
         self.server_manager = server_manager.ServerManager(self.topic, self)
         self.proxy_tenant = proxy_tenant.AgentProxyTenant(self, self.client)
-        self.proxy_l2 = proxy_l2.AgentProxyL2(self, self.client,
-                                              self.proxy_tenant)
-        self.proxy_l3 = proxy_l3.AgentProxyL3(self, self.client,
-                                              self.proxy_tenant, self.proxy_l2)
+        self.proxy_l2 = proxy_l2.AgentProxyL2(self, self.client)
+        self.proxy_l3 = proxy_l3.AgentProxyL3(self, self.client)
         self.setup_rpc()
 
         LOG.debug('NWA Agent state %s', self.agent_state)

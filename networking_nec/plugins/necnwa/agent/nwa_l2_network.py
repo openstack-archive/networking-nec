@@ -14,12 +14,14 @@
 
 import re
 
+from neutron.common import topics
 from oslo_log import helpers
 from oslo_log import log as logging
 
 from networking_nec._i18n import _LI
 from networking_nec.plugins.necnwa.agent import proxy_l2 as agent_proxy_l2
 from networking_nec.plugins.necnwa.common import exceptions as nwa_exc
+from networking_nec.plugins.necnwa.l2.rpc import tenant_binding_api
 
 LOG = logging.getLogger(__name__)
 
@@ -28,10 +30,18 @@ KEY_CREATE_TENANT_NW = 'CreateTenantNW'
 
 class NwaL2Network(object):
 
-    def __init__(self, nwa_tenant_rpc, proxy_tenant, proxy_l2):
-        self._nwa_tenant_rpc = nwa_tenant_rpc
-        self._proxy_tenant = proxy_tenant
-        self._proxy_l2 = proxy_l2
+    def __init__(self, agent_top):
+        self._agent_top = agent_top
+        self._nwa_tenant_rpc = tenant_binding_api.TenantBindingServerRpcApi(
+            topics.PLUGIN)
+
+    @property
+    def _proxy_tenant(self):
+        return self._agent_top.proxy_tenant
+
+    @property
+    def _proxy_l2(self):
+        return self._agent_top.proxy_l2
 
     @helpers.log_method_call
     @agent_proxy_l2.catch_exception_and_update_tenant_binding
