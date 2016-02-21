@@ -211,22 +211,11 @@ class AgentProxyL2(object):
 
         return nwa_data
 
-    @helpers.log_method_call
-    @tenant_util.catch_exception_and_update_tenant_binding
-    def create_general_dev(self, context, **kwargs):
-        """Create GeneralDev wrapper.
-
-        @param context: contains user information.
-        @param kwargs:
-        @return: dict of status and msg.
-        """
-
+    def _ensure_l2_network(self, context, **kwargs):
         tenant_id = kwargs.get('tenant_id')
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
         nwa_info = kwargs.get('nwa_info')
-
         network_id = nwa_info['network']['id']
-        resource_group_name = nwa_info['resource_group_name']
 
         LOG.debug("tenant_id=%(tenant_id)s, network_id=%(network_id)s, "
                   "device_owner=%(device_owner)s",
@@ -244,7 +233,7 @@ class AgentProxyL2(object):
             if not self.proxy_tenant.update_tenant_binding(
                     context, tenant_id, nwa_tenant_id,
                     nwa_data, nwa_created=True):
-                return None
+                return
 
         # create tenant nw
         if KEY_CREATE_TENANT_NW not in nwa_data:
@@ -256,6 +245,34 @@ class AgentProxyL2(object):
         if nw_vlan_key not in nwa_data:
             # raise AgentProxyException if fail
             self._create_vlan(context, nwa_data=nwa_data, **kwargs)
+
+        return nwa_data
+
+    @helpers.log_method_call
+    @tenant_utils.catch_exception_and_update_tenant_binding
+    def ensure_l2_network(self, context, **kwargs):
+        return self._ensure_l2_network(context, **kwargs)
+
+    @helpers.log_method_call
+    @tenant_utils.catch_exception_and_update_tenant_binding
+    def create_general_dev(self, context, **kwargs):
+        """Create GeneralDev wrapper.
+
+        @param context: contains user information.
+        @param kwargs:
+        @return: dict of status and msg.
+        """
+
+        nwa_data = self._ensure_l2_network(context, **kwargs)
+        if not nwa_data:
+            return
+
+        tenant_id = kwargs.get('tenant_id')
+        nwa_tenant_id = kwargs.get('nwa_tenant_id')
+        nwa_info = kwargs.get('nwa_info')
+
+        network_id = nwa_info['network']['id']
+        resource_group_name = nwa_info['resource_group_name']
 
         # create general dev
         if not check_segment_gd(network_id, resource_group_name, nwa_data):
@@ -393,6 +410,23 @@ class AgentProxyL2(object):
         nwa_data = self._delete_general_dev(context,
                                             nwa_data=nwa_data, **kwargs)
         # delete general dev end
+
+        return self._terminate_l2_network(context, nwa_data, **kwargs)
+
+    @helpers.log_method_call
+    @tenant_utils.catch_exception_and_update_tenant_binding
+    def terminate_l2_network(self, context, **kwargs):
+        tenant_id = kwargs.get('tenant_id')
+        nwa_tenant_id = kwargs.get('nwa_tenant_id')
+        nwa_data = self.nwa_tenant_rpc.get_nwa_tenant_binding(
+            context, tenant_id, nwa_tenant_id)
+        return self._terminate_l2_network(context, nwa_data, **kwargs)
+
+    def _terminate_l2_network(self, context, nwa_data, **kwargs):
+        tenant_id = kwargs.get('tenant_id')
+        nwa_tenant_id = kwargs.get('nwa_tenant_id')
+        nwa_info = kwargs.get('nwa_info')
+        network_id = nwa_info['network']['id']
 
         # port check on segment.
         if check_vlan(network_id, nwa_data):

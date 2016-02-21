@@ -23,7 +23,6 @@ from oslo_log import log as logging
 
 from networking_nec._i18n import _LE, _LW
 from networking_nec.common import utils
-from networking_nec.plugins.necnwa.agent.nwa_l2_network import NwaL2Network
 from networking_nec.plugins.necnwa.agent import proxy_l2 as l2
 from networking_nec.plugins.necnwa.agent import proxy_tenant as tenant_util
 from networking_nec.plugins.necnwa.common import constants as nwa_const
@@ -51,7 +50,6 @@ class AgentProxyL3(object):
         self.nwa_l3_rpc = nwa_l3_server_api.NwaL3ServerRpcApi(topics.PLUGIN)
         self.agent_top = agent_top
         self.client = client
-        self.nwa_l2_network = NwaL2Network(self.agent_top)
         self.tenant_fw_create_hook = tenant_fw_create_hook
         self.tenant_fw_delete_hook = tenant_fw_delete_hook
         self.tenant_fw_connect_hook = tenant_fw_connect_hook
@@ -61,10 +59,14 @@ class AgentProxyL3(object):
     def proxy_tenant(self):
         return self.agent_top.proxy_tenant
 
+    @property
+    def proxy_l2(self):
+        return self.agent_top.proxy_l2
+
     @helpers.log_method_call
     @tenant_util.catch_exception_and_update_tenant_binding
     def create_tenant_fw(self, context, **kwargs):
-        nwa_data = self.nwa_l2_network.start(context, **kwargs)
+        nwa_data = self.proxy_l2.ensure_l2_network(context, **kwargs)
         device_id = kwargs['nwa_info']['device']['id']
         network_id = kwargs['nwa_info']['network']['id']
         dev_key = data_utils.get_device_key(device_id)
@@ -320,7 +322,7 @@ class AgentProxyL3(object):
             LOG.error(_LE("count miss match"))
             raise nwa_exc.AgentProxyException(value=nwa_data)
 
-        return self.nwa_l2_network.terminate(context, **kwargs)
+        return self.proxy_l2.terminate_l2_network(context, **kwargs)
 
     @helpers.log_method_call
     def setting_nat(self, context, **kwargs):
