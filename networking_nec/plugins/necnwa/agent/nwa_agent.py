@@ -107,7 +107,7 @@ class NECNWANeutronAgent(object):
         self.endpoints = [self.callback_nwa]
 
         # create connection
-        self.conn = n_rpc.create_connection(new=True)
+        self.conn = n_rpc.create_connection()
 
         self.conn.create_consumer(self.topic, self.endpoints,
                                   fanout=False)

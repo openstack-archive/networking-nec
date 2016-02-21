@@ -61,7 +61,7 @@ class NECNWAL2Plugin(ml2_plugin.Ml2Plugin):
             metadata_rpc.MetadataRpcCallback()]
 
         self.topic = topics.PLUGIN
-        self.conn = n_rpc.create_connection(new=True)
+        self.conn = n_rpc.create_connection()
         self.conn.create_consumer(self.topic, self.endpoints,
                                   fanout=False)
         return self.conn.consume_in_threads()
