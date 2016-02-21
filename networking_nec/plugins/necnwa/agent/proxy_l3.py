@@ -40,7 +40,7 @@ LOG = logging.getLogger(__name__)
 # pylint: disable=too-many-instance-attributes
 class AgentProxyL3(object):
 
-    def __init__(self, agent_top, client, proxy_tenant, proxy_l2,
+    def __init__(self, agent_top, client,
                  tenant_fw_create_hook=None,
                  tenant_fw_delete_hook=None,
                  tenant_fw_connect_hook=None,
@@ -51,13 +51,15 @@ class AgentProxyL3(object):
         self.nwa_l3_rpc = nwa_l3_server_api.NwaL3ServerRpcApi(topics.PLUGIN)
         self.agent_top = agent_top
         self.client = client
-        self.proxy_tenant = proxy_tenant
-        self.nwa_l2_network = NwaL2Network(self.nwa_tenant_rpc, proxy_tenant,
-                                           proxy_l2)
+        self.nwa_l2_network = NwaL2Network(self.agent_top)
         self.tenant_fw_create_hook = tenant_fw_create_hook
         self.tenant_fw_delete_hook = tenant_fw_delete_hook
         self.tenant_fw_connect_hook = tenant_fw_connect_hook
         self.tenant_fw_disconnect_hook = tenant_fw_disconnect_hook
+
+    @property
+    def proxy_tenant(self):
+        return self.agent_top.proxy_tenant
 
     @helpers.log_method_call
     @tenant_util.catch_exception_and_update_tenant_binding
