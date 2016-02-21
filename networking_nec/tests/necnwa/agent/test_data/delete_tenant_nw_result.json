@@ -1,0 +1,25 @@
+{
+    "progress": 100,
+    "resultdata": {
+        "DCResourceReserveID": "1",
+        "DevType": "",
+        "ErrorMessage": "",
+        "GUID": "",
+        "LogicalNWName_Del": "LNW_TenantVLAN_89",
+        "ManagerName": "",
+        "Mode": "",
+        "NWAResult": "No result log\r\n",
+        "NumOfTenantNWDev": "",
+        "ResourceGroupName": "Common/App/Pod3",
+        "SSLAuthFlag": "",
+        "Section": "",
+        "TFWAuthFlag": "",
+        "TFWCount": "",
+        "TenantID": "DC1_844eb55f21e84a289e9c22098d387e5d",
+        "UNC_LoopCounter": "1",
+        "VlanID_Del": "5",
+        "VlanLoopCounter": "0",
+        "VlanType": ""
+    },
+    "status": "SUCCESS"
+}
