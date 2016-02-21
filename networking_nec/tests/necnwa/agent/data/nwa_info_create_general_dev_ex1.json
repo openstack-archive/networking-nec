@@ -1,0 +1,27 @@
+{
+    "device": {
+        "id": "171fff51-ac4c-444e-99a2-8957ca0fad6e",
+        "owner": "compute:DC1_KVM"
+    },
+    "network": {
+        "id": "0ed65870-9acb-48ce-8c0b-e803d527a9d2",
+        "name": "net100",
+        "vlan_type": "BusinessVLAN"
+    },
+    "nwa_tenant_id": "DC02_844eb55f21e84a289e9c22098d387e5d",
+    "physical_network": "OpenStack/DC1/APP",
+    "port": {
+        "id": "81f78799-fd82-48ce-98c3-3df91fb4768c",
+        "ip": "192.168.100.102",
+        "mac": "fa:16:3e:1b:27:f9"
+    },
+    "resource_group": "OpenStack/DC1/APP",
+    "resource_group_name": "OpenStack/DC1/APP",
+    "resource_group_name_nw": "OpenStack/DC1/APP",
+    "subnet": {
+        "id": "df2a7b8a-e027-49ab-bf84-ade82a3c096c",
+        "mask": "24",
+        "netaddr": "192.168.100.0"
+    },
+    "tenant_id": "844eb55f21e84a289e9c22098d387e5d"
+}

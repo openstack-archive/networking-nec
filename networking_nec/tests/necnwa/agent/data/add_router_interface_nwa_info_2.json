@@ -1,0 +1,25 @@
+{
+    "device": {
+        "id": "6b34210c-bd74-47f0-8dc3-3bad9bc333c3",
+        "owner": "network:router_interface"
+    },
+    "network": {
+        "id": "b2246c56-d465-49c7-a332-f329aa524277",
+        "name": "net101",
+        "vlan_type": "BusinessVLAN"
+    },
+    "physical_network": "OpenStack/DC1/APP",
+    "port": {
+        "id": "254c3a42-b3aa-4083-9b7b-2e4c62b2ffbb",
+        "ip": "192.168.101.1",
+        "mac": "fa:16:3e:34:9a:c9"
+    },
+    "resource_group": "OpenStack/DC1/APP",
+    "resource_group_name": "OpenStack/DC1",
+    "resource_group_name_nw": "OpenStack/DC1",
+    "subnet": {
+        "id": "ec3d84a5-ce49-48ee-a041-a7b9c9867899",
+        "mask": "24",
+        "netaddr": "192.168.101.0"
+    }
+}
