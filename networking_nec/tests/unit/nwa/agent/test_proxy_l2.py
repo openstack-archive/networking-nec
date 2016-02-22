@@ -19,8 +19,8 @@ from oslo_serialization import jsonutils
 import six
 import testscenarios
 
-from networking_nec.plugins.necnwa.agent import proxy_l2
-from networking_nec.plugins.necnwa.common import exceptions as nwa_exc
+from networking_nec.nwa.agent import proxy_l2
+from networking_nec.nwa.common import exceptions as nwa_exc
 from networking_nec.tests.unit.nwa.agent import test_nwa_agent
 
 load_tests = testscenarios.load_tests_apply_scenarios
@@ -167,11 +167,11 @@ class TestAgentProxyL2CreateGeneralDev(
          ),
     ]
 
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.'
+    @mock.patch('networking_nec.nwa.l2.rpc.tenant_binding_api.'
                 'TenantBindingServerRpcApi.get_nwa_tenant_binding')
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.'
+    @mock.patch('networking_nec.nwa.l2.rpc.tenant_binding_api.'
                 'TenantBindingServerRpcApi.set_nwa_tenant_binding')
-    @mock.patch('networking_nec.plugins.necnwa.agent.proxy_tenant.'
+    @mock.patch('networking_nec.nwa.agent.proxy_tenant.'
                 'AgentProxyTenant.update_tenant_binding')
     def test_create_general_dev(self, utb, stb, gtb):
         context = mock.MagicMock()
@@ -290,11 +290,11 @@ class TestAgentProxyL2DeleteGeneralDev(
          ),
     ]
 
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.'
+    @mock.patch('networking_nec.nwa.l2.rpc.tenant_binding_api.'
                 'TenantBindingServerRpcApi.get_nwa_tenant_binding')
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.'
+    @mock.patch('networking_nec.nwa.l2.rpc.tenant_binding_api.'
                 'TenantBindingServerRpcApi.set_nwa_tenant_binding')
-    @mock.patch('networking_nec.plugins.necnwa.agent.proxy_tenant.'
+    @mock.patch('networking_nec.nwa.agent.proxy_tenant.'
                 'AgentProxyTenant.update_tenant_binding')
     def test_delete_general_dev(self, utb, stb, gtb):
         context = mock.MagicMock()
@@ -374,11 +374,11 @@ class TestNECNWANeutronAgentRpc(test_nwa_agent.TestNECNWANeutronAgentBase):
           'nwa_info': 'nwa_info_delete_general_dev_succeed3.json'}),
     ]
 
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.'
+    @mock.patch('networking_nec.nwa.l2.rpc.tenant_binding_api.'
                 'TenantBindingServerRpcApi.get_nwa_tenant_binding')
-    @mock.patch('networking_nec.plugins.necnwa.agent.proxy_tenant.'
+    @mock.patch('networking_nec.nwa.agent.proxy_tenant.'
                 'AgentProxyTenant.update_tenant_binding')
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.'
+    @mock.patch('networking_nec.nwa.l2.rpc.tenant_binding_api.'
                 'TenantBindingServerRpcApi.set_nwa_tenant_binding')
     def test_general_dev(self, stb, utb, gtb):
         nwa_tenant_id = "DC_KILO3_5d9c51b1d6a34133bb735d4988b309c2"
@@ -394,8 +394,8 @@ class TestNECNWANeutronAgentRpc(test_nwa_agent.TestNECNWANeutronAgentBase):
         nwa_info = load_data_file(self.nwa_info)
 
         if getattr(self, 'mock_wait_agent_notifier', False):
-            mock.patch('networking_nec.plugins.necnwa.agent.proxy_l2.'
-                       'WAIT_AGENT_NOTIFIER', new=0).start()
+            mock.patch('networking_nec.nwa.agent.proxy_l2.WAIT_AGENT_NOTIFIER',
+                       new=0).start()
 
         if self.mode == 'create_general_dev':
             rc = self.agent.proxy_l2.create_general_dev(

@@ -20,8 +20,8 @@ import requests
 from six.moves.urllib import parse as urlparse
 
 from networking_nec._i18n import _, _LI, _LE
-from networking_nec.plugins.necnwa.nwalib import exceptions as nwa_exc
-from networking_nec.plugins.necnwa.nwalib import workflow
+from networking_nec.nwa.nwalib import exceptions as nwa_exc
+from networking_nec.nwa.nwalib import workflow
 
 
 LOG = logging.getLogger(__name__)

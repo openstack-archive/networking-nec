@@ -16,8 +16,8 @@ from mock import patch
 from neutron.tests import base
 import requests
 
-from networking_nec.plugins.necnwa.nwalib import exceptions as nwa_exc
-from networking_nec.plugins.necnwa.nwalib import restclient
+from networking_nec.nwa.nwalib import exceptions as nwa_exc
+from networking_nec.nwa.nwalib import restclient
 
 
 class TestRestClient(base.BaseTestCase):
@@ -74,8 +74,7 @@ class TestRestClient(base.BaseTestCase):
     def test___report_workflow_error(self):
         self.rcl._report_workflow_error(None, 0)
 
-    @patch('networking_nec.plugins.necnwa.nwalib.restclient.RestClient.'
-           'rest_api')
+    @patch('networking_nec.nwa.nwalib.restclient.RestClient.rest_api')
     def test_rest_api_return_check(self, ra):
         body = {'a': 1}
         url = 'http://127.0.0.5:8085/path'
@@ -112,25 +111,25 @@ class TestRestClient(base.BaseTestCase):
             rcl.rest_api_return_check, 'GET', url, body
         )
 
-    @patch('networking_nec.plugins.necnwa.nwalib.restclient.RestClient.'
+    @patch('networking_nec.nwa.nwalib.restclient.RestClient.'
            'rest_api_return_check')
     def test_get(self, rarc):
         self.rcl.get('')
         self.assertEqual(rarc.call_count, 1)
 
-    @patch('networking_nec.plugins.necnwa.nwalib.restclient.RestClient.'
+    @patch('networking_nec.nwa.nwalib.restclient.RestClient.'
            'rest_api_return_check')
     def test_post(self, rarc):
         self.rcl.post('')
         self.assertEqual(rarc.call_count, 1)
 
-    @patch('networking_nec.plugins.necnwa.nwalib.restclient.RestClient.'
+    @patch('networking_nec.nwa.nwalib.restclient.RestClient.'
            'rest_api_return_check')
     def test_put(self, rarc):
         self.rcl.put('')
         self.assertEqual(rarc.call_count, 1)
 
-    @patch('networking_nec.plugins.necnwa.nwalib.restclient.RestClient.'
+    @patch('networking_nec.nwa.nwalib.restclient.RestClient.'
            'rest_api_return_check')
     def test_delete(self, rarc):
         self.rcl.delete('')

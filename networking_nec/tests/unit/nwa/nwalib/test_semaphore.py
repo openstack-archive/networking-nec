@@ -15,7 +15,7 @@
 import mock
 from neutron.tests import base
 
-from networking_nec.plugins.necnwa.nwalib import semaphore as nwa_sem
+from networking_nec.nwa.nwalib import semaphore as nwa_sem
 
 
 class TestThread(base.BaseTestCase):

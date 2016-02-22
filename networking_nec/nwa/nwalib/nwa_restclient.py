@@ -20,8 +20,8 @@ from oslo_log import log as logging
 from oslo_utils import encodeutils
 
 from networking_nec._i18n import _LI
-from networking_nec.plugins.necnwa.common import config as nwaconf
-from networking_nec.plugins.necnwa.nwalib import restclient
+from networking_nec.nwa.common import config as nwaconf
+from networking_nec.nwa.nwalib import restclient
 
 
 LOG = logging.getLogger(__name__)

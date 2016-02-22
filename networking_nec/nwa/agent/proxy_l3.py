@@ -23,14 +23,14 @@ from oslo_log import log as logging
 
 from networking_nec._i18n import _LE, _LW
 from networking_nec.common import utils
-from networking_nec.plugins.necnwa.agent import proxy_l2 as l2
-from networking_nec.plugins.necnwa.agent import proxy_tenant as tenant_util
-from networking_nec.plugins.necnwa.common import constants as nwa_const
-from networking_nec.plugins.necnwa.common import exceptions as nwa_exc
-from networking_nec.plugins.necnwa.l2.rpc import nwa_l2_server_api
-from networking_nec.plugins.necnwa.l2.rpc import tenant_binding_api
-from networking_nec.plugins.necnwa.l3.rpc import nwa_l3_server_api
-from networking_nec.plugins.necnwa.nwalib import data_utils
+from networking_nec.nwa.agent import proxy_l2 as l2
+from networking_nec.nwa.agent import proxy_tenant as tenant_util
+from networking_nec.nwa.common import constants as nwa_const
+from networking_nec.nwa.common import exceptions as nwa_exc
+from networking_nec.nwa.l2.rpc import nwa_l2_server_api
+from networking_nec.nwa.l2.rpc import tenant_binding_api
+from networking_nec.nwa.l3.rpc import nwa_l3_server_api
+from networking_nec.nwa.nwalib import data_utils
 
 
 LOG = logging.getLogger(__name__)

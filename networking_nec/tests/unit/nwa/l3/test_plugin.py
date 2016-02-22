@@ -20,7 +20,7 @@ from neutron.common import exceptions as n_exc
 from neutron.tests import base
 from oslo_log import log as logging
 
-from networking_nec.plugins.necnwa.l3.plugin import NECNWAL3Plugin
+from networking_nec.nwa.l3.plugin import NECNWAL3Plugin
 
 LOG = logging.getLogger(__name__)
 
@@ -50,8 +50,7 @@ class TestNECNWAL3Plugin(base.BaseTestCase):
         self.assertEqual(rc, 0)
 
     @patch('neutron.db.l3_db.L3_NAT_db_mixin.update_floatingip')
-    @patch('networking_nec.plugins.necnwa.l3_plugin.NECNWAL3Plugin.'
-           '_delete_nat')
+    @patch('networking_nec.nwa.l3_plugin.NECNWAL3Plugin._delete_nat')
     @patch('neutron.services.l3_router.l3_router_plugin.'
            'L3RouterPlugin.update_floatingip')
     def _test_update_floatingip(self, ufip, ndn, nsn):

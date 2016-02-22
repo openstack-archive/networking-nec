@@ -28,10 +28,11 @@ class TestAgentServerManager(test_nwa_agent.TestNECNWANeutronAgentBase):
         self.assertEqual(rd['tenant_id'], tenant_id)
 
     @mock.patch('oslo_messaging.rpc.server.get_rpc_server')
-    @mock.patch('networking_nec.plugins.necnwa.agent.nwa_agent')
+    @mock.patch('networking_nec.nwa.agent.nwa_agent')
     @mock.patch('neutron.common.rpc.Connection')
     @mock.patch('neutron.agent.rpc.PluginReportStateAPI')
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi')  # noqa
+    @mock.patch('networking_nec.nwa.l2.rpc.tenant_binding_api.'
+                'TenantBindingServerRpcApi')
     def test_create_tenant_rpc_server_fail(self, f1, f2, f3, f4, f5):
         tenant_id = '844eb55f21e84a289e9c22098d387e5d'
         self.agent.server_manager.rpc_servers[tenant_id] = {

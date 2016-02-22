@@ -20,7 +20,7 @@ from neutron.tests import base
 from oslo_config import cfg
 from oslo_log import log as logging
 
-from networking_nec.plugins.necnwa.agent import nwa_agent
+from networking_nec.nwa.agent import nwa_agent
 
 LOG = logging.getLogger(__name__)
 
@@ -59,7 +59,7 @@ class TestNECNWANeutronAgentBase(base.BaseTestCase):
         rpc.init(cfg.ConfigOpts())
 
     def _patch_nwa_client(self):
-        path = 'networking_nec.plugins.necnwa.nwalib.client.NwaClient'
+        path = 'networking_nec.nwa.nwalib.client.NwaClient'
         patcher = patch(path)
         self.addCleanup(patcher.stop)
         cli = patcher.start()
@@ -72,7 +72,8 @@ class TestNECNWANeutronAgentAsNwaClient(TestNECNWANeutronAgentBase):
 
     @patch('neutron.common.rpc.Connection')
     @patch('neutron.agent.rpc.PluginReportStateAPI')
-    @patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi')  # noqa
+    @patch('networking_nec.nwa.l2.rpc.tenant_binding_api.'
+           'TenantBindingServerRpcApi')
     def test__setup_rpc(self, f1, f2, f3):
         self.agent.setup_rpc()
         self.assertIsNotNone(self.agent.host)
@@ -98,7 +99,7 @@ class TestNECNWANeutronAgentAsNwaClient(TestNECNWANeutronAgentBase):
         )
 
 
-@patch('networking_nec.plugins.necnwa.agent.nwa_agent.NECNWANeutronAgent')  # noqa
+@patch('networking_nec.nwa.agent.nwa_agent.NECNWANeutronAgent')
 @patch('neutron.common.config')
 @patch('sys.argv')
 def test_main(f1, f2, f3):

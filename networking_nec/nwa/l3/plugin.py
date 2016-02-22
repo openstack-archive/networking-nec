@@ -33,10 +33,10 @@ from oslo_log import helpers
 from oslo_log import log as logging
 
 from networking_nec._i18n import _LI, _LW, _LE
-from networking_nec.plugins.necnwa.common import utils as nwa_com_utils
-from networking_nec.plugins.necnwa.l2 import db_api as nwa_db
-from networking_nec.plugins.necnwa.l2 import utils as nwa_l2_utils
-from networking_nec.plugins.necnwa.l3 import db_api as nwa_l3_db
+from networking_nec.nwa.common import utils as nwa_com_utils
+from networking_nec.nwa.l2 import db_api as nwa_db
+from networking_nec.nwa.l2 import utils as nwa_l2_utils
+from networking_nec.nwa.l3 import db_api as nwa_l3_db
 
 LOG = logging.getLogger(__name__)
 

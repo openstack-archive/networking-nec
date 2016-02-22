@@ -12,7 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from networking_nec.plugins.necnwa.common import constants as nwa_const
+from networking_nec.nwa.common import constants as nwa_const
 
 VLAN_OWN_GDV = 'GD'
 VLAN_OWN_TFW = 'TFW'

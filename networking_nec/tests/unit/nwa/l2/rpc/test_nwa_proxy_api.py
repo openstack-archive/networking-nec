@@ -15,7 +15,7 @@
 import mock
 from neutron.tests import base
 
-from networking_nec.plugins.necnwa.l2.rpc import nwa_proxy_api
+from networking_nec.nwa.l2.rpc import nwa_proxy_api
 
 
 class TestNECNWAProxyApi(base.BaseTestCase):

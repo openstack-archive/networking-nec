@@ -3,8 +3,8 @@
 
 import sys
 
-from networking_nec.plugins.necnwa.agent.nwa_agent import main
+from networking_nec.nwa.agent import nwa_agent
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(nwa_agent.main())

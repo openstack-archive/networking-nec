@@ -17,8 +17,8 @@ from oslo_log import log as logging
 from oslo_serialization import jsonutils
 
 from networking_nec.common import utils
-from networking_nec.plugins.necnwa.common import exceptions as nwa_exc
-from networking_nec.plugins.necnwa.l2.rpc import tenant_binding_api
+from networking_nec.nwa.common import exceptions as nwa_exc
+from networking_nec.nwa.l2.rpc import tenant_binding_api
 
 LOG = logging.getLogger(__name__)
 

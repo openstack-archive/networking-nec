@@ -17,7 +17,7 @@ from oslo_log import log as logging
 from oslo_serialization import jsonutils
 
 from networking_nec._i18n import _, _LE, _LW
-from networking_nec.plugins.necnwa.common import config
+from networking_nec.nwa.common import config
 
 LOG = logging.getLogger(__name__)
 

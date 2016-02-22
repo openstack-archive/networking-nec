@@ -26,13 +26,13 @@ from neutron.plugins.ml2 import plugin as ml2_plugin
 from oslo_log import log as logging
 
 from networking_nec._i18n import _LE, _LI, _LW
-from networking_nec.plugins.necnwa.common import constants as nwa_const
-from networking_nec.plugins.necnwa.l2 import db_api as necnwa_api
-from networking_nec.plugins.necnwa.l2.rpc import ml2_server_callback
-from networking_nec.plugins.necnwa.l2.rpc import nwa_agent_api
-from networking_nec.plugins.necnwa.l2.rpc import nwa_l2_server_callback
-from networking_nec.plugins.necnwa.l2.rpc import nwa_proxy_api
-from networking_nec.plugins.necnwa.l2.rpc import tenant_binding_callback
+from networking_nec.nwa.common import constants as nwa_const
+from networking_nec.nwa.l2 import db_api as necnwa_api
+from networking_nec.nwa.l2.rpc import ml2_server_callback
+from networking_nec.nwa.l2.rpc import nwa_agent_api
+from networking_nec.nwa.l2.rpc import nwa_l2_server_callback
+from networking_nec.nwa.l2.rpc import nwa_proxy_api
+from networking_nec.nwa.l2.rpc import tenant_binding_callback
 
 LOG = logging.getLogger(__name__)
 

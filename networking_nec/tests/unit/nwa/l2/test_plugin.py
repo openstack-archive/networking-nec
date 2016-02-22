@@ -21,15 +21,14 @@ from neutron.tests import base
 from oslo_config import cfg
 from oslo_log import log as logging
 
-from networking_nec.plugins.necnwa.l2 import plugin
+from networking_nec.nwa.l2 import plugin
 
 LOG = logging.getLogger(__name__)
 
 
 class TestNECNWAL2Plugin(base.BaseTestCase):
 
-    @patch('networking_nec.plugins.necnwa.l2.plugin.'
-           'NECNWAL2Plugin._setup_rpc')
+    @patch('networking_nec.nwa.l2.plugin.NECNWAL2Plugin._setup_rpc')
     @patch('neutron.plugins.ml2.managers.TypeManager.initialize')
     def setUp(self, f1, f2):
         super(TestNECNWAL2Plugin, self).setUp()
@@ -94,7 +93,7 @@ class TestNECNWAL2Plugin(base.BaseTestCase):
 
     @patch('neutron.db.db_base_plugin_common.'
            'DbBasePluginCommon._make_network_dict')
-    @patch('networking_nec.plugins.necnwa.l2.plugin.'
+    @patch('networking_nec.nwa.l2.plugin.'
            'NECNWAL2Plugin._extend_network_dict_provider')
     @patch('neutron.plugins.ml2.plugin.Ml2Plugin.get_network')
     def test_get_network(self, f1, f2, f3):

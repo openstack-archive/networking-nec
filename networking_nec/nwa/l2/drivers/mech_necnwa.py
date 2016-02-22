@@ -26,12 +26,12 @@ from oslo_config import cfg
 from oslo_log import log as logging
 
 from networking_nec._i18n import _LW
-from networking_nec.plugins.necnwa.common import exceptions as nwa_exc
-from networking_nec.plugins.necnwa.common import utils as nwa_com_utils
-from networking_nec.plugins.necnwa.l2 import db_api as nwa_db
-from networking_nec.plugins.necnwa.l2 import utils as nwa_l2_utils
-from networking_nec.plugins.necnwa.l3 import db_api as nwa_l3_db
-from networking_nec.plugins.necnwa.l3.rpc.nwa_l3_proxy_api import NwaL3ProxyApi
+from networking_nec.nwa.common import exceptions as nwa_exc
+from networking_nec.nwa.common import utils as nwa_com_utils
+from networking_nec.nwa.l2 import db_api as nwa_db
+from networking_nec.nwa.l2 import utils as nwa_l2_utils
+from networking_nec.nwa.l3 import db_api as nwa_l3_db
+from networking_nec.nwa.l3.rpc import nwa_l3_proxy_api
 
 LOG = logging.getLogger(__name__)
 
@@ -50,7 +50,7 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
     def _get_l3api_proxy(self, context, tenant_id):
         proxy = context._plugin.get_nwa_proxy(tenant_id,
                                               context.network._plugin_context)
-        return NwaL3ProxyApi(proxy.client)
+        return nwa_l3_proxy_api.NwaL3ProxyApi(proxy.client)
 
     def create_port_precommit(self, context):
         device_owner = context._port['device_owner']

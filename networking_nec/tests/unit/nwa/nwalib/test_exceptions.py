@@ -15,7 +15,7 @@
 import mock
 from neutron.tests import base
 
-from networking_nec.plugins.necnwa.nwalib import exceptions as nwa_exc
+from networking_nec.nwa.nwalib import exceptions as nwa_exc
 
 
 class TestNwaException(base.BaseTestCase):

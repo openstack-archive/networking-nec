@@ -17,7 +17,7 @@
 
 from neutron.tests import base
 
-from networking_nec.plugins.necnwa.l2 import models
+from networking_nec.nwa.l2 import models
 
 
 class TestNWATenantKeyValue(base.BaseTestCase):

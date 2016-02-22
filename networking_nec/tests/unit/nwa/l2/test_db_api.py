@@ -22,7 +22,7 @@ from neutron.tests import base
 from neutron.tests.unit import testlib_api
 from oslo_log import log as logging
 
-from networking_nec.plugins.necnwa.l2 import db_api
+from networking_nec.nwa.l2 import db_api
 
 # the below code is required to load test scenarios.
 # If a test class has 'scenarios' attribute,
@@ -303,7 +303,7 @@ class TestSetNwaTenantBinding(base.BaseTestCase):
          }),
         ]
 
-    @patch('networking_nec.plugins.necnwa.l2.db_api.get_nwa_tenant_binding')
+    @patch('networking_nec.nwa.l2.db_api.get_nwa_tenant_binding')
     def test_set_nwa_tenant_binding(self, gntb):
 
         self.session = MagicMock()
@@ -342,7 +342,7 @@ class TestDelNwaTenantBinding(base.BaseTestCase):
          }),
     ]
 
-    @patch('networking_nec.plugins.necnwa.l2.db_api.get_nwa_tenant_binding')
+    @patch('networking_nec.nwa.l2.db_api.get_nwa_tenant_binding')
     def test_del_nwa_tenant_binding(self, gntb):
         gntb.return_value = self.old_value_json
         self.session = MagicMock()

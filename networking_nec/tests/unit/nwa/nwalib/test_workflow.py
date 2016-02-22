@@ -15,7 +15,7 @@
 import mock
 from neutron.tests import base
 
-from networking_nec.plugins.necnwa.nwalib import workflow
+from networking_nec.nwa.nwalib import workflow
 
 
 class TestNwaWorkflow(base.BaseTestCase):
@@ -57,10 +57,10 @@ class TestNwaWorkflow(base.BaseTestCase):
         self.assertEqual(rc, '101')
 
     def test_update_nameid(self):
-        with mock.patch('networking_nec.plugins.necnwa.nwalib.workflow'
+        with mock.patch('networking_nec.nwa.nwalib.workflow'
                         '.NwaWorkflow._nameid',
                         new_callable=mock.PropertyMock) as nameid, \
-                mock.patch('networking_nec.plugins.necnwa.nwalib.workflow'
+                mock.patch('networking_nec.nwa.nwalib.workflow'
                            '.NwaWorkflow._nameid_initialized',
                            new_callable=mock.PropertyMock):
 

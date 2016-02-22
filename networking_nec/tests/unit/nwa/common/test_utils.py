@@ -17,7 +17,7 @@ from neutron.tests import base
 from oslo_config import cfg
 from oslo_serialization import jsonutils
 
-from networking_nec.plugins.necnwa.common import utils as nwa_com_utils
+from networking_nec.nwa.common import utils as nwa_com_utils
 
 
 class TestCommonUtils(base.BaseTestCase):

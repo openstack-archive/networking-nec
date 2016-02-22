@@ -25,17 +25,17 @@ from oslo_log import log as logging
 from oslo_service import loopingcall
 
 from networking_nec._i18n import _LE
-from networking_nec.plugins.necnwa.agent import proxy_l2
-from networking_nec.plugins.necnwa.agent import proxy_l3
-from networking_nec.plugins.necnwa.agent import proxy_tenant
-from networking_nec.plugins.necnwa.agent import server_manager
-from networking_nec.plugins.necnwa.common import config
-from networking_nec.plugins.necnwa.common import constants as nwa_const
-from networking_nec.plugins.necnwa.l2.rpc import nwa_agent_callback
-from networking_nec.plugins.necnwa.l2.rpc import nwa_proxy_callback
-from networking_nec.plugins.necnwa.l2.rpc import tenant_binding_api
-from networking_nec.plugins.necnwa.l3.rpc import nwa_l3_proxy_callback
-from networking_nec.plugins.necnwa.nwalib import client as nwa_cli
+from networking_nec.nwa.agent import proxy_l2
+from networking_nec.nwa.agent import proxy_l3
+from networking_nec.nwa.agent import proxy_tenant
+from networking_nec.nwa.agent import server_manager
+from networking_nec.nwa.common import config
+from networking_nec.nwa.common import constants as nwa_const
+from networking_nec.nwa.l2.rpc import nwa_agent_callback
+from networking_nec.nwa.l2.rpc import nwa_proxy_callback
+from networking_nec.nwa.l2.rpc import tenant_binding_api
+from networking_nec.nwa.l3.rpc import nwa_l3_proxy_callback
+from networking_nec.nwa.nwalib import client as nwa_cli
 
 
 LOG = logging.getLogger(__name__)

@@ -15,7 +15,7 @@
 import mock
 from neutron.tests import base
 
-from networking_nec.plugins.necnwa.l2.rpc import nwa_agent_callback
+from networking_nec.nwa.l2.rpc import nwa_agent_callback
 
 
 class TestNECNWAAgentRpcCallback(base.BaseTestCase):

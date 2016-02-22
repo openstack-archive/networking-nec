@@ -12,11 +12,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from neutron.tests import base
 from oslo_log import log as logging
 
-from neutron.tests import base
-
-from networking_nec.plugins.necnwa.common import config as cfg
+from networking_nec.nwa.common import config as cfg
 
 LOG = logging.getLogger(__name__)
 

@@ -14,8 +14,8 @@
 
 from neutron.tests import base
 
-from networking_nec.plugins.necnwa.common.config import cfg
-from networking_nec.plugins.necnwa.nwalib import client
+from networking_nec.nwa.common.config import cfg
+from networking_nec.nwa.nwalib import client
 
 
 CONFIG_FILE_CONTENTS = """

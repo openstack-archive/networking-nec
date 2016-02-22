@@ -20,8 +20,8 @@ from neutron_lib import exceptions as n_exc
 from oslo_log import log as logging
 from oslo_serialization import jsonutils
 
-from networking_nec.plugins.necnwa.common import config
-from networking_nec.plugins.necnwa.l2 import utils as nwa_l2_utils
+from networking_nec.nwa.common import config
+from networking_nec.nwa.l2 import utils as nwa_l2_utils
 
 LOG = logging.getLogger(__name__)
 

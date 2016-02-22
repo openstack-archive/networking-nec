@@ -21,9 +21,9 @@ from oslo_log import log as logging
 import six
 
 from networking_nec._i18n import _LI, _LW, _LE
-from networking_nec.plugins.necnwa.nwalib import nwa_restclient
-from networking_nec.plugins.necnwa.nwalib import semaphore as nwa_sem
-from networking_nec.plugins.necnwa.nwalib import workflow
+from networking_nec.nwa.nwalib import nwa_restclient
+from networking_nec.nwa.nwalib import semaphore as nwa_sem
+from networking_nec.nwa.nwalib import workflow
 
 
 LOG = logging.getLogger(__name__)

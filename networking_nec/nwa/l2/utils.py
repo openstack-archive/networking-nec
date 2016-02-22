@@ -19,8 +19,8 @@ from neutron_lib import exceptions as n_exc
 from oslo_log import log as logging
 from sqlalchemy.orm import exc as sa_exc
 
-from networking_nec.plugins.necnwa.common import config
-from networking_nec.plugins.necnwa.common import utils as nwa_com_utils
+from networking_nec.nwa.common import config
+from networking_nec.nwa.common import utils as nwa_com_utils
 
 LOG = logging.getLogger(__name__)
 
