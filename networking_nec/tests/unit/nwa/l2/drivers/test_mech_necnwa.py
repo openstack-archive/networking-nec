@@ -19,10 +19,10 @@ from neutron import context
 from neutron.extensions import providernet as prov_net
 from neutron.tests.unit import testlib_api
 from neutron_lib import constants
+from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_serialization import jsonutils
 
-from networking_nec.nwa.common import config
 from networking_nec.nwa.common import constants as nwa_const
 from networking_nec.nwa.common import exceptions as nwa_exc
 from networking_nec.nwa.l2.drivers import mech_necnwa as mech
@@ -178,8 +178,8 @@ class TestNECNWAMechanismDriver(TestMechNwa):
     def setUp(self):
         super(TestNECNWAMechanismDriver, self).setUp()
         self.driver = mech.NECNWAMechanismDriver()
-        config.CONF.set_override('resource_group', self.resource_group_str,
-                                 group='NWA')
+        cfg.CONF.set_override('resource_group', self.resource_group_str,
+                              group='NWA')
         self.driver.initialize()
 
         self.rcode = MagicMock()

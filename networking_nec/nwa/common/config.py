@@ -26,10 +26,6 @@ agent_opts = [
 cfg.CONF.register_opts(agent_opts, "AGENT")
 config.register_agent_state_opts_helper(cfg.CONF)
 
-# shortcuts
-CONF = cfg.CONF
-AGENT = cfg.CONF.AGENT
-
 # nwa.ini
 NWA_opts = [
     cfg.StrOpt('server_url',
@@ -94,5 +90,5 @@ Scenario_opts = [
                help=_("Scenario ID for the scenario SettingNAT.")),
 ]
 
-CONF.register_opts(NWA_opts, "NWA")
-CONF.register_opts(Scenario_opts, "Scenario")
+cfg.CONF.register_opts(NWA_opts, "NWA")
+cfg.CONF.register_opts(Scenario_opts, "Scenario")

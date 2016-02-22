@@ -17,13 +17,14 @@ from oslo_log import log as logging
 from oslo_serialization import jsonutils
 
 from networking_nec._i18n import _, _LE, _LW
-from networking_nec.nwa.common import config
+# It is required to register nwa options
+from networking_nec.nwa.common import config  # noqa
 
 LOG = logging.getLogger(__name__)
 
 
 def get_nwa_tenant_id(tenant_id):
-    return config.CONF.NWA.region_name + tenant_id
+    return cfg.CONF.NWA.region_name + tenant_id
 
 
 def get_tenant_info(context):
@@ -34,7 +35,7 @@ def get_tenant_info(context):
 
 def load_json_from_file(name, json_file, json_str, default_value):
     if json_file:
-        json_file_abspath = config.CONF.find_file(json_file)
+        json_file_abspath = cfg.CONF.find_file(json_file)
         if not json_file_abspath:
             LOG.error(_LE('Failed to load %(name)s_file'
                           '"%(json_file)s": file not found'),

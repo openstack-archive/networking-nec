@@ -21,6 +21,7 @@ from neutron.common import config as logging_config
 from neutron.common import rpc as n_rpc
 from neutron.common import topics
 from neutron import context as q_context
+from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_service import loopingcall
 
@@ -29,7 +30,6 @@ from networking_nec.nwa.agent import proxy_l2
 from networking_nec.nwa.agent import proxy_l3
 from networking_nec.nwa.agent import proxy_tenant
 from networking_nec.nwa.agent import server_manager
-from networking_nec.nwa.common import config
 from networking_nec.nwa.common import constants as nwa_const
 from networking_nec.nwa.l2.rpc import nwa_agent_callback
 from networking_nec.nwa.l2.rpc import nwa_proxy_callback
@@ -55,7 +55,7 @@ class NECNWANeutronAgent(object):
         self.polling_interval = polling_interval
         self.need_sync = True
 
-        self.conf = config.CONF
+        self.conf = cfg.CONF
         self.host = socket.gethostname()
         self.agent_id = 'necnwa-q-agent.%s' % self.host
 
@@ -63,7 +63,7 @@ class NECNWANeutronAgent(object):
 
         self.agent_state = {
             'binary': 'neutron-necnwa-agent',
-            'host': config.CONF.host,
+            'host': cfg.CONF.host,
             'topic': nwa_const.NWA_AGENT_TOPIC,
             'configurations': {},
             'agent_type': nwa_const.NWA_AGENT_TYPE,
@@ -119,7 +119,7 @@ class NECNWANeutronAgent(object):
 
         self.conn.consume_in_threads()
 
-        report_interval = config.CONF.AGENT.report_interval
+        report_interval = cfg.CONF.AGENT.report_interval
         if report_interval:
             heartbeat = loopingcall.FixedIntervalLoopingCall(
                 self._report_state)
@@ -155,7 +155,7 @@ def main():
     logging_config.init(sys.argv[1:])
     logging_config.setup_logging()
 
-    polling_interval = config.AGENT.polling_interval
+    polling_interval = cfg.CONF.AGENT.polling_interval
     agent = NECNWANeutronAgent(polling_interval)
 
     agent.daemon_loop()

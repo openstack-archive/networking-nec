@@ -16,10 +16,10 @@ from neutron.db import external_net_db
 from neutron.db import models_v2
 from neutron_lib import constants
 from neutron_lib import exceptions as n_exc
+from oslo_config import cfg
 from oslo_log import log as logging
 from sqlalchemy.orm import exc as sa_exc
 
-from networking_nec.nwa.common import config
 from networking_nec.nwa.common import utils as nwa_com_utils
 
 LOG = logging.getLogger(__name__)
@@ -120,7 +120,7 @@ def portcontext_to_nwa_info(context, resource_groups,
     resource_group_name = _get_resource_group_name(context, resource_groups,
                                                    use_original_port)
     nwa_info['resource_group_name'] = resource_group_name
-    nwa_info['resource_group_name_nw'] = config.CONF.NWA.resource_group_name
+    nwa_info['resource_group_name_nw'] = cfg.CONF.NWA.resource_group_name
     nwa_info['physical_network'] = get_physical_network(device_owner,
                                                         resource_groups,
                                                         resource_group_name)
