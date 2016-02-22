@@ -28,6 +28,7 @@ disable=
  protected-access,
  unpacking-non-sequence,
  unused-argument,
+ unused-import,
 # "C" Coding convention violations
 # pylint check is not compatible with flake8
  bad-continuation,
