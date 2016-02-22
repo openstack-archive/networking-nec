@@ -16,10 +16,14 @@ import os.path
 
 import mock
 from oslo_serialization import jsonutils
+import six
+import testscenarios
 
 from networking_nec.plugins.necnwa.agent import proxy_l2
 from networking_nec.plugins.necnwa.common import exceptions as nwa_exc
 from networking_nec.tests.necnwa.agent import test_nwa_agent
+
+load_tests = testscenarios.load_tests_apply_scenarios
 
 
 def load_data_file(name):
@@ -107,84 +111,61 @@ class TestAgentProxyL2(test_nwa_agent.TestNECNWANeutronAgentBase):
         )
         self.assertDictEqual(nwa_data, result)
 
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.'
-                'TenantBindingServerRpcApi.get_nwa_tenant_binding')
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.'
-                'TenantBindingServerRpcApi.set_nwa_tenant_binding')
-    @mock.patch('networking_nec.plugins.necnwa.agent.proxy_tenant.'
-                'AgentProxyTenant.update_tenant_binding')
-    def test_create_general_dev_succeed1(self, utb, stb, gtb):
-        context = mock.MagicMock()
-        tenant_id = '844eb55f21e84a289e9c22098d387e5d'
-        nwa_tenant_id = 'DC1_' + tenant_id
 
-        nwa_info = load_data_file('create_general_dev_nwa_info.json')
+class TestAgentProxyL2CreateGeneralDev(
+        test_nwa_agent.TestNECNWANeutronAgentBase):
 
-        self.nwacli.create_tenant.   return_value = (200, {})
-        self.nwacli.create_tenant_nw.return_value = (
-            200, load_data_file('create_tenant_nw_result.json'))
-        self.nwacli.create_vlan.     return_value = (
-            200, load_data_file('create_vlan_result.json'))
-        gtb.return_value = {}
-
-        self.agent.proxy_l2.create_general_dev(
-            context,
-            tenant_id=tenant_id,
-            nwa_tenant_id=nwa_tenant_id,
-            nwa_info=nwa_info
-        )
-
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.'
-                'TenantBindingServerRpcApi.get_nwa_tenant_binding')
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.'
-                'TenantBindingServerRpcApi.set_nwa_tenant_binding')
-    @mock.patch('networking_nec.plugins.necnwa.agent.proxy_tenant.'
-                'AgentProxyTenant.update_tenant_binding')
-    def test_create_general_dev_succeed2(self, utb, stb, gtb):
-        context = mock.MagicMock()
-        tenant_id = '844eb55f21e84a289e9c22098d387e5d'
-        nwa_tenant_id = 'DC1_' + tenant_id
-
-        nwa_info = load_data_file('create_general_dev_nwa_info_2.json')
-
-        self.nwacli.create_tenant.return_value = (200, {})
-        self.nwacli.create_tenant_nw.return_value = (
-            200, load_data_file('create_tenant_nw_result.json'))
-        self.nwacli.create_vlan.return_value = (
-            200, load_data_file('create_vlan_result.json'))
-        gtb.return_value = load_data_file('nwa_data_one_general_dev.json')
-
-        self.agent.proxy_l2.create_general_dev(
-            context,
-            tenant_id=tenant_id,
-            nwa_tenant_id=nwa_tenant_id,
-            nwa_info=nwa_info
-        )
-
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.'
-                'TenantBindingServerRpcApi.get_nwa_tenant_binding')
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.'
-                'TenantBindingServerRpcApi.set_nwa_tenant_binding')
-    @mock.patch('networking_nec.plugins.necnwa.agent.proxy_tenant.'
-                'AgentProxyTenant.update_tenant_binding')
-    def test_create_general_dev_fail1(self, utb, stb, gtb):
-        context = mock.MagicMock()
-        tenant_id = '844eb55f21e84a289e9c22098d387e5d'
-        nwa_tenant_id = 'DC1_' + tenant_id
-
-        nwa_info = load_data_file('create_general_dev_nwa_info.json')
-
-        self.nwacli.create_tenant.   return_value = (200, {})
-        self.nwacli.create_tenant_nw.return_value = (200, load_data_file('create_tenant_nw_result.json'))  # noqa
-        self.nwacli.create_vlan.     return_value = (200, load_data_file('create_vlan_result.json'))  # noqa
-        gtb.return_value = {}
-
-        self.agent.proxy_l2.create_general_dev(
-            context,
-            tenant_id=tenant_id,
-            nwa_tenant_id=nwa_tenant_id,
-            nwa_info=nwa_info
-        )
+    scenarios = [
+        ('succeed1',
+         {'retval_create_tenant': (200, {}),
+          'retval_create_tenant_nw': (200, 'create_tenant_nw_result.json'),
+          'retval_create_vlan': (200, 'create_vlan_result.json'),
+          'nwa_info': 'create_general_dev_nwa_info.json',
+          'gtb_data': {}},
+         ),
+        ('succeed2',
+         {'retval_create_tenant': (200, {}),
+          'retval_create_tenant_nw': (200, 'create_tenant_nw_result.json'),
+          'retval_create_vlan': (200, 'create_vlan_result.json'),
+          'nwa_info': 'create_general_dev_nwa_info_2.json',
+          'gtb_data': 'nwa_data_one_general_dev.json'},
+         ),
+        ('fail1',
+         {'retval_create_tenant': (200, {}),
+          'retval_create_tenant_nw': (200, 'create_tenant_nw_result.json'),
+          'retval_create_vlan': (200, 'create_vlan_result.json'),
+          'nwa_info': 'create_general_dev_nwa_info.json',
+          'gtb_data': {}},
+         ),
+        ('fail2',
+         {'retval_create_tenant': (200, {}),
+          'retval_create_tenant_nw': (200, 'create_tenant_nw_result.json'),
+          'retval_create_vlan': (500, 'create_vlan_result.json'),
+          'nwa_info': 'create_general_dev_nwa_info.json',
+          'gtb_data': {}},
+         ),
+        ('fail3',
+         {'retval_create_tenant': (200, {}),
+          'retval_create_tenant_nw': (500, 'create_tenant_nw_result.json'),
+          'retval_create_vlan': (200, 'create_vlan_result.json'),
+          'nwa_info': 'create_general_dev_nwa_info.json',
+          'gtb_data': {}},
+         ),
+        ('fail4',
+         {'retval_create_tenant': (501, {}),
+          'retval_create_tenant_nw': (200, 'create_tenant_nw_result.json'),
+          'retval_create_vlan': (200, 'create_vlan_result.json'),
+          'nwa_info': 'create_general_dev_nwa_info.json',
+          'gtb_data': {}},
+         ),
+        ('ex1',
+         {'retval_create_tenant': (200, {}),
+          'retval_create_tenant_nw': (200, 'create_tenant_nw_result.json'),
+          'retval_create_vlan': (200, 'create_vlan_result.json'),
+          'nwa_info': 'nwa_info_create_general_dev_ex1.json',
+          'gtb_data': 'nwa_data_create_general_dev_ex1.json'},
+         ),
+    ]
 
     @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.'
                 'TenantBindingServerRpcApi.get_nwa_tenant_binding')
@@ -192,312 +173,152 @@ class TestAgentProxyL2(test_nwa_agent.TestNECNWANeutronAgentBase):
                 'TenantBindingServerRpcApi.set_nwa_tenant_binding')
     @mock.patch('networking_nec.plugins.necnwa.agent.proxy_tenant.'
                 'AgentProxyTenant.update_tenant_binding')
-    def test_create_general_dev_fail2(self, utb, stb, gtb):
-        context = mock.MagicMock()
-        tenant_id = '844eb55f21e84a289e9c22098d387e5d'
-        nwa_tenant_id = 'DC1_' + tenant_id
-
-        nwa_info = load_data_file('create_general_dev_nwa_info.json')
-
-        self.nwacli.create_tenant.   return_value = (200, {})
-        self.nwacli.create_tenant_nw.return_value = (200, load_data_file('create_tenant_nw_result.json'))  # noqa
-        self.nwacli.create_vlan.     return_value = (500, load_data_file('create_vlan_result.json'))  # noqa
-        gtb.return_value = {}
-
-        self.agent.proxy_l2.create_general_dev(
-            context,
-            tenant_id=tenant_id,
-            nwa_tenant_id=nwa_tenant_id,
-            nwa_info=nwa_info
-        )
-
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.'
-                'TenantBindingServerRpcApi.get_nwa_tenant_binding')
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.'
-                'TenantBindingServerRpcApi.set_nwa_tenant_binding')
-    @mock.patch('networking_nec.plugins.necnwa.agent.proxy_tenant.'
-                'AgentProxyTenant.update_tenant_binding')
-    def test_create_general_dev_fail3(self, utb, stb, gtb):
-        context = mock.MagicMock()
-        tenant_id = '844eb55f21e84a289e9c22098d387e5d'
-        nwa_tenant_id = 'DC1_' + tenant_id
-
-        nwa_info = load_data_file('create_general_dev_nwa_info.json')
-
-        self.nwacli.create_tenant.   return_value = (200, {})
-        self.nwacli.create_tenant_nw.return_value = (500, load_data_file('create_tenant_nw_result.json'))  # noqa
-        self.nwacli.create_vlan.     return_value = (200, load_data_file('create_vlan_result.json'))  # noqa
-        gtb.return_value = {}
-
-        self.agent.proxy_l2.create_general_dev(
-            context,
-            tenant_id=tenant_id,
-            nwa_tenant_id=nwa_tenant_id,
-            nwa_info=nwa_info
-        )
-
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.get_nwa_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.set_nwa_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.agent.proxy_tenant.AgentProxyTenant.update_tenant_binding')  # noqa
-    def test_create_general_dev_fail4(self, utb, stb, gtb):
-        context = mock.MagicMock()
-        tenant_id = '844eb55f21e84a289e9c22098d387e5d'
-        nwa_tenant_id = 'DC1_' + tenant_id
-
-        nwa_info = load_data_file('create_general_dev_nwa_info.json')
-
-        self.nwacli.create_tenant.   return_value = (501, {})
-        self.nwacli.create_tenant_nw.return_value = (200, load_data_file('create_tenant_nw_result.json'))  # noqa
-        self.nwacli.create_vlan.     return_value = (200, load_data_file('create_vlan_result.json'))  # noqa
-        gtb.return_value = {}
-
-        self.agent.proxy_l2.create_general_dev(
-            context,
-            tenant_id=tenant_id,
-            nwa_tenant_id=nwa_tenant_id,
-            nwa_info=nwa_info
-        )
-
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.get_nwa_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.set_nwa_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.agent.proxy_tenant.AgentProxyTenant.update_tenant_binding')  # noqa
-    def test_delete_general_dev_succeed1(self, utb, stb, gtb):
-        context = mock.MagicMock()
-        tenant_id = '844eb55f21e84a289e9c22098d387e5d'
-        nwa_tenant_id = 'DC1_' + tenant_id
-
-        nwa_info = load_data_file('delete_general_dev_nwa_info.json')
-        nwa_data = load_data_file('nwa_data_one_general_dev.json')
-
-        self.nwacli.delete_tenant.return_value = (200, {})
-        self.nwacli.delete_tenant_nw.return_value = (200, load_data_file('delete_tenant_nw_result.json'))  # noqa
-        self.nwacli.delete_vlan.return_value = (200, load_data_file('delete_vlan_result.json'))  # noqa
-        gtb.return_value = nwa_data
-
-        self.agent.proxy_l2.delete_general_dev(
-            context,
-            tenant_id=tenant_id,
-            nwa_tenant_id=nwa_tenant_id,
-            nwa_info=nwa_info
-        )
-
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.get_nwa_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.set_nwa_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.agent.proxy_tenant.AgentProxyTenant.update_tenant_binding')  # noqa
-    def test_delete_general_dev_succeed2(self, utb, stb, gtb):
-        context = mock.MagicMock()
-        tenant_id = '844eb55f21e84a289e9c22098d387e5d'
-        nwa_tenant_id = 'DC1_' + tenant_id
-
-        nwa_info = load_data_file('delete_general_dev_nwa_info.json')
-
-        self.nwacli.delete_tenant.return_value = (200, {})
-        self.nwacli.delete_tenant_nw.return_value = (200, load_data_file('delete_tenant_nw_result.json'))  # noqa
-        self.nwacli.delete_vlan.return_value = (200, load_data_file('delete_vlan_result.json'))  # noqa
-        gtb.return_value = load_data_file('nwa_data_two_general_dev.json')
-
-        self.agent.proxy_l2.delete_general_dev(
-            context,
-            tenant_id=tenant_id,
-            nwa_tenant_id=nwa_tenant_id,
-            nwa_info=nwa_info
-        )
-
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.get_nwa_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.set_nwa_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.agent.proxy_tenant.AgentProxyTenant.update_tenant_binding')  # noqa
-    def test_delete_general_dev_succeed3(self, utb, stb, gtb):
-        context = mock.MagicMock()
-        tenant_id = '844eb55f21e84a289e9c22098d387e5d'
-        nwa_tenant_id = 'DC1_' + tenant_id
-
-        nwa_info = load_data_file('delete_general_dev_nwa_info.json')
-
-        self.nwacli.delete_tenant.return_value = (200, {})
-        self.nwacli.delete_tenant_nw.return_value = (200, load_data_file('delete_tenant_nw_result.json'))  # noqa
-        self.nwacli.delete_vlan.return_value = (200, load_data_file('delete_vlan_result.json'))  # noqa
-        gtb.return_value = load_data_file('nwa_data_two_port_general_dev.json')
-
-        self.agent.proxy_l2.delete_general_dev(
-            context,
-            tenant_id=tenant_id,
-            nwa_tenant_id=nwa_tenant_id,
-            nwa_info=nwa_info
-        )
-
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.get_nwa_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.set_nwa_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.agent.proxy_tenant.AgentProxyTenant.update_tenant_binding')  # noqa
-    def test_delete_general_dev_fail1(self, utb, stb, gtb):
-        context = mock.MagicMock()
-        tenant_id = '844eb55f21e84a289e9c22098d387e5d'
-        nwa_tenant_id = 'DC1_' + tenant_id
-
-        nwa_info = load_data_file('delete_general_dev_nwa_info.json')
-
-        self.nwacli.delete_tenant.return_value = (200, {})
-        self.nwacli.delete_tenant_nw.return_value = (200, load_data_file('delete_tenant_nw_result.json'))  # noqa
-        self.nwacli.delete_vlan.return_value = (200, load_data_file('delete_vlan_result.json'))  # noqa
-        gtb.return_value = load_data_file('nwa_data_one_general_dev.json')
-
-        self.agent.proxy_l2.delete_general_dev(
-            context,
-            tenant_id=tenant_id,
-            nwa_tenant_id=nwa_tenant_id,
-            nwa_info=nwa_info
-        )
-
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.get_nwa_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.set_nwa_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.agent.proxy_tenant.AgentProxyTenant.update_tenant_binding')  # noqa
-    def test_delete_general_dev_fail2(self, utb, stb, gtb):
-        context = mock.MagicMock()
-        tenant_id = '844eb55f21e84a289e9c22098d387e5d'
-        nwa_tenant_id = 'DC1_' + tenant_id
-
-        nwa_info = load_data_file('delete_general_dev_nwa_info.json')
-        nwa_data = load_data_file('nwa_data_one_general_dev.json')
-
-        self.nwacli.delete_tenant.return_value = (200, {})
-        self.nwacli.delete_tenant_nw.return_value = (200, load_data_file('delete_tenant_nw_result.json'))  # noqa
-        self.nwacli.delete_vlan.return_value = (200, load_data_file('delete_vlan_result.json'))  # noqa
-        gtb.return_value = nwa_data
-
-        self.agent.proxy_l2.delete_general_dev(
-            context,
-            tenant_id=tenant_id,
-            nwa_tenant_id=nwa_tenant_id,
-            nwa_info=nwa_info
-        )
-
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.get_nwa_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.set_nwa_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.agent.proxy_tenant.AgentProxyTenant.update_tenant_binding')  # noqa
-    def test_delete_general_dev_fail3(self, utb, stb, gtb):
-        context = mock.MagicMock()
-        tenant_id = '844eb55f21e84a289e9c22098d387e5d'
-        nwa_tenant_id = 'DC1_' + tenant_id
-
-        nwa_info = load_data_file('delete_general_dev_nwa_info.json')
-
-        self.nwacli.delete_tenant.return_value = (500, {})
-        self.nwacli.delete_tenant_nw.return_value = (200, load_data_file('delete_tenant_nw_result.json'))  # noqa
-        self.nwacli.delete_vlan.return_value = (200, load_data_file('delete_vlan_result.json'))  # noqa
-        gtb.return_value = load_data_file('nwa_data_one_general_dev.json')
-
-        self.agent.proxy_l2.delete_general_dev(
-            context,
-            tenant_id=tenant_id,
-            nwa_tenant_id=nwa_tenant_id,
-            nwa_info=nwa_info
-        )
-
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.get_nwa_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.set_nwa_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.agent.proxy_tenant.AgentProxyTenant.update_tenant_binding')  # noqa
-    def test_delete_general_dev_fail4(self, utb, stb, gtb):
-        context = mock.MagicMock()
-        tenant_id = '844eb55f21e84a289e9c22098d387e5d'
-        nwa_tenant_id = 'DC1_' + tenant_id
-
-        nwa_info = load_data_file('delete_general_dev_nwa_info.json')
-
-        self.nwacli.delete_tenant.return_value = (200, {})
-        self.nwacli.delete_tenant_nw.return_value = (500, load_data_file('delete_tenant_nw_result.json'))  # noqa
-        self.nwacli.delete_vlan.return_value = (200, load_data_file('delete_vlan_result.json'))  # noqa
-        gtb.return_value = load_data_file('nwa_data_one_general_dev.json')
-
-        self.agent.proxy_l2.delete_general_dev(
-            context,
-            tenant_id=tenant_id,
-            nwa_tenant_id=nwa_tenant_id,
-            nwa_info=nwa_info
-        )
-
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.get_nwa_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.set_nwa_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.agent.proxy_tenant.AgentProxyTenant.update_tenant_binding')  # noqa
-    def test_delete_general_dev_fail5(self, utb, stb, gtb):
-        context = mock.MagicMock()
-        tenant_id = '844eb55f21e84a289e9c22098d387e5d'
-        nwa_tenant_id = 'DC1_' + tenant_id
-
-        nwa_info = load_data_file('delete_general_dev_nwa_info.json')
-
-        self.nwacli.delete_tenant.return_value = (200, {})
-        self.nwacli.delete_tenant_nw.return_value = (200, load_data_file('delete_tenant_nw_result.json'))  # noqa
-        self.nwacli.delete_vlan.return_value = (500, load_data_file('delete_vlan_result.json'))  # noqa
-        gtb.return_value = load_data_file('nwa_data_one_general_dev.json')
-
-        self.agent.proxy_l2.delete_general_dev(
-            context,
-            tenant_id=tenant_id,
-            nwa_tenant_id=nwa_tenant_id,
-            nwa_info=nwa_info
-        )
-
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.get_nwa_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.set_nwa_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.agent.proxy_tenant.AgentProxyTenant.update_tenant_binding')  # noqa
-    def test_delete_general_dev_fail6(self, utb, stb, gtb):
-        context = mock.MagicMock()
-        tenant_id = '844eb55f21e84a289e9c22098d387e5d'
-        nwa_tenant_id = 'DC1_' + tenant_id
-
-        nwa_info = load_data_file('delete_general_dev_nwa_info.json')
-
-        self.nwacli.delete_tenant.return_value = (200, {})
-        self.nwacli.delete_tenant_nw.return_value = (200, load_data_file('delete_tenant_nw_result.json'))  # noqa
-        self.nwacli.delete_vlan.return_value = (200, load_data_file('delete_vlan_result.json'))  # noqa
-        gtb.return_value = load_data_file('nwa_data_two_port_general_dev_fail.json')  # noqa
-
-        self.agent.proxy_l2.delete_general_dev(
-            context,
-            tenant_id=tenant_id,
-            nwa_tenant_id=nwa_tenant_id,
-            nwa_info=nwa_info
-        )
-
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.get_nwa_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.set_nwa_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.agent.proxy_tenant.AgentProxyTenant.update_tenant_binding')  # noqa
-    def test_delete_general_dev_fail7(self, utb, stb, gtb):
-        context = mock.MagicMock()
-        tenant_id = '844eb55f21e84a289e9c22098d387e5d'
-        nwa_tenant_id = 'DC1_' + tenant_id
-
-        nwa_info = load_data_file('delete_general_dev_nwa_info.json')
-
-        self.nwacli.delete_tenant.return_value = (200, {})
-        self.nwacli.delete_tenant_nw.return_value = (200, load_data_file('delete_tenant_nw_result.json'))  # noqa
-        self.nwacli.delete_vlan.return_value = (200, load_data_file('delete_vlan_result.json'))  # noqa
-        gtb.return_value = {}
-
-        self.agent.proxy_l2.delete_general_dev(
-            context,
-            tenant_id=tenant_id,
-            nwa_tenant_id=nwa_tenant_id,
-            nwa_info=nwa_info
-        )
-
-    #####
-    # appendix.
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.get_nwa_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.set_nwa_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.agent.proxy_tenant.AgentProxyTenant.update_tenant_binding')  # noqa
-    def test_create_general_dev_ex1(self, utb, stb, gtb):
+    def test_create_general_dev(self, utb, stb, gtb):
         context = mock.MagicMock()
         tenant_id = "844eb55f21e84a289e9c22098d387e5d"
         nwa_tenant_id = 'DC1_' + tenant_id
 
-        nwa_info = load_data_file('nwa_info_create_general_dev_ex1.json')
+        nwa_info = load_data_file(self.nwa_info)
 
-        self.nwacli.create_tenant.   return_value = (200, {})
-        self.nwacli.create_tenant_nw.return_value = (200, load_data_file('create_tenant_nw_result.json'))  # noqa
-        self.nwacli.create_vlan.     return_value = (200, load_data_file('create_vlan_result.json'))  # noqa
-        gtb.return_value = load_data_file('nwa_data_create_general_dev_ex1.json')  # noqa
+        self.nwacli.create_tenant.return_value = self.retval_create_tenant
+        self.nwacli.create_tenant_nw.return_value = (
+            self.retval_create_tenant_nw[0],
+            load_data_file(self.retval_create_tenant_nw[1])
+        )
+        self.nwacli.create_vlan.return_value = (
+            self.retval_create_vlan[0],
+            load_data_file(self.retval_create_vlan[1])
+        )
+
+        if isinstance(self.gtb_data, six.string_types):
+            gtb.return_value = load_data_file(self.gtb_data)
+        else:
+            gtb.return_value = self.gtb_data
 
         self.agent.proxy_l2.create_general_dev(
+            context,
+            tenant_id=tenant_id,
+            nwa_tenant_id=nwa_tenant_id,
+            nwa_info=nwa_info
+        )
+
+
+class TestAgentProxyL2DeleteGeneralDev(
+        test_nwa_agent.TestNECNWANeutronAgentBase):
+
+    scenarios = [
+        ('succeed1',
+         {'retval_delete_tenant': (200, {}),
+          'retval_delete_tenant_nw': (200, 'delete_tenant_nw_result.json'),
+          'retval_delete_vlan': (200, 'delete_vlan_result.json'),
+          'nwa_info': 'delete_general_dev_nwa_info.json',
+          'gtb_data': 'nwa_data_one_general_dev.json',
+          },
+         ),
+        ('succeed2',
+         {'retval_delete_tenant': (200, {}),
+          'retval_delete_tenant_nw': (200, 'delete_tenant_nw_result.json'),
+          'retval_delete_vlan': (200, 'delete_vlan_result.json'),
+          'nwa_info': 'delete_general_dev_nwa_info.json',
+          'gtb_data': 'nwa_data_two_general_dev.json',
+          },
+         ),
+        ('succeed3',
+         {'retval_delete_tenant': (200, {}),
+          'retval_delete_tenant_nw': (200, 'delete_tenant_nw_result.json'),
+          'retval_delete_vlan': (200, 'delete_vlan_result.json'),
+          'nwa_info': 'delete_general_dev_nwa_info.json',
+          'gtb_data': 'nwa_data_two_port_general_dev.json',
+          },
+         ),
+        ('fail1',
+         {'retval_delete_tenant': (200, {}),
+          'retval_delete_tenant_nw': (200, 'delete_tenant_nw_result.json'),
+          'retval_delete_vlan': (200, 'delete_vlan_result.json'),
+          'nwa_info': 'delete_general_dev_nwa_info.json',
+          'gtb_data': 'nwa_data_one_general_dev.json',
+          },
+         ),
+        # TODO(amotoki): It seems fail1 and fail2 are same.
+        ('fail2',
+         {'retval_delete_tenant': (200, {}),
+          'retval_delete_tenant_nw': (200, 'delete_tenant_nw_result.json'),
+          'retval_delete_vlan': (200, 'delete_vlan_result.json'),
+          'nwa_info': 'delete_general_dev_nwa_info.json',
+          'gtb_data': 'nwa_data_one_general_dev.json',
+          },
+         ),
+        ('fail3',
+         {'retval_delete_tenant': (500, {}),
+          'retval_delete_tenant_nw': (200, 'delete_tenant_nw_result.json'),
+          'retval_delete_vlan': (200, 'delete_vlan_result.json'),
+          'nwa_info': 'delete_general_dev_nwa_info.json',
+          'gtb_data': 'nwa_data_one_general_dev.json',
+          },
+         ),
+        ('fail4',
+         {'retval_delete_tenant': (200, {}),
+          'retval_delete_tenant_nw': (500, 'delete_tenant_nw_result.json'),
+          'retval_delete_vlan': (200, 'delete_vlan_result.json'),
+          'nwa_info': 'delete_general_dev_nwa_info.json',
+          'gtb_data': 'nwa_data_one_general_dev.json',
+          },
+         ),
+        ('fail5',
+         {'retval_delete_tenant': (200, {}),
+          'retval_delete_tenant_nw': (200, 'delete_tenant_nw_result.json'),
+          'retval_delete_vlan': (500, 'delete_vlan_result.json'),
+          'nwa_info': 'delete_general_dev_nwa_info.json',
+          'gtb_data': 'nwa_data_one_general_dev.json',
+          },
+         ),
+        ('fail6',
+         {'retval_delete_tenant': (200, {}),
+          'retval_delete_tenant_nw': (200, 'delete_tenant_nw_result.json'),
+          'retval_delete_vlan': (200, 'delete_vlan_result.json'),
+          'nwa_info': 'delete_general_dev_nwa_info.json',
+          'gtb_data': 'nwa_data_two_port_general_dev_fail.json',
+          },
+         ),
+        ('fail7',
+         {'retval_delete_tenant': (200, {}),
+          'retval_delete_tenant_nw': (200, 'delete_tenant_nw_result.json'),
+          'retval_delete_vlan': (200, 'delete_vlan_result.json'),
+          'nwa_info': 'delete_general_dev_nwa_info.json',
+          'gtb_data': {},
+          },
+         ),
+    ]
+
+    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.'
+                'TenantBindingServerRpcApi.get_nwa_tenant_binding')
+    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.'
+                'TenantBindingServerRpcApi.set_nwa_tenant_binding')
+    @mock.patch('networking_nec.plugins.necnwa.agent.proxy_tenant.'
+                'AgentProxyTenant.update_tenant_binding')
+    def test_delete_general_dev(self, utb, stb, gtb):
+        context = mock.MagicMock()
+        tenant_id = "844eb55f21e84a289e9c22098d387e5d"
+        nwa_tenant_id = 'DC1_' + tenant_id
+
+        nwa_info = load_data_file(self.nwa_info)
+
+        self.nwacli.delete_tenant.return_value = self.retval_delete_tenant
+        self.nwacli.delete_tenant_nw.return_value = (
+            self.retval_delete_tenant_nw[0],
+            load_data_file(self.retval_delete_tenant_nw[1])
+        )
+        self.nwacli.delete_vlan.return_value = (
+            self.retval_delete_vlan[0],
+            load_data_file(self.retval_delete_vlan[1])
+        )
+
+        if isinstance(self.gtb_data, six.string_types):
+            gtb.return_value = load_data_file(self.gtb_data)
+        else:
+            gtb.return_value = self.gtb_data
+
+        self.agent.proxy_l2.delete_general_dev(
             context,
             tenant_id=tenant_id,
             nwa_tenant_id=nwa_tenant_id,
@@ -513,147 +334,82 @@ def test_check_segment():
 
 class TestNECNWANeutronAgentRpc(test_nwa_agent.TestNECNWANeutronAgentBase):
 
-    # ### GeneralDev: None
-    # ### add Openstack/DC/HA1
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.get_nwa_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.agent.proxy_tenant.AgentProxyTenant.update_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.set_nwa_tenant_binding')  # noqa
-    def test_create_general_dev_succeed1(self, stb, utb, gtb):
-        context = mock.MagicMock()
-        tenant_id = "5d9c51b1d6a34133bb735d4988b309c2"
-        nwa_tenant_id = "DC_KILO3_5d9c51b1d6a34133bb735d4988b309c2"
-        stb.return_value = {}
-        utb.return_value = {'status': 'SUCCESS'}
-        gtb.return_value = None
-        nwa_info = load_data_file('nwa_info_create_general_dev_succeed1.json')
-        rc = self.agent.proxy_l2.create_general_dev(
-            context,
-            tenant_id=tenant_id,
-            nwa_tenant_id=nwa_tenant_id,
-            nwa_info=nwa_info)
-        self.assertTrue(rc)
+    scenarios = [
+        # ### GeneralDev: None
+        # ### add Openstack/DC/HA1
+        ('create_general_dev_succeed1',
+         {'mode': 'create_general_dev',
+          'gtb_data': None,
+          'nwa_info': 'nwa_info_create_general_dev_succeed1.json'}),
+        # ### GeneralDev: Openstack/DC/HA1
+        # ### add Openstack/DC/HA1
+        ('create_general_dev_succeed2',
+         {'mode': 'create_general_dev',
+          'gtb_data': 'nwa_data_create_general_dev_succeed2.json',
+          'nwa_info': 'nwa_info_create_general_dev_succeed2.json',
+          'mock_wait_agent_notifier': True}),
+        # ### GeneralDev: Openstack/DC/HA1
+        # ### add Openstack/DC/HA2
+        ('create_general_dev_succeed3',
+         {'mode': 'create_general_dev',
+          'gtb_data': 'nwa_data_create_general_dev_succeed3.json',
+          'nwa_info': 'nwa_info_create_general_dev_succeed3.json'}),
+        # ### GeneralDev: Openstack/DC/HA1 x1
+        # ### del Openstack/DC/HA1
+        ('delete_general_dev_succeed1',
+         {'mode': 'delete_general_dev',
+          'gtb_data': 'nwa_data_delete_general_dev_succeed1.json',
+          'nwa_info': 'nwa_info_delete_general_dev_succeed1.json'}),
+        # ### GeneralDev: Openstack/DC/HA1 x2
+        # ### del Openstack/DC/HA1
+        ('delete_general_dev_succeed2',
+         {'mode': 'delete_general_dev',
+          'gtb_data': 'nwa_data_delete_general_dev_succeed2.json',
+          'nwa_info': 'nwa_info_delete_general_dev_succeed2.json'}),
+        # ### GeneralDev: Openstack/DC/HA1 x1, Openstack/DC/HA2 x1
+        # ### del Openstack/DC/HA1
+        ('delete_general_dev_succeed3',
+         {'mode': 'delete_general_dev',
+          'gtb_data': 'nwa_data_delete_general_dev_succeed3.json',
+          'nwa_info': 'nwa_info_delete_general_dev_succeed3.json'}),
+    ]
 
-    # ### GeneralDev: Openstack/DC/HA1
-    # ### add Openstack/DC/HA1
-    @mock.patch('networking_nec.plugins.necnwa.agent.proxy_l2.'
-                'WAIT_AGENT_NOTIFIER', new=0)
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.get_nwa_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.agent.proxy_tenant.AgentProxyTenant.update_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.set_nwa_tenant_binding')  # noqa
-    def test_create_general_dev_succeed2(self, stb, utb, gtb):
-
-        nwa_tenant_id = "DC_KILO3_5d9c51b1d6a34133bb735d4988b309c2"
-        tenant_id = "5d9c51b1d6a34133bb735d4988b309c2"
-
-        context = mock.MagicMock()
-
-        stb.return_value = {}
-        utb.return_value = {'status': 'SUCCESS'}
-
-        gtb.return_value = load_data_file('nwa_data_create_general_dev_succeed2.json')  # noqa
-        nwa_info = load_data_file('nwa_info_create_general_dev_succeed2.json')
-        rc = self.agent.proxy_l2.create_general_dev(
-            context,
-            tenant_id=tenant_id,
-            nwa_tenant_id=nwa_tenant_id,
-            nwa_info=nwa_info)
-        self.assertTrue(rc)
-
-    # ### GeneralDev: Openstack/DC/HA1
-    # ### add Openstack/DC/HA2
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.get_nwa_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.agent.proxy_tenant.AgentProxyTenant.update_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.set_nwa_tenant_binding')  # noqa
-    def test_create_general_dev_succeed3(self, stb, utb, gtb):
-
+    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.'
+                'TenantBindingServerRpcApi.get_nwa_tenant_binding')
+    @mock.patch('networking_nec.plugins.necnwa.agent.proxy_tenant.'
+                'AgentProxyTenant.update_tenant_binding')
+    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.'
+                'TenantBindingServerRpcApi.set_nwa_tenant_binding')
+    def test_general_dev(self, stb, utb, gtb):
         nwa_tenant_id = "DC_KILO3_5d9c51b1d6a34133bb735d4988b309c2"
         tenant_id = "5d9c51b1d6a34133bb735d4988b309c2"
 
         context = mock.MagicMock()
-
         stb.return_value = {}
         utb.return_value = {'status': 'SUCCESS'}
+        if self.gtb_data:
+            gtb.return_value = load_data_file(self.gtb_data)
+        else:
+            gtb.return_value = None
+        nwa_info = load_data_file(self.nwa_info)
 
-        gtb.return_value = load_data_file('nwa_data_create_general_dev_succeed3.json')  # noqa
-        nwa_info = load_data_file('nwa_info_create_general_dev_succeed3.json')
+        if getattr(self, 'mock_wait_agent_notifier', False):
+            mock.patch('networking_nec.plugins.necnwa.agent.proxy_l2.'
+                       'WAIT_AGENT_NOTIFIER', new=0).start()
 
-        rc = self.agent.proxy_l2.create_general_dev(
-            context,
-            tenant_id=tenant_id,
-            nwa_tenant_id=nwa_tenant_id,
-            nwa_info=nwa_info)
-        self.assertTrue(rc)
-
-    # ### GeneralDev: Openstack/DC/HA1 x1
-    # ### del Openstack/DC/HA1
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.get_nwa_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.agent.proxy_tenant.AgentProxyTenant.update_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.set_nwa_tenant_binding')  # noqa
-    def test_delete_general_dev_succeed1(self, stb, utb, gtb):
-
-        nwa_tenant_id = "DC_KILO3_5d9c51b1d6a34133bb735d4988b309c2"
-        tenant_id = "5d9c51b1d6a34133bb735d4988b309c2"
-
-        context = mock.MagicMock()
-
-        stb.return_value = {}
-        utb.return_value = {'status': 'SUCCESS'}
-
-        gtb.return_value = load_data_file('nwa_data_delete_general_dev_succeed1.json')  # noqa
-        nwa_info = load_data_file('nwa_info_delete_general_dev_succeed1.json')
-
-        rc = self.agent.proxy_l2.delete_general_dev(
-            context,
-            tenant_id=tenant_id,
-            nwa_tenant_id=nwa_tenant_id,
-            nwa_info=nwa_info)
-        self.assertTrue(rc)
-
-    # ### GeneralDev: Openstack/DC/HA1 x2
-    # ### del Openstack/DC/HA1
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.get_nwa_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.agent.proxy_tenant.AgentProxyTenant.update_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.set_nwa_tenant_binding')  # noqa
-    def test_delete_general_dev_succeed2(self, stb, utb, gtb):
-
-        nwa_tenant_id = "DC_KILO3_5d9c51b1d6a34133bb735d4988b309c2"
-        tenant_id = "5d9c51b1d6a34133bb735d4988b309c2"
-
-        context = mock.MagicMock()
-
-        stb.return_value = {}
-        utb.return_value = {'status': 'SUCCESS'}
-
-        gtb.return_value = load_data_file('nwa_data_delete_general_dev_succeed2.json')  # noqa
-        nwa_info = load_data_file('nwa_info_delete_general_dev_succeed2.json')
-
-        rc = self.agent.proxy_l2.delete_general_dev(
-            context,
-            tenant_id=tenant_id,
-            nwa_tenant_id=nwa_tenant_id,
-            nwa_info=nwa_info)
-        self.assertTrue(rc)
-
-    # ### GeneralDev: Openstack/DC/HA1 x1, Openstack/DC/HA2 x1
-    # ### del Openstack/DC/HA1
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.get_nwa_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.agent.proxy_tenant.AgentProxyTenant.update_tenant_binding')  # noqa
-    @mock.patch('networking_nec.plugins.necnwa.l2.rpc.tenant_binding_api.TenantBindingServerRpcApi.set_nwa_tenant_binding')  # noqa
-    def test_delete_general_dev_succeed3(self, stb, utb, gtb):
-
-        nwa_tenant_id = "DC_KILO3_5d9c51b1d6a34133bb735d4988b309c2"
-        tenant_id = "5d9c51b1d6a34133bb735d4988b309c2"
-
-        context = mock.MagicMock()
-
-        stb.return_value = {}
-        utb.return_value = {'status': 'SUCCESS'}
-
-        gtb.return_value = load_data_file('nwa_data_delete_general_dev_succeed3.json')  # noqa
-        nwa_info = load_data_file('nwa_info_delete_general_dev_succeed3.json')
-        rc = self.agent.proxy_l2.delete_general_dev(
-            context,
-            tenant_id=tenant_id,
-            nwa_tenant_id=nwa_tenant_id,
-            nwa_info=nwa_info)
-        self.assertTrue(rc)
+        if self.mode == 'create_general_dev':
+            rc = self.agent.proxy_l2.create_general_dev(
+                context,
+                tenant_id=tenant_id,
+                nwa_tenant_id=nwa_tenant_id,
+                nwa_info=nwa_info)
+            self.assertTrue(rc)
+        elif self.mode == 'delete_general_dev':
+            rc = self.agent.proxy_l2.delete_general_dev(
+                context,
+                tenant_id=tenant_id,
+                nwa_tenant_id=nwa_tenant_id,
+                nwa_info=nwa_info)
+            self.assertTrue(rc)
+        else:
+            self.fail('mode %s is invalide' % self.mode)
