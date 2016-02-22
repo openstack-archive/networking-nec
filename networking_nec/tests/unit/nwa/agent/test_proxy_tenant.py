@@ -14,7 +14,7 @@
 
 import mock
 
-from networking_nec.tests.necnwa.agent import test_nwa_agent
+from networking_nec.tests.unit.nwa.agent import test_nwa_agent
 
 
 class TestAgentProxyTenant(test_nwa_agent.TestNECNWANeutronAgentBase):

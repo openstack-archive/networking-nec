@@ -21,7 +21,7 @@ import testscenarios
 
 from networking_nec.plugins.necnwa.agent import proxy_l2
 from networking_nec.plugins.necnwa.common import exceptions as nwa_exc
-from networking_nec.tests.necnwa.agent import test_nwa_agent
+from networking_nec.tests.unit.nwa.agent import test_nwa_agent
 
 load_tests = testscenarios.load_tests_apply_scenarios
 
