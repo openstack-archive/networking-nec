@@ -142,8 +142,10 @@ class TestNwa(base.BaseTestCase):
             }
         ]
 
-        cfg.CONF.set_override('resource_group',
-                              jsonutils.dumps(self.resource_group),
+        fn_resource_group = self.get_temp_file_path('resource_group.json')
+        with open(fn_resource_group, 'w') as f:
+            f.write(jsonutils.dumps(self.resource_group))
+        cfg.CONF.set_override('resource_group_file', fn_resource_group,
                               group='NWA')
 
         self.nwa_data = {}

@@ -50,3 +50,6 @@ class TestNWAConfig(base.BaseTestCase):
 
     def test_section_default_NWA_resource_group(self):
         self.assertIsNone(cfg.CONF.NWA.resource_group)
+
+    def test_section_default_NWA_resource_group_file(self):
+        self.assertIsNone(cfg.CONF.NWA.resource_group_file)
