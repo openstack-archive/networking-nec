@@ -13,9 +13,7 @@
 #    under the License.
 
 from neutron.db import external_net_db
-from neutron.db import models_v2
 from neutron_lib import constants
-from neutron_lib import exceptions as n_exc
 from oslo_config import cfg
 from oslo_log import log as logging
 from sqlalchemy.orm import exc as sa_exc
@@ -41,24 +39,6 @@ def get_physical_network(device_owner, resource_groups,
         if physnets:
             return physnets[0]
     return None
-
-
-# TODO(amotoki): Move update_port_status() to core.plugin or core.db_api
-def update_port_status(context, port_id, status):
-    if hasattr(context, 'session'):
-        session = context.session
-    else:
-        session = context.network._plugin_context.session
-    try:
-        port = session.query(models_v2.Port).filter_by(id=port_id).one()
-        LOG.debug("[DB] PORT STATE CHANGE %s -> %s", (port['status'], status))
-        LOG.debug("[DB] PORT ID %s", port_id)
-        port['status'] = status
-        session.merge(port)
-        session.flush()
-    except sa_exc.NoResultFound:
-        LOG.debug("[DB] PORT not found %s", port_id)
-        raise n_exc.PortNotFound(port_id=port_id)
 
 
 # TODO(amotoki): Move is_external_network() to core.db_api

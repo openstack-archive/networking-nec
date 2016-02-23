@@ -13,10 +13,8 @@
 #    under the License.
 
 from mock import MagicMock
-from sqlalchemy.orm import exc
 
 from neutron.tests import base
-from neutron_lib import exceptions as n_exc
 from oslo_config import cfg
 from oslo_serialization import jsonutils
 
@@ -186,38 +184,6 @@ class TestGetPhysicalNetwork(TestNwa):
                                                  self.resource_group,
                                                  'Common/KVM/Pod2')
         self.assertIsNone(pnet)
-
-
-class TestUpdatePortStatus(TestNwa):
-    def test_update_port_status(self):
-        port_id = 'uuid-port-1'
-        status = 'ACTIVE'
-        port = {'status': None}
-        ctx = MagicMock()
-        ctx.session.query().filter_by().one = MagicMock(return_value=port)
-        nwa_l2_utils.update_port_status(ctx, port_id, status)
-        self.assertEqual(port['status'], status)
-
-    def test_update_port_status_2(self):
-        port_id = 'uuid-port-2'
-        status = 'ACTIVE'
-        port = {'status': None}
-        ctx = self.context
-        ctx.network._plugin_context.session.query().filter_by().one = \
-            MagicMock(return_value=port)
-        nwa_l2_utils.update_port_status(ctx, port_id, status)
-        self.assertEqual(port['status'], status)
-
-    def test_update_port_status_3(self):
-        port_id = 'uuid-port-3'
-        status = 'ACTIVE'
-        ctx = self.context
-        ctx.network._plugin_context.session.query().filter_by().one = \
-            MagicMock(side_effect=exc.NoResultFound)
-        self.assertRaises(
-            n_exc.PortNotFound,
-            nwa_l2_utils.update_port_status, ctx, port_id, status
-        )
 
 
 class TestPortcontextToNwaInfo(TestNwa):
