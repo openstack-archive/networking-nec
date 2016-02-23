@@ -12,60 +12,13 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from mock import MagicMock
 from mock import patch
 
-from neutron.common import rpc
-from neutron.tests import base
-from oslo_config import cfg
-
 from networking_nec.nwa.agent import nwa_agent
+from networking_nec.tests.unit.nwa.agent import base
 
 
-def init_nwa_client_patch(mock):
-    succeed = (200, {
-        'status': 'SUCCESS',
-        'resultdata': {
-            'LogicalNWName': 'LNW_BusinessVLAN_4000',
-            'TenantFWName': 'T1',
-            'VlanID': '4000',
-        }
-    })
-    mock.create_general_dev.return_value = succeed
-    mock.create_tenant.return_value = succeed
-    mock.create_tenant_nw.return_value = succeed
-    mock.create_vlan.return_value = succeed
-    mock.delete_general_dev.return_value = succeed
-    mock.delete_tenant.return_value = succeed
-    mock.delete_tenant_nw.return_value = succeed
-    mock.delete_vlan.return_value = succeed
-
-
-class TestNECNWANeutronAgentBase(base.BaseTestCase):
-
-    @patch('oslo_service.loopingcall.FixedIntervalLoopingCall')
-    @patch('neutron.common.rpc.Connection.consume_in_threads')
-    @patch('neutron.common.rpc.create_connection')
-    @patch('neutron.agent.rpc.PluginReportStateAPI')
-    @patch('neutron.common.rpc.get_client')
-    def setUp(self, f1, f2, f3, f4, f5):
-        super(TestNECNWANeutronAgentBase, self).setUp()
-        self._patch_nwa_client()
-        self.context = MagicMock()
-        self.agent = nwa_agent.NECNWANeutronAgent(10)
-        rpc.init(cfg.ConfigOpts())
-
-    def _patch_nwa_client(self):
-        path = 'networking_nec.nwa.nwalib.client.NwaClient'
-        patcher = patch(path)
-        self.addCleanup(patcher.stop)
-        cli = patcher.start()
-        self.nwacli = MagicMock()
-        cli.return_value = self.nwacli
-        init_nwa_client_patch(self.nwacli)
-
-
-class TestNECNWANeutronAgentAsNwaClient(TestNECNWANeutronAgentBase):
+class TestNECNWANeutronAgentAsNwaClient(base.TestNWAAgentBase):
 
     @patch('neutron.common.rpc.Connection')
     @patch('neutron.agent.rpc.PluginReportStateAPI')

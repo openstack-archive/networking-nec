@@ -14,10 +14,10 @@
 
 import mock
 
-from networking_nec.tests.unit.nwa.agent import test_nwa_agent
+from networking_nec.tests.unit.nwa.agent import base
 
 
-class TestAgentServerManager(test_nwa_agent.TestNECNWANeutronAgentBase):
+class TestAgentServerManager(base.TestNWAAgentBase):
 
     @mock.patch('oslo_messaging.server.MessageHandlingServer')
     def test_create_tenant_rpc_server(self, f1):

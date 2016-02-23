@@ -14,10 +14,10 @@
 
 import mock
 
-from networking_nec.tests.unit.nwa.agent import test_nwa_agent
+from networking_nec.tests.unit.nwa.agent import base
 
 
-class TestAgentProxyTenant(test_nwa_agent.TestNECNWANeutronAgentBase):
+class TestAgentProxyTenant(base.TestNWAAgentBase):
 
     def test__create_tenant_succeed(self):
         nwa_tenant_id = 'DC1_844eb55f21e84a289e9c22098d387e5d'
@@ -25,7 +25,7 @@ class TestAgentProxyTenant(test_nwa_agent.TestNECNWANeutronAgentBase):
         self.nwacli.create_tenant.return_value = 200, {}
 
         body = self.agent.proxy_tenant.create_tenant(
-            self.context,
+            mock.sentinel.context,
             nwa_tenant_id=nwa_tenant_id
         )
         exp_data = {
@@ -38,7 +38,7 @@ class TestAgentProxyTenant(test_nwa_agent.TestNECNWANeutronAgentBase):
         nwa_tenant_id = 'DC1_844eb55f21e84a289e9c22098d387e5d'
         self.nwacli.create_tenant.return_value = 400, {}
         body = self.agent.proxy_tenant.create_tenant(
-            self.context,
+            mock.sentinel.context,
             nwa_tenant_id=nwa_tenant_id
         )
         exp_data = {
@@ -50,7 +50,7 @@ class TestAgentProxyTenant(test_nwa_agent.TestNECNWANeutronAgentBase):
     def test__delete_tenant(self):
         nwa_tenant_id = 'DC1_844eb55f21e84a289e9c22098d387e5d'
         nwa_data = self.agent.proxy_tenant.delete_tenant(
-            self.context,
+            mock.sentinel.context,
             nwa_tenant_id=nwa_tenant_id
         )
         self.assertIsInstance(nwa_data, dict)
@@ -67,7 +67,7 @@ class TestAgentProxyTenant(test_nwa_agent.TestNECNWANeutronAgentBase):
         # TODO(amotoki): Even when 500 is returned, the target method will
         # succeed. Ideally this should be fixed.
         nwa_data = self.agent.proxy_tenant.delete_tenant(
-            self.context,
+            mock.sentinel.context,
             nwa_tenant_id=nwa_tenant_id
         )
         self.assertDictEqual({}, nwa_data)

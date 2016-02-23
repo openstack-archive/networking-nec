@@ -21,7 +21,7 @@ import testscenarios
 
 from networking_nec.nwa.agent import proxy_l2
 from networking_nec.nwa.common import exceptions as nwa_exc
-from networking_nec.tests.unit.nwa.agent import test_nwa_agent
+from networking_nec.tests.unit.nwa.agent import base
 
 load_tests = testscenarios.load_tests_apply_scenarios
 
@@ -33,7 +33,7 @@ def load_data_file(name):
         return jsonutils.loads(f.read())
 
 
-class TestAgentProxyL2(test_nwa_agent.TestNECNWANeutronAgentBase):
+class TestAgentProxyL2(base.TestNWAAgentBase):
 
     def test__create_tenant_nw_fail(self):
         tenant_id = '844eb55f21e84a289e9c22098d387e5d'
@@ -48,7 +48,7 @@ class TestAgentProxyL2(test_nwa_agent.TestNECNWANeutronAgentBase):
         e = self.assertRaises(
             nwa_exc.AgentProxyException,
             self.agent.proxy_l2._create_tenant_nw,
-            self.context,
+            mock.sentinel.context,
             tenant_id=tenant_id,
             nwa_tenant_id=nwa_tenant_id,
             resource_group_name=resource_group_name,
@@ -68,7 +68,7 @@ class TestAgentProxyL2(test_nwa_agent.TestNECNWANeutronAgentBase):
         ret_vln['resultdata']['VlanID'] = '300'
         self.nwacli.create_vlan.return_value = (200, ret_vln)
         result = self.agent.proxy_l2._create_vlan(
-            self.context,
+            mock.sentinel.context,
             tenant_id=tenant_id,
             nwa_tenant_id=nwa_tenant_id,
             nwa_info=nwa_info,
@@ -87,7 +87,7 @@ class TestAgentProxyL2(test_nwa_agent.TestNECNWANeutronAgentBase):
         self.assertRaises(
             nwa_exc.AgentProxyException,
             self.agent.proxy_l2._create_vlan,
-            self.context,
+            mock.sentinel.context,
             tenant_id=tenant_id,
             nwa_tenant_id=nwa_tenant_id,
             nwa_info=nwa_info,
@@ -103,7 +103,7 @@ class TestAgentProxyL2(test_nwa_agent.TestNECNWANeutronAgentBase):
         dvl_result = load_data_file('delete_vlan_result.json')
         self.nwacli.create_vlan.return_value = (200, dvl_result)
         result = self.agent.proxy_l2._delete_vlan(
-            self.context,
+            mock.sentinel.context,
             tenant_id=tenant_id,
             nwa_tenant_id=nwa_tenant_id,
             nwa_info=nwa_info,
@@ -112,8 +112,7 @@ class TestAgentProxyL2(test_nwa_agent.TestNECNWANeutronAgentBase):
         self.assertDictEqual(nwa_data, result)
 
 
-class TestAgentProxyL2CreateGeneralDev(
-        test_nwa_agent.TestNECNWANeutronAgentBase):
+class TestAgentProxyL2CreateGeneralDev(base.TestNWAAgentBase):
 
     scenarios = [
         ('succeed1',
@@ -203,8 +202,7 @@ class TestAgentProxyL2CreateGeneralDev(
         )
 
 
-class TestAgentProxyL2DeleteGeneralDev(
-        test_nwa_agent.TestNECNWANeutronAgentBase):
+class TestAgentProxyL2DeleteGeneralDev(base.TestNWAAgentBase):
 
     scenarios = [
         ('succeed1',
@@ -332,7 +330,7 @@ def test_check_segment():
     proxy_l2.check_segment(network_id, nwa_data)
 
 
-class TestNECNWANeutronAgentRpc(test_nwa_agent.TestNECNWANeutronAgentBase):
+class TestNECNWANeutronAgentRpc(base.TestNWAAgentBase):
 
     scenarios = [
         # ### GeneralDev: None
