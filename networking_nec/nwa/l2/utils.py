@@ -41,7 +41,6 @@ def get_physical_network(device_owner, resource_groups,
     return None
 
 
-# TODO(amotoki): Move is_external_network() to core.db_api
 def is_external_network(context, net_id):
     if hasattr(context, 'session'):
         session = context.session
