@@ -380,8 +380,6 @@ class NwaClient(nwa_restclient.NwaRestClient):
                 return http_status, rj
         except Exception as e:
             LOG.exception(_LE('%s'), e)
-            # TODO(amotoki): rj is not defined, so it does not work.
-            # Need to check the return value is correct or not.
             return -1, None
 
     def wait_workflow_done(self, thr):

@@ -64,8 +64,6 @@ class TestAgentProxyTenant(base.TestNWAAgentBase):
     def test__delete_tenant_failed(self):
         nwa_tenant_id = 'DC1_844eb55f21e84a289e9c22098d387e5d'
         self.nwacli.delete_tenant.return_value = 500, {}
-        # TODO(amotoki): Even when 500 is returned, the target method will
-        # succeed. Ideally this should be fixed.
         nwa_data = self.agent.proxy_tenant.delete_tenant(
             mock.sentinel.context,
             nwa_tenant_id=nwa_tenant_id

@@ -237,7 +237,6 @@ class TestAgentProxyL2DeleteGeneralDev(testscenarios.WithScenarios,
           'gtb_data': 'nwa_data_one_general_dev.json',
           },
          ),
-        # TODO(amotoki): It seems fail1 and fail2 are same.
         ('fail2',
          {'retval_delete_tenant': (200, {}),
           'retval_delete_tenant_nw': (200, 'delete_tenant_nw_result.json'),
