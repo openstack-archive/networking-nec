@@ -27,7 +27,7 @@ from networking_nec.nwa.common import exceptions as nwa_exc
 from networking_nec.nwa.l2.drivers import mech_necnwa as mech
 
 
-class TestMechNwa(testlib_api.SqlTestCaseLight):
+class TestMechNwa(testlib_api.SqlTestCase):
     def setUp(self):
         super(TestMechNwa, self).setUp()
 
@@ -168,15 +168,18 @@ class TestMechNwa(testlib_api.SqlTestCaseLight):
                 "ResourceGroupName": "Common/App/Pod3"
             }
         ]
-        self.resource_group_str = jsonutils.dumps(resource_group)
+
+        fn_resource_group = self.get_temp_file_path('resource_group.json')
+        with open(fn_resource_group, 'w') as f:
+            f.write(jsonutils.dumps(resource_group))
+        cfg.CONF.set_override('resource_group_file', fn_resource_group,
+                              group='NWA')
 
 
 class TestNECNWAMechanismDriver(TestMechNwa):
     def setUp(self):
         super(TestNECNWAMechanismDriver, self).setUp()
         self.driver = mech.NECNWAMechanismDriver()
-        cfg.CONF.set_override('resource_group', self.resource_group_str,
-                              group='NWA')
         self.driver.initialize()
 
         self.rcode = MagicMock()
