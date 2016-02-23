@@ -43,24 +43,6 @@ def get_physical_network(device_owner, resource_groups,
     return None
 
 
-# TODO(amotoki): Move update_port_status() to core.plugin or core.db_api
-def update_port_status(context, port_id, status):
-    if hasattr(context, 'session'):
-        session = context.session
-    else:
-        session = context.network._plugin_context.session
-    try:
-        port = session.query(models_v2.Port).filter_by(id=port_id).one()
-        LOG.debug("[DB] PORT STATE CHANGE %s -> %s", (port['status'], status))
-        LOG.debug("[DB] PORT ID %s", port_id)
-        port['status'] = status
-        session.merge(port)
-        session.flush()
-    except sa_exc.NoResultFound:
-        LOG.debug("[DB] PORT not found %s", port_id)
-        raise n_exc.PortNotFound(port_id=port_id)
-
-
 # TODO(amotoki): Move is_external_network() to core.db_api
 def is_external_network(context, net_id):
     if hasattr(context, 'session'):
