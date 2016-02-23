@@ -23,8 +23,6 @@ from networking_nec.nwa.agent import proxy_l2
 from networking_nec.nwa.common import exceptions as nwa_exc
 from networking_nec.tests.unit.nwa.agent import base
 
-load_tests = testscenarios.load_tests_apply_scenarios
-
 
 def load_data_file(name):
     base_dir = os.path.dirname(__file__)
@@ -112,7 +110,8 @@ class TestAgentProxyL2(base.TestNWAAgentBase):
         self.assertDictEqual(nwa_data, result)
 
 
-class TestAgentProxyL2CreateGeneralDev(base.TestNWAAgentBase):
+class TestAgentProxyL2CreateGeneralDev(testscenarios.WithScenarios,
+                                       base.TestNWAAgentBase):
 
     scenarios = [
         ('succeed1',
@@ -202,7 +201,8 @@ class TestAgentProxyL2CreateGeneralDev(base.TestNWAAgentBase):
         )
 
 
-class TestAgentProxyL2DeleteGeneralDev(base.TestNWAAgentBase):
+class TestAgentProxyL2DeleteGeneralDev(testscenarios.WithScenarios,
+                                       base.TestNWAAgentBase):
 
     scenarios = [
         ('succeed1',
@@ -330,7 +330,8 @@ def test_check_segment():
     proxy_l2.check_segment(network_id, nwa_data)
 
 
-class TestNECNWANeutronAgentRpc(base.TestNWAAgentBase):
+class TestNECNWANeutronAgentRpc(testscenarios.WithScenarios,
+                                base.TestNWAAgentBase):
 
     scenarios = [
         # ### GeneralDev: None

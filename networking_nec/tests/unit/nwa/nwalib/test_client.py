@@ -22,14 +22,6 @@ from networking_nec.nwa.nwalib import client
 from networking_nec.nwa.nwalib import exceptions as nwa_exc
 from networking_nec.nwa.nwalib import workflow
 
-# the below code is required to load test scenarios.
-# If a test class has 'scenarios' attribute,
-# tests are multiplied depending on their 'scenarios' attribute.
-# This can be assigned to 'load_tests' in any test module to make this
-# automatically work across tests in the module.
-# For more details, see testscenarios document.
-load_tests = testscenarios.load_tests_apply_scenarios
-
 TENANT_ID = 'OpenT9004'
 
 # create general dev
@@ -255,7 +247,7 @@ class TestNwaClient(TestNwaClientBase):
         self.assertEqual(rj['status'], 'SUCCESS')
 
 
-class TestNwaClientScenario(TestNwaClientBase):
+class TestNwaClientScenario(testscenarios.WithScenarios, TestNwaClientBase):
 
     def create_general_dev(self, vlan_name):
         dcresgrp_name = 'Common/App/Pod3'

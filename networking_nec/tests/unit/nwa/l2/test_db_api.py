@@ -23,14 +23,6 @@ from neutron.tests.unit import testlib_api
 
 from networking_nec.nwa.l2 import db_api
 
-# the below code is required to load test scenarios.
-# If a test class has 'scenarios' attribute,
-# tests are multiplied depending on their 'scenarios' attribute.
-# This can be assigned to 'load_tests' in any test module to make this
-# automatically work across tests in the module.
-# For more details, see testscenarios document.
-load_tests = testscenarios.load_tests_apply_scenarios
-
 TENANT_ID = 'T1'
 NWA_TENANT_ID = 'NWA-T1'
 JSON_VALUE = {'a': 1}
@@ -211,7 +203,7 @@ class TestGetNwaTenantBinding(base.BaseTestCase):
         self.assertIsNone(rc)
 
 
-class TestSetNwaTenantBinding(base.BaseTestCase):
+class TestSetNwaTenantBinding(testscenarios.WithScenarios, base.BaseTestCase):
 
     scenarios = [
         ('old new json None',
@@ -318,7 +310,7 @@ class TestSetNwaTenantBinding(base.BaseTestCase):
                              self.call_count_delete)
 
 
-class TestDelNwaTenantBinding(base.BaseTestCase):
+class TestDelNwaTenantBinding(testscenarios.WithScenarios, base.BaseTestCase):
 
     scenarios = [
         ('old value json is None',
