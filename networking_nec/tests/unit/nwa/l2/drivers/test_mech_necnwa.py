@@ -42,7 +42,6 @@ class TestMechNwa(testlib_api.SqlTestCaseLight):
 
             def set_binding(self, segment_id, vif_type, vif_details,
                             status=None):
-                # TODO(rkukura) Verify binding allowed, segment in network
                 self._binding.segment = segment_id
                 self._binding.vif_type = vif_type
                 self._binding.vif_details = vif_details

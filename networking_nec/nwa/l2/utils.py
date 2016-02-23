@@ -61,7 +61,6 @@ def update_port_status(context, port_id, status):
         raise n_exc.PortNotFound(port_id=port_id)
 
 
-# TODO(amotoki): Move is_external_network() to core.db_api
 def is_external_network(context, net_id):
     if hasattr(context, 'session'):
         session = context.session
