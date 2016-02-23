@@ -14,12 +14,9 @@
 
 from neutron.tests import base
 from oslo_config import cfg
-from oslo_log import log as logging
 
 # It is required to register nwa options
 from networking_nec.nwa.common import config  # noqa
-
-LOG = logging.getLogger(__name__)
 
 
 class TestNWAConfig(base.BaseTestCase):

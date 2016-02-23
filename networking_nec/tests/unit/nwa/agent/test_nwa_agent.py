@@ -18,11 +18,8 @@ from mock import patch
 from neutron.common import rpc
 from neutron.tests import base
 from oslo_config import cfg
-from oslo_log import log as logging
 
 from networking_nec.nwa.agent import nwa_agent
-
-LOG = logging.getLogger(__name__)
 
 
 def init_nwa_client_patch(mock):

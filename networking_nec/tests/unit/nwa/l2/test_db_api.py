@@ -20,7 +20,6 @@ import testscenarios
 from neutron import context
 from neutron.tests import base
 from neutron.tests.unit import testlib_api
-from oslo_log import log as logging
 
 from networking_nec.nwa.l2 import db_api
 
@@ -31,8 +30,6 @@ from networking_nec.nwa.l2 import db_api
 # automatically work across tests in the module.
 # For more details, see testscenarios document.
 load_tests = testscenarios.load_tests_apply_scenarios
-
-LOG = logging.getLogger(__name__)
 
 TENANT_ID = 'T1'
 NWA_TENANT_ID = 'NWA-T1'

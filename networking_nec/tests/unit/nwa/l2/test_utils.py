@@ -18,12 +18,9 @@ from sqlalchemy.orm import exc
 from neutron.tests import base
 from neutron_lib import exceptions as n_exc
 from oslo_config import cfg
-from oslo_log import log as logging
 from oslo_serialization import jsonutils
 
 from networking_nec.nwa.l2 import utils as nwa_l2_utils
-
-LOG = logging.getLogger(__name__)
 
 
 class TestNwa(base.BaseTestCase):

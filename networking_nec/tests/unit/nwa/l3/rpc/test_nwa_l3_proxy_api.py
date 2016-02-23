@@ -15,11 +15,8 @@
 import mock
 
 from neutron.tests import base
-from oslo_log import log as logging
 
 from networking_nec.nwa.l3.rpc.nwa_l3_proxy_api import NwaL3ProxyApi
-
-LOG = logging.getLogger(__name__)
 
 
 class TestNwaL3ProxyApi(base.BaseTestCase):

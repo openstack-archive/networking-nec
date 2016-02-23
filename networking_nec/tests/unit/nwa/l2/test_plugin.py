@@ -19,11 +19,8 @@ import six
 from neutron.common.test_lib import test_config
 from neutron.tests import base
 from oslo_config import cfg
-from oslo_log import log as logging
 
 from networking_nec.nwa.l2 import plugin
-
-LOG = logging.getLogger(__name__)
 
 
 class TestNECNWAL2Plugin(base.BaseTestCase):

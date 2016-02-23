@@ -20,14 +20,11 @@ from neutron.extensions import providernet as prov_net
 from neutron.tests.unit import testlib_api
 from neutron_lib import constants
 from oslo_config import cfg
-from oslo_log import log as logging
 from oslo_serialization import jsonutils
 
 from networking_nec.nwa.common import constants as nwa_const
 from networking_nec.nwa.common import exceptions as nwa_exc
 from networking_nec.nwa.l2.drivers import mech_necnwa as mech
-
-LOG = logging.getLogger(__name__)
 
 
 class TestMechNwa(testlib_api.SqlTestCaseLight):
