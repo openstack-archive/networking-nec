@@ -257,38 +257,64 @@ class TestNwaClient(TestNwaClientBase):
 
 class TestNwaClientScenario(TestNwaClientBase):
 
-    def create_general_dev(self, vlan_name):
-        dcresgrp_name = 'Common/App/Pod3'
-        rd, rj = self.nwa.create_general_dev(
-            TENANT_ID,
-            dcresgrp_name, vlan_name
-        )
-        self.assertEqual(rd, 200)
-        self.assertEqual(rj['status'], 'SUCCESS')
-        return rd, rj
-
-    def delete_general_dev(self, vlan_name):
-        dcresgrp_name = 'Common/App/Pod3'
-        rd, rj = self.nwa.delete_general_dev(
-            TENANT_ID,
-            dcresgrp_name, vlan_name
-        )
-        self.assertEqual(rd, 200)
-        self.assertEqual(rj['status'], 'SUCCESS')
-        return rd, rj
-
     scenarios = [
-        ('test 1', {'count': 5, 'vlan_names': ['dA', 'dB', 'dC', 'dD', 'dA']}),
-        ('test 2', {'count': 4, 'vlan_names': ['d1', 'd2', 'd3', 'd1']}),
+        ('test 1',
+         {'operations': [
+             ('delete', 'vlan-A'),
+             ('delete', 'vlan-B'),
+             ('delete', 'vlan-C'),
+             ('delete', 'vlan-D'),
+             ('delete', 'vlan-A')
+         ]}),
+        ('test 2',
+         {'operations': [
+             ('delete', 'vlan-1'),
+             ('delete', 'vlan-2'),
+             ('delete', 'vlan-3'),
+             ('delete', 'vlan-1')
+         ]}),
         # delete to "create"
-        ('test 3', {'count': 3, 'vlan_names': ['cA', 'dA', 'cA']}),
+        ('test 3',
+         {'operations': [
+             ('create', 'vlan-A'),
+             ('delete', 'vlan-A'),
+             ('create', 'vlan-A')]}),
         # don't delete if name is not same.
-        ('test 4', {'count': 3, 'vlan_names': ['c1', 'd2', 'c1']}),
-        ('test 5', {'count': 3, 'vlan_names': ['cB', 'dB', 'cC']}),
-        ('test 6', {'count': 4, 'vlan_names': ['cX', 'dX', 'cX', 'dX']}),
-        ('test 7', {'count': 6,
-                    'vlan_names': ['c1', 'c2', 'd1', 'd2', 'c1', 'd1']}),
-        ('test 8', {'count': 4, 'vlan_names': ['cE', 'dE', 'dE', 'dE']}),
+        ('test 4',
+         {'operations': [
+             ('create', 'vlan-1'),
+             ('delete', 'vlan-2'),
+             ('create', 'vlan-1')
+         ]}),
+        ('test 5',
+         {'operations': [
+             ('create', 'vlan-B'),
+             ('delete', 'vlan-B'),
+             ('create', 'vlan-C')
+         ]}),
+        ('test 6',
+         {'operations': [
+             ('create', 'vlan-X'),
+             ('delete', 'vlan-X'),
+             ('create', 'vlan-X'),
+             ('delete', 'vlan-X')
+         ]}),
+        ('test 7',
+         {'operations': [
+             ('create', 'vlan-1'),
+             ('create', 'vlan-2'),
+             ('delete', 'vlan-1'),
+             ('delete', 'vlan-2'),
+             ('create', 'vlan-1'),
+             ('delete', 'vlan-1')
+         ]}),
+        ('test 8',
+         {'operations': [
+             ('create', 'vlan-E'),
+             ('delete', 'vlan-E'),
+             ('delete', 'vlan-E'),
+             ('delete', 'vlan-E')
+         ]}),
     ]
 
     @patch('networking_nec.nwa.nwalib.client.NwaClient.workflowinstance')
@@ -299,13 +325,17 @@ class TestNwaClientScenario(TestNwaClientBase):
         wki.return_value = (200, {'status': 'SUCCESS'})
 
         post.reset_mock()
-        for vlan_name in self.vlan_names:
-            name = vlan_name[1:]
-            if vlan_name.startswith('c'):
-                self.assertEqual(self.create_general_dev(name)[0], 200)
+        dcresgrp_name = 'Common/App/Pod3'
+        for operation, vlan_name in self.operations:
+            if operation == 'create':
+                rd, rj = self.nwa.create_general_dev(
+                    TENANT_ID, dcresgrp_name, vlan_name)
             else:
-                self.assertEqual(self.delete_general_dev(name)[0], 200)
-        self.assertEqual(post.call_count, self.count)
+                rd, rj = self.nwa.delete_general_dev(
+                    TENANT_ID, dcresgrp_name, vlan_name)
+            self.assertEqual(rd, 200)
+            self.assertEqual(rj['status'], 'SUCCESS')
+        self.assertEqual(post.call_count, len(self.operations))
 
 
 class TestUtNwaClient(base.BaseTestCase):
