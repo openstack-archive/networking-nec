@@ -12,7 +12,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from mock import patch
+import datetime
+
+import mock
 from neutron.tests import base
 import requests
 
@@ -25,39 +27,34 @@ class TestRestClient(base.BaseTestCase):
         super(TestRestClient, self).setUp()
         self.rcl = restclient.RestClient()
 
-    def test__init_default(self):
-        kwargs = {}
-        url = 'http://127.0.0.1:8080'
-        auth = 'auth'
-        self.rcl._init_default(kwargs, url, auth)
-        self.assertEqual(kwargs['host'], '127.0.0.1')
-        self.assertEqual(kwargs['port'], 8080)
-        self.assertFalse(kwargs['use_ssl'])
-        self.assertEqual(kwargs['auth'], auth)
-
-        url = 'https://127.0.0.1:8080'
-        self.rcl._init_default(kwargs, url, auth)
-        self.assertTrue(kwargs['use_ssl'])
-
     def test_url(self):
         rcl = restclient.RestClient('127.0.0.2', 8081, True)
         path = '/path'
         u = rcl.url(path)
         self.assertEqual(u, 'https://127.0.0.2:8081' + path)
 
-    def test__make_headers(self):
-        pass
-
-    @patch('requests.request')
-    def test__send_receive(self, rr):
-        def myauth(a, b):
-            pass
-
+    @mock.patch('networking_nec.nwa.nwalib.restclient.utcnow')
+    @mock.patch('requests.request')
+    def test__send_receive(self, rr, utcnow):
+        now_for_test = datetime.datetime(2016, 2, 24, 5, 23)
+        now_string = 'Wed, 24 Feb 2016 05:23:00 GMT'
+        utcnow.return_value = now_for_test
+        myauth = mock.Mock()
+        myauth.return_value = mock.sentinel.auth_val
         rcl = restclient.RestClient('127.0.0.3', 8083, True, myauth)
         rcl._send_receive('GET', '/path')
-        self.assertEqual(rr.call_count, 1)
+        rr.assert_called_once_with(
+            'GET', 'https://127.0.0.3:8083/path',
+            data=None,
+            headers={'Authorization': mock.sentinel.auth_val,
+                     'Content-Type': 'application/json',
+                     'Date': now_string,
+                     'X-UMF-API-Version': restclient.UMF_API_VERSION},
+            verify=False,
+            proxies={'no': 'pass'})
+        myauth.assert_called_once_with(now_string, '/path')
 
-    @patch('requests.request')
+    @mock.patch('requests.request')
     def test_rest_api(self, rr):
         def myauth(a, b):
             pass
@@ -74,7 +71,7 @@ class TestRestClient(base.BaseTestCase):
     def test___report_workflow_error(self):
         self.rcl._report_workflow_error(None, 0)
 
-    @patch('networking_nec.nwa.nwalib.restclient.RestClient.rest_api')
+    @mock.patch('networking_nec.nwa.nwalib.restclient.RestClient.rest_api')
     def test_rest_api_return_check(self, ra):
         body = {'a': 1}
         url = 'http://127.0.0.5:8085/path'
@@ -97,7 +94,7 @@ class TestRestClient(base.BaseTestCase):
         self.assertEqual(hst, 200)
         self.assertIsNone(rd)
 
-    @patch('requests.request')
+    @mock.patch('requests.request')
     def test_rest_api_return_check_raise(self, rr):
         def myauth(a, b):
             pass
@@ -111,26 +108,26 @@ class TestRestClient(base.BaseTestCase):
             rcl.rest_api_return_check, 'GET', url, body
         )
 
-    @patch('networking_nec.nwa.nwalib.restclient.RestClient.'
-           'rest_api_return_check')
+    @mock.patch('networking_nec.nwa.nwalib.restclient.RestClient.'
+                'rest_api_return_check')
     def test_get(self, rarc):
         self.rcl.get('')
         self.assertEqual(rarc.call_count, 1)
 
-    @patch('networking_nec.nwa.nwalib.restclient.RestClient.'
-           'rest_api_return_check')
+    @mock.patch('networking_nec.nwa.nwalib.restclient.RestClient.'
+                'rest_api_return_check')
     def test_post(self, rarc):
         self.rcl.post('')
         self.assertEqual(rarc.call_count, 1)
 
-    @patch('networking_nec.nwa.nwalib.restclient.RestClient.'
-           'rest_api_return_check')
+    @mock.patch('networking_nec.nwa.nwalib.restclient.RestClient.'
+                'rest_api_return_check')
     def test_put(self, rarc):
         self.rcl.put('')
         self.assertEqual(rarc.call_count, 1)
 
-    @patch('networking_nec.nwa.nwalib.restclient.RestClient.'
-           'rest_api_return_check')
+    @mock.patch('networking_nec.nwa.nwalib.restclient.RestClient.'
+                'rest_api_return_check')
     def test_delete(self, rarc):
         self.rcl.delete('')
         self.assertEqual(rarc.call_count, 1)

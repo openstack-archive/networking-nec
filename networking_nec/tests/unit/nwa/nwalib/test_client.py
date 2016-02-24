@@ -16,6 +16,7 @@ import mock
 from mock import MagicMock
 from mock import patch
 from neutron.tests import base
+from oslo_config import cfg
 import testscenarios
 
 from networking_nec.nwa.nwalib import client
@@ -49,6 +50,15 @@ class TestNwaClientBase(base.BaseTestCase):
 
 
 class TestNwaClient(TestNwaClientBase):
+
+    def test_get_client_workflow_parameters(self):
+        cfg.CONF.set_override('scenario_polling_first_timer', 1, group='NWA')
+        cfg.CONF.set_override('scenario_polling_timer', 2, group='NWA')
+        cfg.CONF.set_override('scenario_polling_count', 3, group='NWA')
+        nwa_client = client.NwaClient('127.0.0.1', 8080, True)
+        self.assertEqual(1, nwa_client.workflow_first_wait)
+        self.assertEqual(2, nwa_client.workflow_wait_sleep)
+        self.assertEqual(3, nwa_client.workflow_retry_count)
 
     def get_vlan_info(self):
         self.business_vlan = self.public_vlan = None
@@ -335,6 +345,8 @@ class TestUtNwaClient(base.BaseTestCase):
 
     def setUp(self):
         super(TestUtNwaClient, self).setUp()
+        cfg.CONF.set_override('server_url', 'http://127.0.0.1:8080',
+                              group='NWA')
         self.nwa = client.NwaClient(load_workflow_list=False)
         self.tenant_id = 'OpenT9004'
 

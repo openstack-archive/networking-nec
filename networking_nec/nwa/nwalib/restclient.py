@@ -17,7 +17,6 @@ import datetime
 from oslo_log import log as logging
 from oslo_serialization import jsonutils
 import requests
-from six.moves.urllib import parse as urlparse
 
 from networking_nec._i18n import _, _LI, _LE
 from networking_nec.nwa.nwalib import exceptions as nwa_exc
@@ -34,16 +33,23 @@ OLD_UMF_API_VERSION = '2.0.2.201402'
 REST_API_DEBUG = False
 
 
+# datetime.datetime.utcnow cannot be mocked.
+# It is required to mock utcnow in unit test.
+def utcnow():
+    return datetime.datetime.utcnow()
+
+
 class RestClient(object):
     """A HTTP/HTTPS client for NEC NWA Drivers."""
 
-    def __init__(self, host=None, port=None, use_ssl=None, auth=None,
+    def __init__(self, host=None, port=None, use_ssl=True, auth=None,
                  umf_api_version=UMF_API_VERSION):
         """Creates a new client to some NWA.
 
         :param host: The host where service resides
         :param port: The port where service resides
         :param use_ssl: True to use SSL, False to use HTTP
+        :param: auth: function to generate Authorization header.
         """
         self.host = host
         self.port = port
@@ -52,20 +58,14 @@ class RestClient(object):
         self.umf_api_version = umf_api_version
         self._post_data = None
 
-    def _init_default(self, kwargs, url=None, auth=None):
-        if url:
-            url_parts = urlparse.urlparse(url)
-            if not kwargs.get('host'):
-                kwargs['host'] = url_parts.hostname
-            if not kwargs.get('port'):
-                kwargs['port'] = url_parts.port
-            if not kwargs.get('use_ssl'):
-                if url_parts.scheme == 'https':
-                    kwargs['use_ssl'] = True
-                else:
-                    kwargs['use_ssl'] = False
-        if auth:
-            kwargs['auth'] = auth
+        LOG.info(
+            _LI('NWA init: host=%(host)s port=%(port)s use_ssl=%(use_ssl)s '
+                'auth=%(auth)s'),
+            {'host': self.host, 'port': self.port, 'use_ssl': self.use_ssl,
+             'auth': self.auth}
+        )
+        LOG.info(_LI('NWA init: umf api version: %s'),
+                 self.umf_api_version)
 
     def url(self, path):
         protocol = "http"
@@ -77,8 +77,9 @@ class RestClient(object):
         self._post_data = (url, body)
 
     def _make_headers(self, path):
-        datestr = datetime.datetime.utcnow().strftime(DATE_HEADER_FORMAT)
+        datestr = utcnow().strftime(DATE_HEADER_FORMAT)
         headers = {
+            # XXX: If auth is None, RestClient will be broken.
             'Authorization': self.auth(datestr, path),
             'Content-Type': 'application/json',
             'Date': datestr,
