@@ -17,6 +17,7 @@ import re
 
 from debtcollector import removals
 import eventlet
+from oslo_config import cfg
 from oslo_log import log as logging
 import six
 
@@ -38,6 +39,14 @@ class NwaClient(nwa_restclient.NwaRestClient):
     def __init__(self, *args, **kwargs):
         load_workflow_list = kwargs.pop('load_workflow_list', True)
         super(NwaClient, self).__init__(*args, **kwargs)
+        self.workflow_first_wait = cfg.CONF.NWA.scenario_polling_first_timer
+        self.workflow_wait_sleep = cfg.CONF.NWA.scenario_polling_timer
+        self.workflow_retry_count = cfg.CONF.NWA.scenario_polling_count
+        LOG.info(_LI('NWA init: workflow wait: %(first_wait)ss + '
+                     '%(wait_sleep)ss x %(retry_count)s times.'),
+                 {'first_wait': self.workflow_first_wait,
+                  'wait_sleep': self.workflow_wait_sleep,
+                  'retry_count': self.workflow_retry_count})
         if load_workflow_list and not NwaClient.workflow_list_is_loaded:
             self.update_workflow_list()
             NwaClient.workflow_list_is_loaded = True
