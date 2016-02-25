@@ -12,9 +12,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import mock
 from neutron.tests import base
 from oslo_config import cfg
 
+from networking_nec.nwa.nwalib import exceptions as nwa_exc
 from networking_nec.nwa.nwalib import nwa_restclient
 
 
@@ -72,4 +74,43 @@ class TestNwaRestClient(base.BaseTestCase):
                 '/umf/tenant/DC1'
             ),
             b'SharedKeyLite user:d7ym8ADuKFoIphXojb1a36lvMb5KZK7fPYKz7RlDcpw='
+        )
+
+    @mock.patch('networking_nec.nwa.nwalib.restclient.RestClient.rest_api')
+    def test_rest_api_return_check(self, ra):
+        client = nwa_restclient.NwaRestClient('127.0.0.5', 8085, False)
+
+        body = {'a': 1}
+        url = '/path'
+        ra.return_value = (200, None)
+        hst, rd = client.rest_api('GET', url, body)
+        self.assertEqual(hst, 200)
+        self.assertIsNone(rd)
+
+        failed = {
+            'status': 'FAILED', 'progress': '100'
+        }
+        ra.return_value = (200, failed)
+        client.post_data = url, body
+        hst, rd = client.rest_api('GET', url, body)
+        self.assertEqual(hst, 200)
+        self.assertEqual(rd, failed)
+
+        ra.side_effect = nwa_exc.NwaException(200, 'msg1', None)
+        hst, rd = client.rest_api('GET', url, body)
+        self.assertEqual(hst, 200)
+        self.assertIsNone(rd)
+
+    @mock.patch('requests.request')
+    def test_rest_api_raise(self, rr):
+        def myauth(a, b):
+            pass
+
+        rr.side_effect = OSError
+        rcl = nwa_restclient.NwaRestClient('127.0.0.3', 8083, True, myauth)
+        body = {'a': 1}
+        url = 'http://127.0.0.5:8085/path'
+        self.assertRaises(
+            OSError,
+            rcl.rest_api, 'GET', url, body
         )

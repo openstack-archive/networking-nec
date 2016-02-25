@@ -68,31 +68,8 @@ class TestRestClient(base.BaseTestCase):
             rcl.rest_api, 'GET', url, body
         )
 
-    @mock.patch('networking_nec.nwa.nwalib.restclient.RestClient.rest_api')
-    def test_rest_api_return_check(self, ra):
-        body = {'a': 1}
-        url = 'http://127.0.0.5:8085/path'
-        ra.return_value = (200, None)
-        hst, rd = self.rcl.rest_api_return_check('GET', url, body)
-        self.assertEqual(hst, 200)
-        self.assertIsNone(rd)
-
-        failed = {
-            'status': 'FAILED', 'progress': '100'
-        }
-        ra.return_value = (200, failed)
-        self.rcl.post_data = url, body
-        hst, rd = self.rcl.rest_api_return_check('GET', url, body)
-        self.assertEqual(hst, 200)
-        self.assertEqual(rd, failed)
-
-        ra.side_effect = nwa_exc.NwaException(200, 'msg1', None)
-        hst, rd = self.rcl.rest_api_return_check('GET', url, body)
-        self.assertEqual(hst, 200)
-        self.assertIsNone(rd)
-
     @mock.patch('requests.request')
-    def test_rest_api_return_check_raise(self, rr):
+    def test_rest_api_raise(self, rr):
         def myauth(a, b):
             pass
 
@@ -102,29 +79,25 @@ class TestRestClient(base.BaseTestCase):
         url = 'http://127.0.0.5:8085/path'
         self.assertRaises(
             OSError,
-            rcl.rest_api_return_check, 'GET', url, body
+            rcl.rest_api, 'GET', url, body
         )
 
-    @mock.patch('networking_nec.nwa.nwalib.restclient.RestClient.'
-                'rest_api_return_check')
+    @mock.patch('networking_nec.nwa.nwalib.restclient.RestClient.rest_api')
     def test_get(self, rarc):
         self.rcl.get('')
         self.assertEqual(rarc.call_count, 1)
 
-    @mock.patch('networking_nec.nwa.nwalib.restclient.RestClient.'
-                'rest_api_return_check')
+    @mock.patch('networking_nec.nwa.nwalib.restclient.RestClient.rest_api')
     def test_post(self, rarc):
         self.rcl.post('')
         self.assertEqual(rarc.call_count, 1)
 
-    @mock.patch('networking_nec.nwa.nwalib.restclient.RestClient.'
-                'rest_api_return_check')
+    @mock.patch('networking_nec.nwa.nwalib.restclient.RestClient.rest_api')
     def test_put(self, rarc):
         self.rcl.put('')
         self.assertEqual(rarc.call_count, 1)
 
-    @mock.patch('networking_nec.nwa.nwalib.restclient.RestClient.'
-                'rest_api_return_check')
+    @mock.patch('networking_nec.nwa.nwalib.restclient.RestClient.rest_api')
     def test_delete(self, rarc):
         self.rcl.delete('')
         self.assertEqual(rarc.call_count, 1)
