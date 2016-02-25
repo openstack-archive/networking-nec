@@ -19,6 +19,8 @@ from oslo_config import cfg
 from networking_nec.nwa.nwalib import exceptions as nwa_exc
 from networking_nec.nwa.nwalib import nwa_restclient
 
+TENANT_ID = 'OpenT9004'
+
 
 class TestNwaRestClient(base.BaseTestCase):
 
@@ -114,3 +116,118 @@ class TestNwaRestClient(base.BaseTestCase):
             OSError,
             rcl.rest_api, 'GET', url, body
         )
+
+
+class TestNwaRestClientWorkflow(base.BaseTestCase):
+
+    def setUp(self):
+        super(TestNwaRestClientWorkflow, self).setUp()
+        host = '127.0.0.1'
+        port = '12081'
+        access_key_id = 'PzGIIoLbL7ttHFkDHqLguFz/7+VsVJbDmV0iLWAkJ0g='
+        secret_access_key = 'nbvX65iujFoYomXTKROF9GKUN6L2rAM/sI+cvNdW7sw='
+
+        self.nwa = nwa_restclient.NwaRestClient(
+            host=host, port=port, access_key_id=access_key_id,
+            secret_access_key=secret_access_key
+        )
+        self.nwa.workflow_first_wait = 0
+
+    def test_get_client_workflow_parameters(self):
+        cfg.CONF.set_override('scenario_polling_first_timer', 1, group='NWA')
+        cfg.CONF.set_override('scenario_polling_timer', 2, group='NWA')
+        cfg.CONF.set_override('scenario_polling_count', 3, group='NWA')
+        nwa_client = nwa_restclient.NwaRestClient('127.0.0.1', 8080, True)
+        self.assertEqual(1, nwa_client.workflow_first_wait)
+        self.assertEqual(2, nwa_client.workflow_wait_sleep)
+        self.assertEqual(3, nwa_client.workflow_retry_count)
+
+    def test_workflow_kick_and_wait_raise(self):
+        call_ne = mock.MagicMock(
+            side_effect=nwa_exc.NwaException(200, 'm1', None))
+        call_ne.__name__ = 'POST'
+        self.assertRaises(
+            nwa_exc.NwaException,
+            self.nwa.workflow_kick_and_wait, call_ne, None, None
+        )
+
+    @mock.patch('eventlet.semaphore.Semaphore.locked')
+    @mock.patch('networking_nec.nwa.nwalib.nwa_restclient.NwaRestClient.'
+                'workflowinstance')
+    def test_workflow_kick_and_wait(self, wki, lock):
+        call = mock.MagicMock()
+        call.__name__ = 'POST'
+        call.return_value = 200, None
+        hst, rd = self.nwa.workflow_kick_and_wait(call, None, None)
+        self.assertEqual(hst, 200)
+        self.assertIsNone(rd)
+
+        call.return_value = 200, {'executionid': 1}
+        wki.return_value = 201, None
+        hst, rd = self.nwa.workflow_kick_and_wait(call, None, None)
+        self.assertEqual(hst, 201)
+        self.assertIsNone(rd)
+
+        call.return_value = 200, {'executionid': '1'}
+        wki.return_value = 202, None
+        hst, rd = self.nwa.workflow_kick_and_wait(call, None, None)
+        self.assertEqual(hst, 202)
+        self.assertIsNone(rd)
+
+        wki.return_value = 201, {'status': 'RUNNING'}
+        self.nwa.workflow_retry_count = 1
+        hst, rd = self.nwa.workflow_kick_and_wait(call, None, None)
+        self.assertEqual(hst, 201)
+        self.assertIsNone(rd)
+
+        wki.side_effect = Exception
+        hst, rd = self.nwa.workflow_kick_and_wait(call, None, None)
+        self.assertEqual(hst, 200)
+        self.assertIsNone(rd)
+
+    @mock.patch('eventlet.semaphore.Semaphore.locked')
+    @mock.patch('networking_nec.nwa.nwalib.nwa_restclient.NwaRestClient.'
+                'workflow_kick_and_wait')
+    def test_call_workflow(self, wkaw, lock):
+        call = mock.MagicMock()
+        call.__name__ = 'POST'
+
+        wkaw.return_value = 200, '0'
+        hst, rd = self.nwa.call_workflow('0', call, 'url_0', 'body_0')
+        self.assertEqual(hst, 200)
+        self.assertEqual(rd, '0')
+
+        wkaw.return_value = 201, '1'
+        hst, rd = self.nwa.call_workflow('1', call, 'url_1', 'body_1')
+        self.assertEqual(hst, 201)
+        self.assertEqual(rd, '1')
+
+    def test_get_reserved_dc_resource(self):
+        self.nwa.get_reserved_dc_resource(TENANT_ID)
+
+    def test_get_tenant_resource(self):
+        self.nwa.get_tenant_resource(TENANT_ID)
+
+    def test_get_dc_resource_groups(self):
+        self.nwa.get_dc_resource_groups('OpenStack/DC1/Common/Pod2Grp/Pod2')
+
+    @mock.patch('networking_nec.nwa.nwalib.nwa_restclient.NwaRestClient.get')
+    def test_get_workflow_list(self, get):
+        get.return_value = 209, None
+        hst, rd = self.nwa.get_workflow_list()
+        self.assertEqual(hst, 209)
+        self.assertIsNone(rd)
+
+        get.side_effect = Exception
+        hst, rd = self.nwa.get_workflow_list()
+        self.assertIsNone(hst)
+        self.assertIsNone(rd)
+
+    def test_stop_workflowinstance(self):
+        self.nwa.stop_workflowinstance('id-0')
+
+    def test_update_workflow_list(self):
+        self.nwa.update_workflow_list()
+
+    def test_wait_workflow_done(self):
+        self.nwa.wait_workflow_done(mock.MagicMock())
