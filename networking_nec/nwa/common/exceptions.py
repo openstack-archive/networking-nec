@@ -37,3 +37,7 @@ class AgentProxyException(Exception):
     def __init__(self, value=None):
         super(AgentProxyException, self).__init__()
         self.value = value
+
+
+class DriverError(n_exc.NeutronException):
+    message = ("NWA Driver Error: api=%(api)s msg=%(msg)s")
