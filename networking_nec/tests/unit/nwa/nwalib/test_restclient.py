@@ -27,10 +27,10 @@ class TestRestClient(base.BaseTestCase):
         super(TestRestClient, self).setUp()
         self.rcl = restclient.RestClient()
 
-    def test_url(self):
+    def test__url(self):
         rcl = restclient.RestClient('127.0.0.2', 8081, True)
         path = '/path'
-        u = rcl.url(path)
+        u = rcl._url(path)
         self.assertEqual(u, 'https://127.0.0.2:8081' + path)
 
     @mock.patch('networking_nec.nwa.nwalib.restclient.utcnow')
@@ -67,9 +67,6 @@ class TestRestClient(base.BaseTestCase):
             nwa_exc.NwaException,
             rcl.rest_api, 'GET', url, body
         )
-
-    def test___report_workflow_error(self):
-        self.rcl._report_workflow_error(None, 0)
 
     @mock.patch('networking_nec.nwa.nwalib.restclient.RestClient.rest_api')
     def test_rest_api_return_check(self, ra):

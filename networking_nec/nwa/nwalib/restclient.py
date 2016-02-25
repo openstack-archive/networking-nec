@@ -30,8 +30,6 @@ DATE_HEADER_FORMAT = '%a, %d %b %Y %H:%M:%S GMT'
 UMF_API_VERSION = '2.0.2.1.201502'
 OLD_UMF_API_VERSION = '2.0.2.201402'
 
-REST_API_DEBUG = False
-
 
 # datetime.datetime.utcnow cannot be mocked.
 # It is required to mock utcnow in unit test.
@@ -67,7 +65,7 @@ class RestClient(object):
         LOG.info(_LI('NWA init: umf api version: %s'),
                  self.umf_api_version)
 
-    def url(self, path):
+    def _url(self, path):
         protocol = "http"
         if self.use_ssl:
             protocol = "https"
@@ -103,39 +101,13 @@ class RestClient(object):
         if isinstance(body, dict):
             body = jsonutils.dumps(body, indent=4, sort_keys=True)
 
-        if REST_API_DEBUG:                # pragma: no cover
-            LOG.debug("NWA %(method)s %(host)s:%(port)s%(url)s body=%(body)s",
-                      {'method': method, 'host': self.host, 'port': self.port,
-                       'url': url, 'body': body})
+        LOG.debug("NWA %(method)s %(host)s:%(port)s%(url)s body=%(body)s",
+                  {'method': method, 'host': self.host, 'port': self.port,
+                   'url': url, 'body': body})
 
         status_code = -1
         try:
             res = self._send_receive(method, url, body)
-            data = res.text
-
-            if REST_API_DEBUG:            # pragma: no cover
-                LOG.debug("NWA returns: httpStatus=%(status)s body=%(data)s",
-                          {'status': res.status_code,
-                           'data': data})
-            try:
-                data = jsonutils.loads(data)
-            except (ValueError, TypeError):
-                pass
-            status_code = int(res.status_code)
-            if 200 <= status_code and status_code <= 209:
-                return (status_code, data)
-            else:
-                msg = _("NWA failed: %(method)s %(host)s:%(port)s%(url)s "
-                        "(HTTP/1.1 %(status_code)s %(reason)s) body=%(data)s")
-                msg_params = {'method': method,
-                              'host': self.host,
-                              'port': self.port,
-                              'url': url,
-                              'status_code': res.status_code,
-                              'reason': res.reason,
-                              'data': data}
-                LOG.warning(msg, msg_params)
-                raise nwa_exc.NwaException(status_code, msg % msg_params)
         except requests.exceptions.RequestException as e:
             msg = _("NWA Failed to connect %(host)s:%(port)s: %(reason)s")
             msg_params = {'host': self.host,
@@ -144,7 +116,55 @@ class RestClient(object):
             LOG.error(msg, msg_params)
             raise nwa_exc.NwaException(status_code, msg % msg_params, e)
 
-    def _report_workflow_error(self, data, errno):
+        data = res.text
+        LOG.debug("NWA returns: httpStatus=%(status)s body=%(data)s",
+                  {'status': res.status_code,
+                   'data': data})
+        try:
+            data = jsonutils.loads(data)
+        except (ValueError, TypeError):
+            pass
+        status_code = int(res.status_code)
+        if 200 <= status_code and status_code <= 209:
+            return (status_code, data)
+        else:
+            msg = _("NWA failed: %(method)s %(host)s:%(port)s%(url)s "
+                    "(HTTP/1.1 %(status_code)s %(reason)s) body=%(data)s")
+            msg_params = {'method': method,
+                          'host': self.host,
+                          'port': self.port,
+                          'url': url,
+                          'status_code': res.status_code,
+                          'reason': res.reason,
+                          'data': data}
+            LOG.warning(msg, msg_params)
+            raise nwa_exc.NwaException(status_code, msg % msg_params)
+
+    def _log_rest_request(self, method, url, body):
+        name = workflow.NwaWorkflow.name(url)
+        body_str = ''
+        if isinstance(body, dict):
+            body_str = jsonutils.dumps(body, sort_keys=True)
+        if name:
+            LOG.info(_LI('NWA workflow: %(name)s %(body)s'),
+                     {'name': name, 'body': body_str})
+        else:
+            LOG.info(_LI('NWA %(method)s %(url)s %(body)s'),
+                     {'method': method,
+                      'url': self._url(url),
+                      'body': body_str})
+
+    def _log_workflow_success(self, data):
+        name = ''
+        if self._post_data:
+            post_url = self._post_data[0]
+            name = (workflow.NwaWorkflow.name(post_url) or post_url)
+        LOG.info(_LI("NWA workflow: %(name)s %(workflow)s"),
+                 {'name': name,
+                  'workflow': jsonutils.dumps(data, indent=4, sort_keys=True)})
+
+    def _log_workflow_error(self, data):
+        errno = workflow.NwaWorkflow.get_errno_from_resultdata(data)
         if not self._post_data:
             return ''
         post_url, post_body = self._post_data
@@ -161,53 +181,31 @@ class RestClient(object):
                    'response': jsonutils.dumps(data, indent=4, sort_keys=True)
                    })
 
+    def _log_rest_response(self, status_code, data):
+        status = ''
+        progress = ''
+        if isinstance(data, dict) and data.get('status'):
+            status = data.get('status')
+            progress = data.get('progress')
+        LOG.info(_LI("NWA HTTP %(code)s %(status)s %(progress)s"),
+                 {'code': status_code,
+                  'status': status, 'progress': progress})
+        if status == 'FAILED':
+            self._log_workflow_error(data)
+        elif status == 'SUCCESS':
+            self._log_workflow_success(data)
+
     def rest_api_return_check(self, method, url, body=None):
         status_code = 200
         try:
-            name = workflow.NwaWorkflow.name(url)
-            body_str = ''
-            if isinstance(body, dict):
-                body_str = jsonutils.dumps(body, sort_keys=True)
-            if name:
-                LOG.info(_LI('NWA workflow: %(name)s %(body)s'),
-                         {'name': name, 'body': body_str})
-            else:
-                LOG.info(_LI('NWA %(method)s %(url)s %(body)s'),
-                         {'method': method,
-                          'url': self.url(url),
-                          'body': body_str})
-
+            self._log_rest_request(method, url, body)
             status_code, data = self.rest_api(method, url, body)
-
-            status = ''
-            progress = ''
-            if isinstance(data, dict) and data.get('status'):
-                status = data.get('status')
-                progress = data.get('progress')
-
-            LOG.info(_LI("NWA HTTP %(code)s %(status)s %(progress)s"),
-                     {'code': status_code,
-                      'status': status, 'progress': progress})
-
-            if status == 'FAILED':
-                errno = workflow.NwaWorkflow.get_errno_from_resultdata(data)
-                self._report_workflow_error(data, errno)
-            elif status == 'SUCCESS':
-                name = ''
-                if self._post_data:
-                    post_url, __post_body = self._post_data
-                    name = (workflow.NwaWorkflow.name(post_url) or post_url)
-                LOG.info(_LI("NWA workflow: %(name)s %(workflow)s"),
-                         {'name': name,
-                          'workflow': jsonutils.dumps(data, indent=4,
-                                                      sort_keys=True)
-                          })
+            self._log_rest_response(status_code, data)
             return status_code, data
 
         except nwa_exc.NwaException as e:
             status_code = e.http_status
-
-        return status_code, None
+            return status_code, None
 
     def get(self, url):
         return self.rest_api_return_check("GET", url)
