@@ -15,7 +15,6 @@
 import re
 
 from debtcollector import removals
-import eventlet
 from oslo_log import log as logging
 
 from networking_nec._i18n import _LW, _LE
@@ -29,8 +28,6 @@ LOG = logging.getLogger(__name__)
 # pylint: disable=too-many-public-methods
 class NwaClient(nwa_restclient.NwaRestClient):
     '''Client class of NWA. '''
-
-    pool = eventlet.GreenPool()
 
     def __init__(self, *args, **kwargs):
         super(NwaClient, self).__init__(*args, **kwargs)
