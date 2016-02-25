@@ -49,112 +49,62 @@ class TestNwaClientBase(base.BaseTestCase):
 
 class TestNwaClient(TestNwaClientBase):
 
-    def get_vlan_info(self):
-        self.business_vlan = self.public_vlan = None
-        self.business_vlan_name = self.public_vlan_name = None
-        rj = self.nwa.get_reserved_dc_resource(TENANT_ID)
-        for node in rj.get('GroupNode'):
-            node_type = node.get('Type')
-            if node_type == 'BusinessVLAN':
-                self.business_vlan = node
-                self.business_vlan_name = node['VLAN'][0]['LogicalName']
-            elif node_type == 'PublicVLAN':
-                self.public_vlan = node
-                self.public_vlan_name = node['VLAN'][0]['LogicalName']
+    def setUp(self):
+        super(TestNwaClient, self).setUp()
 
-    def create_vlan(self):
-        vlan_type = 'PublicVLAN'
-        ipaddr = '172.16.0.0'
-        mask = '28'
-        rt = self.nwa.create_vlan(
-            TENANT_ID,
-            vlan_type, ipaddr, mask
-        )
-        return rt
+        wki = patch('networking_nec.nwa.nwalib.nwa_restclient.'
+                    'NwaRestClient.workflowinstance').start()
+        wki.return_value = (200, {'status': 'SUCCESS'})
 
-    def delete_nat(self):
+        self.post = patch('networking_nec.nwa.nwalib.restclient.'
+                          'RestClient.post').start()
+        self.post.__name__ = 'post'
+        self.post.return_value = (200, {'status': 'SUCCESS',
+                                        'executionid': "01"})
+
+    def test_delete_nat(self):
         vlan_name = 'LNW_BusinessVLAN_100'
         vlan_type = 'BusinessVLAN'
         local_ip = '172.16.1.5'
         global_ip = '10.0.1.5'
         fw_name = 'TFW77'
-        rt = self.nwa.delete_nat(
+        rd, rj = self.nwa.delete_nat(
             TENANT_ID,
             vlan_name, vlan_type, local_ip, global_ip, fw_name
         )
-        return rt
+        self.assertEqual(rd, 200)
+        self.assertEqual(rj['status'], 'SUCCESS')
+        self.assertEqual(self.post.call_count, 1)
 
-    def setting_nat(self):
+    def test_setting_nat(self):
         vlan_name = 'LNW_BusinessVLAN_101'
         vlan_type = 'BusinessVLAN'
         local_ip = '172.16.1.6'
         global_ip = '10.0.1.6'
         fw_name = 'TFW78'
-        rt = self.nwa.setting_nat(
+        rd, rj = self.nwa.setting_nat(
             TENANT_ID,
             vlan_name, vlan_type, local_ip, global_ip, fw_name
         )
-        return rt
+        self.assertEqual(rd, 200)
+        self.assertEqual(rj['status'], 'SUCCESS')
+        self.assertEqual(self.post.call_count, 1)
 
-    def update_tenant_fw(self):
+    def test_update_tenant_fw(self):
         vlan_name = 'LNW_BusinessVLAN_101'
         vlan_type = 'BusinessVLAN'
         vlan_devaddr = '192.168.6.254'
         fw_name = 'TFW79'
-        rt = self.nwa.update_tenant_fw(
+        rd, rj = self.nwa.update_tenant_fw(
             TENANT_ID,
             fw_name, vlan_devaddr,
             vlan_name, vlan_type
         )
-        return rt
-
-    @patch('networking_nec.nwa.nwalib.nwa_restclient.NwaRestClient.'
-           'workflowinstance')
-    @patch('networking_nec.nwa.nwalib.restclient.RestClient.post')
-    def test_delete_nat(self, post, wki):
-        post.__name__ = 'post'
-        post.return_value = (200, {'status': 'SUCCESS', 'executionid': "01"})
-        wki.return_value = (200, {'status': 'SUCCESS'})
-
-        rd, rj = self.delete_nat()
         self.assertEqual(rd, 200)
         self.assertEqual(rj['status'], 'SUCCESS')
-        self.assertEqual(post.call_count, 1)
+        self.assertEqual(self.post.call_count, 1)
 
-    @patch('networking_nec.nwa.nwalib.nwa_restclient.NwaRestClient.'
-           'workflowinstance')
-    @patch('networking_nec.nwa.nwalib.restclient.RestClient.post')
-    def test_setting_nat(self, post, wki):
-        post.__name__ = 'post'
-        post.return_value = (200, {'status': 'SUCCESS', 'executionid': "01"})
-        wki.return_value = (200, {'status': 'SUCCESS'})
-
-        rd, rj = self.setting_nat()
-        self.assertEqual(rd, 200)
-        self.assertEqual(rj['status'], 'SUCCESS')
-        self.assertEqual(post.call_count, 1)
-
-    @patch('networking_nec.nwa.nwalib.nwa_restclient.NwaRestClient.'
-           'workflowinstance')
-    @patch('networking_nec.nwa.nwalib.restclient.RestClient.post')
-    def test_update_tenant_fw(self, post, wki):
-        post.__name__ = 'post'
-        post.return_value = (200, {'status': 'SUCCESS', 'executionid': "01"})
-        wki.return_value = (200, {'status': 'SUCCESS'})
-
-        rd, rj = self.update_tenant_fw()
-        self.assertEqual(rd, 200)
-        self.assertEqual(rj['status'], 'SUCCESS')
-        self.assertEqual(post.call_count, 1)
-
-    @patch('networking_nec.nwa.nwalib.nwa_restclient.NwaRestClient.'
-           'workflowinstance')
-    @patch('networking_nec.nwa.nwalib.restclient.RestClient.post')
-    def test_setting_fw_policy(self, post, wki):
-        post.__name__ = 'post'
-        post.return_value = (200, {'status': 'SUCCESS', 'executionid': "01"})
-        wki.return_value = (200, {'status': 'SUCCESS'})
-
+    def test_setting_fw_policy(self):
         props = {'Property': 1}
         fw_name = 'TFW8'
 
@@ -256,15 +206,15 @@ class TestUtNwaClient(base.BaseTestCase):
                               group='NWA')
         self.nwa = client.NwaClient(load_workflow_list=False)
         self.tenant_id = 'OpenT9004'
+        self.call_wf = patch('networking_nec.nwa.nwalib.nwa_restclient.'
+                             'NwaRestClient.call_workflow').start()
 
-    @patch('networking_nec.nwa.nwalib.nwa_restclient.'
-           'NwaRestClient.call_workflow')
-    def test_create_tenant_nw(self, call_wf):
+    def test_create_tenant_nw(self):
         self.nwa.create_tenant_nw(
             self.tenant_id,
             DC_RESOURCE_GROUP_APP1
         )
-        call_wf.assert_called_once_with(
+        self.call_wf.assert_called_once_with(
             self.tenant_id,
             self.nwa.post,
             workflow.NwaWorkflow.path('CreateTenantNW'),
@@ -272,19 +222,15 @@ class TestUtNwaClient(base.BaseTestCase):
              'CreateNW_DCResourceGroupName': DC_RESOURCE_GROUP_APP1,
              'CreateNW_OperationType': 'CreateTenantNW'})
 
-    @patch('networking_nec.nwa.nwalib.nwa_restclient.'
-           'NwaRestClient.call_workflow')
-    def test_delete_tenant_nw(self, call_wf):
+    def test_delete_tenant_nw(self):
         self.nwa.delete_tenant_nw(self.tenant_id)
-        call_wf.assert_called_once_with(
+        self.call_wf.assert_called_once_with(
             self.tenant_id,
             self.nwa.post,
             workflow.NwaWorkflow.path('DeleteTenantNW'),
             {'TenantID': self.tenant_id})
 
-    @patch('networking_nec.nwa.nwalib.nwa_restclient.'
-           'NwaRestClient.call_workflow')
-    def test_create_vlan(self, call_wf):
+    def test_create_vlan(self):
         vlan_type = 'BusinessVLAN'
         ipaddr = '10.0.0.0'
         mask = 24
@@ -294,7 +240,7 @@ class TestUtNwaClient(base.BaseTestCase):
             self.tenant_id, ipaddr, mask, vlan_type, open_nid
         )
 
-        call_wf.assert_called_once_with(
+        self.call_wf.assert_called_once_with(
             self.tenant_id,
             self.nwa.post,
             workflow.NwaWorkflow.path('CreateVLAN'),
@@ -304,15 +250,13 @@ class TestUtNwaClient(base.BaseTestCase):
              'CreateNW_VlanType1': vlan_type,
              'CreateNW_VlanLogicalID1': open_nid})
 
-    @patch('networking_nec.nwa.nwalib.nwa_restclient.'
-           'NwaRestClient.call_workflow')
-    def test_delete_vlan(self, call_wf):
+    def test_delete_vlan(self):
         vlan_name = 'LNW_BusinessVLAN_49'
         vlan_type = 'BusinessVLAN'
         self.nwa.delete_vlan(
             self.tenant_id, vlan_name, vlan_type
         )
-        call_wf.assert_called_once_with(
+        self.call_wf.assert_called_once_with(
             self.tenant_id,
             self.nwa.post,
             workflow.NwaWorkflow.path('DeleteVLAN'),
@@ -320,9 +264,7 @@ class TestUtNwaClient(base.BaseTestCase):
              'DeleteNW_VlanLogicalName1': vlan_name,
              'DeleteNW_VlanType1': vlan_type})
 
-    @patch('networking_nec.nwa.nwalib.nwa_restclient.'
-           'NwaRestClient.call_workflow')
-    def test_create_tenant_fw(self, call_wf):
+    def test_create_tenant_fw(self):
         vlan_devaddr = '10.0.0.254'
         vlan_name = 'LNW_BusinessVLAN_49'
         vlan_type = 'BusinessVLAN'
@@ -330,7 +272,7 @@ class TestUtNwaClient(base.BaseTestCase):
             self.tenant_id, DC_RESOURCE_GROUP_APP1,
             vlan_devaddr, vlan_name, vlan_type
         )
-        call_wf.assert_called_once_with(
+        self.call_wf.assert_called_once_with(
             self.tenant_id,
             self.nwa.post,
             workflow.NwaWorkflow.path('CreateTenantFW'),
@@ -341,9 +283,7 @@ class TestUtNwaClient(base.BaseTestCase):
              'CreateNW_VlanLogicalName1': vlan_name,
              'CreateNW_VlanType1': vlan_type})
 
-    @patch('networking_nec.nwa.nwalib.nwa_restclient.'
-           'NwaRestClient.call_workflow')
-    def test_update_tenant_fw(self, call_wf):
+    def test_update_tenant_fw(self):
         device_name = 'TFW0'
         device_type = 'TFW'
         vlan_name = 'LNW_BusinessVLAN_49'
@@ -353,7 +293,7 @@ class TestUtNwaClient(base.BaseTestCase):
             device_name, mock.sentinel.vlan_devaddr,
             vlan_name, vlan_type, 'connect'
         )
-        call_wf.assert_called_once_with(
+        self.call_wf.assert_called_once_with(
             self.tenant_id,
             self.nwa.post,
             workflow.NwaWorkflow.path('UpdateTenantFW'),
@@ -365,16 +305,14 @@ class TestUtNwaClient(base.BaseTestCase):
              'ReconfigNW_VlanType1': vlan_type,
              'ReconfigNW_Vlan_ConnectDevice1': 'connect'})
 
-    @patch('networking_nec.nwa.nwalib.nwa_restclient.'
-           'NwaRestClient.call_workflow')
-    def test_delete_tenant_fw(self, call_wf):
+    def test_delete_tenant_fw(self):
         device_name = 'TFW0'
         device_type = 'TFW'
         self.nwa.delete_tenant_fw(
             self.tenant_id,
             device_name, device_type,
         )
-        call_wf.assert_called_once_with(
+        self.call_wf.assert_called_once_with(
             self.tenant_id,
             self.nwa.post,
             workflow.NwaWorkflow.path('DeleteTenantFW'),
@@ -382,9 +320,7 @@ class TestUtNwaClient(base.BaseTestCase):
              'DeleteNW_DeviceName1': device_name,
              'DeleteNW_DeviceType1': device_type})
 
-    @patch('networking_nec.nwa.nwalib.nwa_restclient.'
-           'NwaRestClient.call_workflow')
-    def test_setting_nat(self, call_wf):
+    def test_setting_nat(self):
         fw_name = 'TFW8'
         vlan_name = 'LNW_PublicVLAN_46'
         vlan_type = 'PublicVLAN'
@@ -394,7 +330,7 @@ class TestUtNwaClient(base.BaseTestCase):
             self.tenant_id,
             vlan_name, vlan_type, local_ip, global_ip, fw_name
         )
-        call_wf.assert_called_once_with(
+        self.call_wf.assert_called_once_with(
             self.tenant_id,
             self.nwa.post,
             workflow.NwaWorkflow.path('SettingNAT'),
@@ -406,15 +342,13 @@ class TestUtNwaClient(base.BaseTestCase):
              'LocalIP': local_ip,
              'GlobalIP': global_ip})
 
-    @patch('networking_nec.nwa.nwalib.nwa_restclient.'
-           'NwaRestClient.call_workflow')
-    def test_setting_fw_policy(self, call_wf):
+    def test_setting_fw_policy(self):
         fw_name = 'TFW8'
         props = {'properties': [1]}
         self.nwa.setting_fw_policy_async(
             self.tenant_id, fw_name, props
         )
-        call_wf.assert_called_once_with(
+        self.call_wf.assert_called_once_with(
             self.tenant_id,
             self.nwa.post,
             workflow.NwaWorkflow.path('SettingFWPolicy'),
@@ -424,9 +358,7 @@ class TestUtNwaClient(base.BaseTestCase):
              'DeviceInfo': {'Type': 'TFW', 'DeviceName': fw_name},
              'Property': props})
 
-    @patch('networking_nec.nwa.nwalib.nwa_restclient.'
-           'NwaRestClient.call_workflow')
-    def test_delete_nat(self, call_wf):
+    def test_delete_nat(self):
         fw_name = 'TFW8'
         vlan_name = 'LNW_PublicVLAN_46'
         vlan_type = 'PublicVLAN'
@@ -438,7 +370,7 @@ class TestUtNwaClient(base.BaseTestCase):
             vlan_name, vlan_type, local_ip, global_ip, fw_name
         )
 
-        call_wf.assert_called_once_with(
+        self.call_wf.assert_called_once_with(
             self.tenant_id,
             self.nwa.post,
             workflow.NwaWorkflow.path('DeleteNAT'),
@@ -450,9 +382,7 @@ class TestUtNwaClient(base.BaseTestCase):
              'LocalIP': local_ip,
              'GlobalIP': global_ip})
 
-    @patch('networking_nec.nwa.nwalib.nwa_restclient.'
-           'NwaRestClient.call_workflow')
-    def test_create_general_dev(self, call_wf):
+    def test_create_general_dev(self):
         vlan_name = 'LNW_BusinessVLAN_49'
         vlan_type = 'BusinessVLAN'
         port_type = 'BM'
@@ -460,7 +390,7 @@ class TestUtNwaClient(base.BaseTestCase):
             self.tenant_id, DC_RESOURCE_GROUP_POD1,
             vlan_name, vlan_type, port_type, 'vlan-logical-id-1'
         )
-        call_wf.assert_called_once_with(
+        self.call_wf.assert_called_once_with(
             self.tenant_id,
             self.nwa.post,
             workflow.NwaWorkflow.path('CreateGeneralDev'),
@@ -472,9 +402,7 @@ class TestUtNwaClient(base.BaseTestCase):
              'CreateNW_PortType1': port_type,
              'CreateNW_VlanLogicalID1': 'vlan-logical-id-1'})
 
-    @patch('networking_nec.nwa.nwalib.nwa_restclient.'
-           'NwaRestClient.call_workflow')
-    def test_delete_general_dev(self, call_wf):
+    def test_delete_general_dev(self):
         vlan_name = 'LNW_BusinessVLAN_49'
         vlan_type = 'BusinessVLAN'
         port_type = 'BM'
@@ -482,7 +410,7 @@ class TestUtNwaClient(base.BaseTestCase):
             self.tenant_id, DC_RESOURCE_GROUP_POD1,
             vlan_name, vlan_type, port_type, 'vlan-logical-id-2'
         )
-        call_wf.assert_called_once_with(
+        self.call_wf.assert_called_once_with(
             self.tenant_id,
             self.nwa.post,
             workflow.NwaWorkflow.path('DeleteGeneralDev'),
