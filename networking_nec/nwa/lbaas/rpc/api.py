@@ -12,18 +12,19 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-NWA_DEVICE_GDV = "GeneralDev"
-NWA_DEVICE_TFW = "TenantFW"
+from neutron.common import rpc as n_rpc
+from neutron_lbaas.services.loadbalancer.drivers.common \
+    import agent_driver_base
+from oslo_log import log as logging
+import oslo_messaging
 
-NWA_AGENT_TOPIC = 'nwa_agent'
-NWA_AGENT_TYPE = 'NEC NWA Agent'
+LOG = logging.getLogger(__name__)
 
-NWA_FIREWALL_PLUGIN = 'NECNWAFWaaS'
 
-POLICY_CREATE = 'Create'
-POLICY_UPDATE = 'Update'
-POLICY_DELETE = 'Delete'
-POLICY_TYPE_POOL = 'pool'
-POLICY_TYPE_VIP = 'vip'
-POLICY_TYPE_MEMBER = 'member'
-POLICY_TYPE_HEALTHMONITOR = 'health_monitor'
+class LBaaSAgentApi(agent_driver_base.LoadBalancerAgentApi):
+    """Plugin side of plugin to agent RPC API."""
+
+    # pylint: disable=super-init-not-called
+    def __init__(self, topic):
+        target = oslo_messaging.Target(topic=topic, version='1.0')
+        self.client = n_rpc.get_client(target)
