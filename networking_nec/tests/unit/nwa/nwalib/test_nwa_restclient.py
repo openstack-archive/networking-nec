@@ -188,17 +188,21 @@ class TestNwaRestClientWorkflow(base.BaseTestCase):
     @mock.patch('eventlet.semaphore.Semaphore.locked')
     @mock.patch('networking_nec.nwa.nwalib.nwa_restclient.NwaRestClient.'
                 'workflow_kick_and_wait')
-    def test_call_workflow(self, wkaw, lock):
+    @mock.patch('networking_nec.nwa.nwalib.workflow.NwaWorkflow._nameid',
+                new_callable=mock.PropertyMock)
+    def test_call_workflow(self, nameid, wkaw, lock):
         call = mock.MagicMock()
         call.__name__ = 'POST'
 
         wkaw.return_value = 200, '0'
-        hst, rd = self.nwa.call_workflow('0', call, 'url_0', 'body_0')
+        nameid.return_value = {'name_0': 'url_0'}
+        hst, rd = self.nwa.call_workflow('0', call, 'name_0', 'body_0')
         self.assertEqual(hst, 200)
         self.assertEqual(rd, '0')
 
         wkaw.return_value = 201, '1'
-        hst, rd = self.nwa.call_workflow('1', call, 'url_1', 'body_1')
+        nameid.return_value = {'name_1': 'url_1'}
+        hst, rd = self.nwa.call_workflow('1', call, 'name_1', 'body_1')
         self.assertEqual(hst, 201)
         self.assertEqual(rd, '1')
 

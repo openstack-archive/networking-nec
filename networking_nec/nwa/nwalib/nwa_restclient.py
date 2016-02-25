@@ -208,7 +208,8 @@ class NwaRestClient(restclient.RestClient):
             LOG.error(_LE('NWA workflow: %s'), e)
         return (http_status, None)
 
-    def call_workflow(self, tenant_id, post, url, body):
+    def call_workflow(self, tenant_id, post, name, body):
+        url = workflow.NwaWorkflow.path(name)
         try:
             wkf = nwa_sem.Semaphore.get_tenant_semaphore(tenant_id)
             if wkf.sem.locked():

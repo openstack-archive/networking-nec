@@ -21,7 +21,6 @@ from oslo_log import log as logging
 from networking_nec._i18n import _LW, _LE
 from networking_nec.nwa.nwalib import nwa_restclient
 from networking_nec.nwa.nwalib import semaphore as nwa_sem
-from networking_nec.nwa.nwalib import workflow
 
 
 LOG = logging.getLogger(__name__)
@@ -45,8 +44,7 @@ class NwaClient(nwa_restclient.NwaRestClient):
             'CreateNW_OperationType': 'CreateTenantNW'
         }
         return self.call_workflow(
-            tenant_id,
-            self.post, workflow.NwaWorkflow.path('CreateTenantNW'), body
+            tenant_id, self.post, 'CreateTenantNW', body
         )
 
     def delete_tenant_nw(self, tenant_id):
@@ -54,8 +52,7 @@ class NwaClient(nwa_restclient.NwaRestClient):
             "TenantID": tenant_id,
         }
         return self.call_workflow(
-            tenant_id,
-            self.post, workflow.NwaWorkflow.path('DeleteTenantNW'), body
+            tenant_id, self.post, 'DeleteTenantNW', body
         )
 
     # --- VLan ---
@@ -71,8 +68,7 @@ class NwaClient(nwa_restclient.NwaRestClient):
         if openstack_network_id:
             body['CreateNW_VlanLogicalID1'] = openstack_network_id
         return self.call_workflow(
-            tenant_id,
-            self.post, workflow.NwaWorkflow.path('CreateVLAN'), body
+            tenant_id, self.post, 'CreateVLAN', body
         )
 
     def delete_vlan(self, tenant_id, logical_name, vlan_type='BusinessVLAN'):
@@ -82,8 +78,7 @@ class NwaClient(nwa_restclient.NwaRestClient):
             'DeleteNW_VlanType1': vlan_type
         }
         return self.call_workflow(
-            tenant_id,
-            self.post, workflow.NwaWorkflow.path('DeleteVLAN'), body
+            tenant_id, self.post, 'DeleteVLAN', body
         )
 
     # --- Tenant FW ---
@@ -100,8 +95,7 @@ class NwaClient(nwa_restclient.NwaRestClient):
             'CreateNW_DCResourceGroupName': dc_resource_group_name
         }
         return self.call_workflow(
-            tenant_id,
-            self.post, workflow.NwaWorkflow.path('CreateTenantFW'), body)
+            tenant_id, self.post, 'CreateTenantFW', body)
 
     def update_tenant_fw(self, tenant_id, device_name, vlan_devaddr,
                          vlan_logical_name, vlan_type,
@@ -118,8 +112,7 @@ class NwaClient(nwa_restclient.NwaRestClient):
             body['ReconfigNW_Vlan_ConnectDevice1'] = connect
 
         return self.call_workflow(
-            tenant_id,
-            self.post, workflow.NwaWorkflow.path('UpdateTenantFW'), body)
+            tenant_id, self.post, 'UpdateTenantFW', body)
 
     def delete_tenant_fw(self, tenant_id, device_name, device_type,
                          router_id=None):
@@ -129,8 +122,7 @@ class NwaClient(nwa_restclient.NwaRestClient):
             'TenantID': tenant_id
         }
         return self.call_workflow(
-            tenant_id,
-            self.post, workflow.NwaWorkflow.path('DeleteTenantFW'), body)
+            tenant_id, self.post, 'DeleteTenantFW', body)
 
     # --- Nat ---
 
@@ -146,8 +138,7 @@ class NwaClient(nwa_restclient.NwaRestClient):
             'TenantID': tenant_id,
         }
         return self.call_workflow(
-            tenant_id,
-            self.post, workflow.NwaWorkflow.path('SettingNAT'), body)
+            tenant_id, self.post, 'SettingNAT', body)
 
     def delete_nat(self, tenant_id, vlan_logical_name, vlan_type,
                    local_ip, global_ip, dev_name, data=None, router_id=None):
@@ -161,8 +152,7 @@ class NwaClient(nwa_restclient.NwaRestClient):
             'TenantID': tenant_id,
         }
         return self.call_workflow(
-            tenant_id,
-            self.post, workflow.NwaWorkflow.path('DeleteNAT'), body)
+            tenant_id, self.post, 'DeleteNAT', body)
 
     def update_nat(self, tenant_id, vlan_logical_name, vlan_type,
                    local_ip, global_ip, dev_name, data=None, router_id=None):
@@ -201,8 +191,7 @@ class NwaClient(nwa_restclient.NwaRestClient):
             'Property': props
         }
         return self.call_workflow(
-            tenant_id,
-            self.post, workflow.NwaWorkflow.path('SettingFWPolicy'), body)
+            tenant_id, self.post, 'SettingFWPolicy', body)
 
     # --- LBaaS ---
 
@@ -218,8 +207,7 @@ class NwaClient(nwa_restclient.NwaRestClient):
             'CreateNW_DCResourceGroupName': dc_resource_group_name
         }
         return self.call_workflow(
-            tenant_id,
-            self.post, workflow.NwaWorkflow.path('CreateTenantLB'), body)
+            tenant_id, self.post, 'CreateTenantLB', body)
 
     def update_tenant_lbn(self, tenant_id,
                           device_name, actions):
@@ -245,8 +233,7 @@ class NwaClient(nwa_restclient.NwaRestClient):
                     body['ReconfigNW_VlanType' + i] = 'BusinessVLAN'
 
         return self.call_workflow(
-            tenant_id,
-            self.post, workflow.NwaWorkflow.path('UpdateTenantLB'), body)
+            tenant_id, self.post, 'UpdateTenantLB', body)
 
     def delete_tenant_lb(self, tenant_id, device_name):
         body = {
@@ -255,8 +242,7 @@ class NwaClient(nwa_restclient.NwaRestClient):
             'TenantID': tenant_id,
         }
         return self.call_workflow(
-            tenant_id,
-            self.post, workflow.NwaWorkflow.path('DeleteTenantLB'), body)
+            tenant_id, self.post, 'DeleteTenantLB', body)
 
     def setting_lb_policy(self, tenant_id, lb_name, props):
         body = {
@@ -270,8 +256,7 @@ class NwaClient(nwa_restclient.NwaRestClient):
             'Property': props
         }
         return self.call_workflow(
-            tenant_id,
-            self.post, workflow.NwaWorkflow.path('SettingLBPolicy'), body)
+            tenant_id, self.post, 'SettingLBPolicy', body)
 
     # --- General Dev ---
 
@@ -293,8 +278,7 @@ class NwaClient(nwa_restclient.NwaRestClient):
         if port_type:
             body['CreateNW_PortType1'] = port_type
         return self.call_workflow(
-            tenant_id,
-            self.post, workflow.NwaWorkflow.path('CreateGeneralDev'), body
+            tenant_id, self.post, 'CreateGeneralDev', body
         )
 
     def delete_general_dev(self, tenant_id, dc_resource_group_name,
@@ -315,8 +299,7 @@ class NwaClient(nwa_restclient.NwaRestClient):
         if port_type:
             body['DeleteNW_PortType1'] = port_type
         return self.call_workflow(
-            tenant_id,
-            self.post, workflow.NwaWorkflow.path('DeleteGeneralDev'), body
+            tenant_id, self.post, 'DeleteGeneralDev', body
         )
 
     # --- sync api ---
