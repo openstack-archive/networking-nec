@@ -19,7 +19,6 @@ from oslo_config import cfg
 import testscenarios
 
 from networking_nec.nwa.nwalib import client
-from networking_nec.nwa.nwalib import workflow
 
 TENANT_ID = 'OpenT9004'
 
@@ -217,7 +216,7 @@ class TestUtNwaClient(base.BaseTestCase):
         self.call_wf.assert_called_once_with(
             self.tenant_id,
             self.nwa.post,
-            workflow.NwaWorkflow.path('CreateTenantNW'),
+            'CreateTenantNW',
             {'TenantID': self.tenant_id,
              'CreateNW_DCResourceGroupName': DC_RESOURCE_GROUP_APP1,
              'CreateNW_OperationType': 'CreateTenantNW'})
@@ -227,7 +226,7 @@ class TestUtNwaClient(base.BaseTestCase):
         self.call_wf.assert_called_once_with(
             self.tenant_id,
             self.nwa.post,
-            workflow.NwaWorkflow.path('DeleteTenantNW'),
+            'DeleteTenantNW',
             {'TenantID': self.tenant_id})
 
     def test_create_vlan(self):
@@ -243,7 +242,7 @@ class TestUtNwaClient(base.BaseTestCase):
         self.call_wf.assert_called_once_with(
             self.tenant_id,
             self.nwa.post,
-            workflow.NwaWorkflow.path('CreateVLAN'),
+            'CreateVLAN',
             {'TenantID': self.tenant_id,
              'CreateNW_IPSubnetMask1': mask,
              'CreateNW_IPSubnetAddress1': ipaddr,
@@ -259,7 +258,7 @@ class TestUtNwaClient(base.BaseTestCase):
         self.call_wf.assert_called_once_with(
             self.tenant_id,
             self.nwa.post,
-            workflow.NwaWorkflow.path('DeleteVLAN'),
+            'DeleteVLAN',
             {'TenantID': self.tenant_id,
              'DeleteNW_VlanLogicalName1': vlan_name,
              'DeleteNW_VlanType1': vlan_type})
@@ -275,7 +274,7 @@ class TestUtNwaClient(base.BaseTestCase):
         self.call_wf.assert_called_once_with(
             self.tenant_id,
             self.nwa.post,
-            workflow.NwaWorkflow.path('CreateTenantFW'),
+            'CreateTenantFW',
             {'TenantID': self.tenant_id,
              'CreateNW_DeviceType1': 'TFW',
              'CreateNW_DCResourceGroupName': DC_RESOURCE_GROUP_APP1,
@@ -296,7 +295,7 @@ class TestUtNwaClient(base.BaseTestCase):
         self.call_wf.assert_called_once_with(
             self.tenant_id,
             self.nwa.post,
-            workflow.NwaWorkflow.path('UpdateTenantFW'),
+            'UpdateTenantFW',
             {'TenantID': self.tenant_id,
              'ReconfigNW_DeviceName1': device_name,
              'ReconfigNW_DeviceType1': device_type,
@@ -315,7 +314,7 @@ class TestUtNwaClient(base.BaseTestCase):
         self.call_wf.assert_called_once_with(
             self.tenant_id,
             self.nwa.post,
-            workflow.NwaWorkflow.path('DeleteTenantFW'),
+            'DeleteTenantFW',
             {'TenantID': self.tenant_id,
              'DeleteNW_DeviceName1': device_name,
              'DeleteNW_DeviceType1': device_type})
@@ -333,7 +332,7 @@ class TestUtNwaClient(base.BaseTestCase):
         self.call_wf.assert_called_once_with(
             self.tenant_id,
             self.nwa.post,
-            workflow.NwaWorkflow.path('SettingNAT'),
+            'SettingNAT',
             {'TenantID': self.tenant_id,
              'ReconfigNW_VlanLogicalName1': vlan_name,
              'ReconfigNW_VlanType1': vlan_type,
@@ -351,7 +350,7 @@ class TestUtNwaClient(base.BaseTestCase):
         self.call_wf.assert_called_once_with(
             self.tenant_id,
             self.nwa.post,
-            workflow.NwaWorkflow.path('SettingFWPolicy'),
+            'SettingFWPolicy',
             {'TenantID': self.tenant_id,
              'DCResourceType': 'TFW_Policy',
              'DCResourceOperation': 'Setting',
@@ -373,7 +372,7 @@ class TestUtNwaClient(base.BaseTestCase):
         self.call_wf.assert_called_once_with(
             self.tenant_id,
             self.nwa.post,
-            workflow.NwaWorkflow.path('DeleteNAT'),
+            'DeleteNAT',
             {'TenantID': self.tenant_id,
              'DeleteNW_VlanLogicalName1': vlan_name,
              'DeleteNW_VlanType1': vlan_type,
@@ -393,7 +392,7 @@ class TestUtNwaClient(base.BaseTestCase):
         self.call_wf.assert_called_once_with(
             self.tenant_id,
             self.nwa.post,
-            workflow.NwaWorkflow.path('CreateGeneralDev'),
+            'CreateGeneralDev',
             {'TenantID': self.tenant_id,
              'CreateNW_DeviceType1': 'GeneralDev',
              'CreateNW_DCResourceGroupName': DC_RESOURCE_GROUP_POD1,
@@ -413,7 +412,7 @@ class TestUtNwaClient(base.BaseTestCase):
         self.call_wf.assert_called_once_with(
             self.tenant_id,
             self.nwa.post,
-            workflow.NwaWorkflow.path('DeleteGeneralDev'),
+            'DeleteGeneralDev',
             {'TenantID': self.tenant_id,
              'DeleteNW_DeviceType1': 'GeneralDev',
              'DeleteNW_DCResourceGroupName': DC_RESOURCE_GROUP_POD1,
