@@ -315,7 +315,3 @@ class NwaClient(nwa_restclient.NwaRestClient):
         if status_code == 200:
             nwa_sem.Semaphore.delete_tenant_semaphore(tenant_id)
         return status_code, data
-
-
-def send_queue_is_not_empty():
-    return nwa_sem.Semaphore.any_locked()

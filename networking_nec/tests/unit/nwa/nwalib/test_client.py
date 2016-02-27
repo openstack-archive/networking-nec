@@ -420,9 +420,3 @@ class TestUtNwaClient(base.BaseTestCase):
              'DeleteNW_VlanType1': vlan_type,
              'DeleteNW_PortType1': port_type,
              'DeleteNW_VlanLogicalID1': 'vlan-logical-id-2'})
-
-
-class TestSendQueueIsNotEmpty(base.BaseTestCase):
-    def test_send_queue_is_not_empty(self):
-        rb = client.send_queue_is_not_empty()
-        self.assertFalse(rb)
