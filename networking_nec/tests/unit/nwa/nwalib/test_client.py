@@ -18,15 +18,6 @@ from oslo_config import cfg
 
 from networking_nec.nwa.nwalib import client
 
-TENANT_ID = 'OpenT9004'
-
-# create general dev
-DC_RESOURCE_GROUP_POD1 = 'OpenStack/DC1/Common/Pod1Grp/Pod1'
-DC_RESOURCE_GROUP_POD2 = 'OpenStack/DC1/Common/Pod2Grp/Pod2'
-
-# create tenant nw
-DC_RESOURCE_GROUP_APP1 = 'OpenStack/DC1/Common/App1Grp/App1'
-
 
 class TestNwaClientBase(base.BaseTestCase):
 
@@ -54,17 +45,6 @@ class TestNwaClientBase(base.BaseTestCase):
                                         'executionid': "01"})
 
 
-class TestNwaClient(TestNwaClientBase):
-
-    def test_setting_fw_policy(self):
-        props = {'Property': 1}
-        fw_name = 'TFW8'
-
-        rd, rj = self.nwa.setting_fw_policy(TENANT_ID, fw_name, props)
-        self.assertEqual(rd, 200)
-        self.assertEqual(rj['status'], 'SUCCESS')
-
-
 class TestUtNwaClientBase(base.BaseTestCase):
     '''Unit test for NwaClient '''
 
@@ -76,25 +56,6 @@ class TestUtNwaClientBase(base.BaseTestCase):
         self.tenant_id = 'OpenT9004'
         self.call_wf = patch('networking_nec.nwa.nwalib.nwa_restclient.'
                              'NwaRestClient.call_workflow').start()
-
-
-class TestUtNwaClient(TestUtNwaClientBase):
-
-    def test_setting_fw_policy(self):
-        fw_name = 'TFW8'
-        props = {'properties': [1]}
-        self.nwa.setting_fw_policy_async(
-            self.tenant_id, fw_name, props
-        )
-        self.call_wf.assert_called_once_with(
-            self.tenant_id,
-            self.nwa.post,
-            'SettingFWPolicy',
-            {'TenantID': self.tenant_id,
-             'DCResourceType': 'TFW_Policy',
-             'DCResourceOperation': 'Setting',
-             'DeviceInfo': {'Type': 'TFW', 'DeviceName': fw_name},
-             'Property': props})
 
 
 class TestSendQueueIsNotEmpty(base.BaseTestCase):
