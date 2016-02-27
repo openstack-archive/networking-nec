@@ -45,7 +45,7 @@ class NwaML2ServerRpcCallbacks(rpc.RpcCallbacks):
                   {'device': device, 'agent_id': agent_id, 'host': host})
 
         plugin = manager.NeutronManager.get_plugin()
-        port_id = plugin._device_to_port_id(device)
+        port_id = plugin._device_to_port_id(rpc_context, device)
         port_context = plugin.get_bound_port_context(rpc_context,
                                                      port_id,
                                                      host,
