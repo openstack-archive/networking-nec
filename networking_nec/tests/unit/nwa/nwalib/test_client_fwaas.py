@@ -12,35 +12,25 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from networking_nec.nwa.nwalib import workflow
 from networking_nec.tests.unit.nwa.nwalib import test_client
 
 TENANT_ID = 'OpenT9004'
 
 
-class TestNwaClient(test_client.TestNwaClientBase):
-
-    def test_setting_fw_policy(self):
-        props = {'Property': 1}
-        fw_name = 'TFW8'
-
-        rd, rj = self.nwa.fwaas.setting_fw_policy(TENANT_ID, fw_name, props)
-        self.assertEqual(rd, 200)
-        self.assertEqual(rj['status'], 'SUCCESS')
-
-
-class TestUtNwaClient(test_client.TestUtNwaClientBase):
+class TestNwaClientFWaaS(test_client.TestNwaClientBase):
 
     def test_setting_fw_policy(self):
         fw_name = 'TFW8'
         props = {'properties': [1]}
-        self.nwa.fwaas.setting_fw_policy_async(
-            self.tenant_id, fw_name, props
+        rd, rj = self.nwa.fwaas.setting_fw_policy_async(
+            TENANT_ID, fw_name, props
         )
-        self.call_wf.assert_called_once_with(
-            self.tenant_id,
-            self.nwa.post,
-            'SettingFWPolicy',
-            {'TenantID': self.tenant_id,
+        self.assertEqual(rd, 200)
+        self.assertEqual(rj['status'], 'SUCCESS')
+        self.post.assert_called_once_with(
+            workflow.NwaWorkflow.path('SettingFWPolicy'),
+            {'TenantID': TENANT_ID,
              'DCResourceType': 'TFW_Policy',
              'DCResourceOperation': 'Setting',
              'DeviceInfo': {'Type': 'TFW', 'DeviceName': fw_name},
