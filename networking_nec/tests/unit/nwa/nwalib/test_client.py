@@ -95,9 +95,3 @@ class TestUtNwaClient(TestUtNwaClientBase):
              'DCResourceOperation': 'Setting',
              'DeviceInfo': {'Type': 'TFW', 'DeviceName': fw_name},
              'Property': props})
-
-
-class TestSendQueueIsNotEmpty(base.BaseTestCase):
-    def test_send_queue_is_not_empty(self):
-        rb = client.send_queue_is_not_empty()
-        self.assertFalse(rb)

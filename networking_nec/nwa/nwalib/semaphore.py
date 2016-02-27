@@ -17,7 +17,6 @@ from oslo_log import log as logging
 import six
 
 from networking_nec._i18n import _LI
-from networking_nec.nwa.nwalib import workflow
 
 
 LOG = logging.getLogger(__name__)
@@ -55,83 +54,9 @@ class Semaphore(object):
                 LOG.info(_LI('delete semaphore for %s'), tenant_id)
                 del Semaphore.tenants[tenant_id]
 
-    @classmethod
-    def any_locked(cls):
-        with Semaphore.lock:
-            for t in Semaphore.tenants:
-                if Semaphore.tenants[t].sem.locked():
-                    return True
-        return False
-
     def __init__(self):
         self._sem = eventlet.semaphore.Semaphore(1)
-        self._histrun = []
-        self._histsiz = 2
 
     @property
     def sem(self):
         return self._sem
-
-    @property
-    def histrun(self):
-        return self._histrun
-
-    @property
-    def histsiz(self):
-        return self._histsiz
-
-    def search_history(self, call, url, body):
-        name = call.__name__
-        for hr in self.histrun:
-            if hr['call'] == name and hr['url'] == url and hr['body'] == body:
-                LOG.debug('NWA search_history - hit name=%(name)s url=%(url)s '
-                          'body=%(body)s',
-                          {'name': name, 'url': url, 'body': body})
-                return hr['http_status'], hr['rj']
-        LOG.debug('NWA search_history - no hit')
-        return None, None
-
-    def push_history(self, call, url, body, http_status, rj):
-        while len(self.histrun) > self.histsiz:
-            self.histrun.pop()
-        __, rb = self.search_history(call, url, body)
-        if rb is not None:
-            return
-        if isinstance(rj, dict) and rj.get('status') == 'SUCCESS':
-            hr = {
-                'call': call.__name__,
-                'url': url,
-                'body': body,
-                'http_status': http_status,
-                'rj': rj
-            }
-            self.histrun.insert(0, hr)
-            LOG.debug('NWA push_history - hr=%s', hr)
-
-    def create_general_dev_history(self, call, creurl, body, http_status, rj):
-        name = call.__name__
-        url = workflow.NwaWorkflow.path('DeleteGeneralDev')
-        for hr in self.histrun:
-            if hr['call'] == name and hr['url'] == url:
-                create = body['CreateNW_VlanLogicalName1']
-                delete = hr['body']['DeleteNW_VlanLogicalName1']
-                if create == delete:
-                    hr['url'], hr['body'] = None, None
-                    LOG.debug('NWA delete_history - hit name=%(name)s '
-                              'url=%(url)s body=%(body)s',
-                              {'name': name, 'url': url, 'body': body})
-        self.push_history(call, creurl, body, http_status, rj)
-
-    def delete_general_dev_history(self, call, delurl, body, http_status, rj):
-        name = call.__name__
-        url = workflow.NwaWorkflow.path('CreateGeneralDev')
-        for hr in self.histrun:
-            if hr['call'] == name and hr['url'] == url:
-                create = hr['body']['CreateNW_VlanLogicalName1']
-                delete = body['DeleteNW_VlanLogicalName1']
-                if create == delete:
-                    hr['url'], hr['body'] = None, None
-                    LOG.debug('NWA delete_history - hit name=%(name)s '
-                              'url=%(url)s body=%(body)s',
-                              {'name': name, 'url': url, 'body': body})
-        self.push_history(call, delurl, body, http_status, rj)

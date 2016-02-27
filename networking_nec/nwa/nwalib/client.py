@@ -22,7 +22,6 @@ from networking_nec.nwa.nwalib import client_l2
 from networking_nec.nwa.nwalib import client_l3
 from networking_nec.nwa.nwalib import client_tenant
 from networking_nec.nwa.nwalib import nwa_restclient
-from networking_nec.nwa.nwalib import semaphore as nwa_sem
 
 
 LOG = logging.getLogger(__name__)
@@ -125,7 +124,3 @@ class NwaClient(nwa_restclient.NwaRestClient):
         }
         return self.call_workflow(
             tenant_id, self.post, 'SettingLBPolicy', body)
-
-
-def send_queue_is_not_empty():
-    return nwa_sem.Semaphore.any_locked()
