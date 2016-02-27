@@ -6,5 +6,5 @@ import sys
 from networking_nec.nwa.agent import nwa_agent
 
 
-if __name__ == "__main__":
-    sys.exit(nwa_agent.main())
+def main():
+    nwa_agent.main()
