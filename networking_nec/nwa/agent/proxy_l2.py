@@ -108,7 +108,7 @@ class AgentProxyL2(object):
                       "resource_group_name_nw=%(resource_group_name)s",
                       {'nwa_tenant_id': nwa_tenant_id,
                        'resource_group_name': resource_group_name})
-            rcode, body = self.client.create_tenant_nw(
+            rcode, body = self.client.l2.create_tenant_nw(
                 nwa_tenant_id,
                 resource_group_name
             )
@@ -126,7 +126,7 @@ class AgentProxyL2(object):
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
         nwa_data = kwargs.get('nwa_data')
 
-        rcode, body = self.client.delete_tenant_nw(
+        rcode, body = self.client.l2.delete_tenant_nw(
             nwa_tenant_id,
         )
 
@@ -151,7 +151,7 @@ class AgentProxyL2(object):
             LOG.warning(_LW("aleady in vlan_key %s"), nw_vlan_key)
             return nwa_data
 
-        rcode, body = self.client.create_vlan(
+        rcode, body = self.client.l2.create_vlan(
             nwa_tenant_id,
             nwa_info['subnet']['netaddr'],
             nwa_info['subnet']['mask'],
@@ -185,7 +185,7 @@ class AgentProxyL2(object):
         network_id = nwa_info['network']['id']
 
         # delete vlan
-        rcode, body = self.client.delete_vlan(
+        rcode, body = self.client.l2.delete_vlan(
             nwa_tenant_id,
             data_utils.get_vlan_logical_name(nwa_data, network_id),
             vlan_type
@@ -340,7 +340,7 @@ class AgentProxyL2(object):
 
         port_type = None
 
-        rcode, body = self.client.create_general_dev(
+        rcode, body = self.client.l2.create_general_dev(
             nwa_tenant_id,
             resource_group_name,
             data_utils.get_vlan_logical_name(nwa_data, network_id),
@@ -496,7 +496,7 @@ class AgentProxyL2(object):
 
         # delete general dev
         logical_name = data_utils.get_vlan_logical_name(nwa_data, network_id)
-        rcode, body = self.client.delete_general_dev(
+        rcode, body = self.client.l2.delete_general_dev(
             nwa_tenant_id,
             resource_group,
             logical_name,

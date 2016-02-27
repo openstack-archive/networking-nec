@@ -22,7 +22,7 @@ class TestAgentProxyTenant(base.TestNWAAgentBase):
     def test__create_tenant_succeed(self):
         nwa_tenant_id = 'DC1_844eb55f21e84a289e9c22098d387e5d'
 
-        self.nwacli.create_tenant.return_value = 200, {}
+        self.nwacli.tenant.create_tenant.return_value = 200, {}
 
         body = self.agent.proxy_tenant.create_tenant(
             mock.sentinel.context,
@@ -36,7 +36,7 @@ class TestAgentProxyTenant(base.TestNWAAgentBase):
 
     def test__create_tenant_failed(self):
         nwa_tenant_id = 'DC1_844eb55f21e84a289e9c22098d387e5d'
-        self.nwacli.create_tenant.return_value = 400, {}
+        self.nwacli.tenant.create_tenant.return_value = 400, {}
         body = self.agent.proxy_tenant.create_tenant(
             mock.sentinel.context,
             nwa_tenant_id=nwa_tenant_id
@@ -63,7 +63,7 @@ class TestAgentProxyTenant(base.TestNWAAgentBase):
 
     def test__delete_tenant_failed(self):
         nwa_tenant_id = 'DC1_844eb55f21e84a289e9c22098d387e5d'
-        self.nwacli.delete_tenant.return_value = 500, {}
+        self.nwacli.tenant.delete_tenant.return_value = 500, {}
         nwa_data = self.agent.proxy_tenant.delete_tenant(
             mock.sentinel.context,
             nwa_tenant_id=nwa_tenant_id

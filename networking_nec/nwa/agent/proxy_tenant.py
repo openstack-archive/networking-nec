@@ -57,7 +57,7 @@ class AgentProxyTenant(object):
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
 
         # ignore result
-        self.client.create_tenant(nwa_tenant_id)
+        self.client.tenant.create_tenant(nwa_tenant_id)
         # NOTE(amotoki): At now this method never fails.
         # If we need to handle a failure, raise nwa_exc.AgentProxyException
         # and catch the exception in a caller.
@@ -75,7 +75,7 @@ class AgentProxyTenant(object):
         @return: result(succeed = (True, dict(empty)  other = False, None)
         """
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
-        __rcode, body = self.client.delete_tenant(nwa_tenant_id)
+        __rcode, body = self.client.tenant.delete_tenant(nwa_tenant_id)
         # NOTE(amotoki): At now this method never fails.
         # If we need to handle a failure, raise nwa_exc.AgentProxyException.
         # and catch the exception in a caller.

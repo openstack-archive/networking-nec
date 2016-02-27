@@ -106,7 +106,7 @@ class AgentProxyL3(object):
     def _create_tenant_fw(self, nwa_data, context, **kwargs):
         device_id = kwargs['nwa_info']['device']['id']
         network_id = kwargs['nwa_info']['network']['id']
-        rcode, body = self.client.create_tenant_fw(
+        rcode, body = self.client.l3.create_tenant_fw(
             kwargs['nwa_tenant_id'],
             kwargs['nwa_info']['resource_group_name'],
             kwargs['nwa_info']['port']['ip'],
@@ -155,7 +155,7 @@ class AgentProxyL3(object):
         device_id = kwargs['nwa_info']['device']['id']
         network_id = kwargs['nwa_info']['network']['id']
 
-        rcode, body = self.client.update_tenant_fw(
+        rcode, body = self.client.l3.update_tenant_fw(
             kwargs['nwa_tenant_id'],
             data_utils.get_tfw_device_name(nwa_data, device_id),
             kwargs['nwa_info']['port']['ip'],
@@ -202,7 +202,7 @@ class AgentProxyL3(object):
         if self.tenant_fw_disconnect_hook:
             self.tenant_fw_disconnect_hook(context, device_name, **kwargs)
 
-        rcode, body = self.client.update_tenant_fw(
+        rcode, body = self.client.l3.update_tenant_fw(
             kwargs['nwa_tenant_id'],
             device_name,
             kwargs['nwa_info']['port']['ip'],
@@ -249,7 +249,7 @@ class AgentProxyL3(object):
         if self.tenant_fw_delete_hook:
             self.tenant_fw_delete_hook(context, device_name, **kwargs)
 
-        rcode, body = self.client.delete_tenant_fw(
+        rcode, body = self.client.l3.delete_tenant_fw(
             kwargs['nwa_tenant_id'],
             device_name,
             'TFW'
@@ -363,7 +363,7 @@ class AgentProxyL3(object):
                                                   floating['device_id'])
 
         # setting nat
-        rcode, body = self.client.setting_nat(
+        rcode, body = self.client.l3.setting_nat(
             nwa_tenant_id,
             vlan_logical_name, 'PublicVLAN',
             floating['fixed_ip_address'],
@@ -411,7 +411,7 @@ class AgentProxyL3(object):
                                                   floating['device_id'])
 
         # setting nat
-        rcode, body = self.client.delete_nat(
+        rcode, body = self.client.l3.delete_nat(
             kwargs.get('nwa_tenant_id'),
             vlan_logical_name, 'PublicVLAN',
             floating['fixed_ip_address'],

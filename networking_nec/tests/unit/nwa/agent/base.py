@@ -29,14 +29,15 @@ def _init_nwa_client_patch(mocked_nwacli):
             'VlanID': '4000',
         }
     })
-    mocked_nwacli.create_general_dev.return_value = succeed
-    mocked_nwacli.create_tenant.return_value = succeed
-    mocked_nwacli.create_tenant_nw.return_value = succeed
-    mocked_nwacli.create_vlan.return_value = succeed
-    mocked_nwacli.delete_general_dev.return_value = succeed
-    mocked_nwacli.delete_tenant.return_value = succeed
-    mocked_nwacli.delete_tenant_nw.return_value = succeed
-    mocked_nwacli.delete_vlan.return_value = succeed
+    mocked_nwacli.tenant.create_tenant.return_value = succeed
+    mocked_nwacli.tenant.delete_tenant.return_value = succeed
+
+    mocked_nwacli.l2.create_general_dev.return_value = succeed
+    mocked_nwacli.l2.create_tenant_nw.return_value = succeed
+    mocked_nwacli.l2.create_vlan.return_value = succeed
+    mocked_nwacli.l2.delete_general_dev.return_value = succeed
+    mocked_nwacli.l2.delete_tenant_nw.return_value = succeed
+    mocked_nwacli.l2.delete_vlan.return_value = succeed
 
 
 class TestNWAAgentBase(base.BaseTestCase):
