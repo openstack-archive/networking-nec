@@ -14,7 +14,6 @@
 
 from mock import patch
 from neutron.tests import base
-from oslo_config import cfg
 
 from networking_nec.nwa.nwalib import client
 
@@ -30,7 +29,8 @@ class TestNwaClientBase(base.BaseTestCase):
 
         self.nwa = client.NwaClient(
             host=host, port=port, access_key_id=access_key_id,
-            secret_access_key=secret_access_key
+            secret_access_key=secret_access_key,
+            load_workflow_list=False
         )
         self.nwa.workflow_first_wait = 0
 
@@ -43,19 +43,6 @@ class TestNwaClientBase(base.BaseTestCase):
         self.post.__name__ = 'post'
         self.post.return_value = (200, {'status': 'SUCCESS',
                                         'executionid': "01"})
-
-
-class TestUtNwaClientBase(base.BaseTestCase):
-    '''Unit test for NwaClient '''
-
-    def setUp(self):
-        super(TestUtNwaClientBase, self).setUp()
-        cfg.CONF.set_override('server_url', 'http://127.0.0.1:8080',
-                              group='NWA')
-        self.nwa = client.NwaClient(load_workflow_list=False)
-        self.tenant_id = 'OpenT9004'
-        self.call_wf = patch('networking_nec.nwa.nwalib.nwa_restclient.'
-                             'NwaRestClient.call_workflow').start()
 
 
 class TestSendQueueIsNotEmpty(base.BaseTestCase):
