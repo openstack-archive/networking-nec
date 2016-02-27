@@ -14,6 +14,7 @@
 
 import testscenarios
 
+from networking_nec.nwa.nwalib import workflow
 from networking_nec.tests.unit.nwa.nwalib import test_client
 
 TENANT_ID = 'OpenT9004'
@@ -87,40 +88,35 @@ class TestNwaClientL2Scenario(testscenarios.WithScenarios,
     def test_general_dev(self):
         dcresgrp_name = 'Common/App/Pod3'
         for operation, vlan_name in self.operations:
-            if operation == 'create':
-                rd, rj = self.nwa.l2.create_general_dev(
-                    TENANT_ID, dcresgrp_name, vlan_name)
-            else:
-                rd, rj = self.nwa.l2.delete_general_dev(
-                    TENANT_ID, dcresgrp_name, vlan_name)
+            method = getattr(self.nwa.l2, '%s_general_dev' % operation)
+            rd, rj = method(TENANT_ID, dcresgrp_name, vlan_name)
             self.assertEqual(rd, 200)
             self.assertEqual(rj['status'], 'SUCCESS')
         self.assertEqual(self.post.call_count, len(self.operations))
 
 
-class TestUtNwaClient(test_client.TestUtNwaClientBase):
-    '''Unit test for NwaClient '''
+class TestNwaClientL2(test_client.TestNwaClientBase):
 
     def test_create_tenant_nw(self):
-        self.nwa.l2.create_tenant_nw(
-            self.tenant_id,
-            DC_RESOURCE_GROUP_APP1
-        )
-        self.call_wf.assert_called_once_with(
-            self.tenant_id,
-            self.nwa.post,
-            'CreateTenantNW',
-            {'TenantID': self.tenant_id,
+        rd, rj = self.nwa.l2.create_tenant_nw(TENANT_ID,
+                                              DC_RESOURCE_GROUP_APP1)
+        self.post.assert_called_once_with(
+            workflow.NwaWorkflow.path('CreateTenantNW'),
+            {'TenantID': TENANT_ID,
              'CreateNW_DCResourceGroupName': DC_RESOURCE_GROUP_APP1,
              'CreateNW_OperationType': 'CreateTenantNW'})
+        self.assertEqual(rd, 200)
+        self.assertEqual(rj['status'], 'SUCCESS')
+        self.assertEqual(self.post.call_count, 1)
 
     def test_delete_tenant_nw(self):
-        self.nwa.l2.delete_tenant_nw(self.tenant_id)
-        self.call_wf.assert_called_once_with(
-            self.tenant_id,
-            self.nwa.post,
-            'DeleteTenantNW',
-            {'TenantID': self.tenant_id})
+        rd, rj = self.nwa.l2.delete_tenant_nw(TENANT_ID)
+        self.post.assert_called_once_with(
+            workflow.NwaWorkflow.path('DeleteTenantNW'),
+            {'TenantID': TENANT_ID})
+        self.assertEqual(rd, 200)
+        self.assertEqual(rj['status'], 'SUCCESS')
+        self.assertEqual(self.post.call_count, 1)
 
     def test_create_vlan(self):
         vlan_type = 'BusinessVLAN'
@@ -128,70 +124,74 @@ class TestUtNwaClient(test_client.TestUtNwaClientBase):
         mask = 24
         open_nid = 'UUID'
 
-        self.nwa.l2.create_vlan(
-            self.tenant_id, ipaddr, mask, vlan_type, open_nid
+        rd, rj = self.nwa.l2.create_vlan(
+            TENANT_ID, ipaddr, mask, vlan_type, open_nid
         )
 
-        self.call_wf.assert_called_once_with(
-            self.tenant_id,
-            self.nwa.post,
-            'CreateVLAN',
-            {'TenantID': self.tenant_id,
+        self.post.assert_called_once_with(
+            workflow.NwaWorkflow.path('CreateVLAN'),
+            {'TenantID': TENANT_ID,
              'CreateNW_IPSubnetMask1': mask,
              'CreateNW_IPSubnetAddress1': ipaddr,
              'CreateNW_VlanType1': vlan_type,
              'CreateNW_VlanLogicalID1': open_nid})
+        self.assertEqual(rd, 200)
+        self.assertEqual(rj['status'], 'SUCCESS')
+        self.assertEqual(self.post.call_count, 1)
 
     def test_delete_vlan(self):
         vlan_name = 'LNW_BusinessVLAN_49'
         vlan_type = 'BusinessVLAN'
-        self.nwa.l2.delete_vlan(
-            self.tenant_id, vlan_name, vlan_type
+        rd, rj = self.nwa.l2.delete_vlan(
+            TENANT_ID, vlan_name, vlan_type
         )
-        self.call_wf.assert_called_once_with(
-            self.tenant_id,
-            self.nwa.post,
-            'DeleteVLAN',
-            {'TenantID': self.tenant_id,
+        self.post.assert_called_once_with(
+            workflow.NwaWorkflow.path('DeleteVLAN'),
+            {'TenantID': TENANT_ID,
              'DeleteNW_VlanLogicalName1': vlan_name,
              'DeleteNW_VlanType1': vlan_type})
+        self.assertEqual(rd, 200)
+        self.assertEqual(rj['status'], 'SUCCESS')
+        self.assertEqual(self.post.call_count, 1)
 
     def test_create_general_dev(self):
         vlan_name = 'LNW_BusinessVLAN_49'
         vlan_type = 'BusinessVLAN'
         port_type = 'BM'
-        self.nwa.l2.create_general_dev(
-            self.tenant_id, DC_RESOURCE_GROUP_POD1,
+        rd, rj = self.nwa.l2.create_general_dev(
+            TENANT_ID, DC_RESOURCE_GROUP_POD1,
             vlan_name, vlan_type, port_type, 'vlan-logical-id-1'
         )
-        self.call_wf.assert_called_once_with(
-            self.tenant_id,
-            self.nwa.post,
-            'CreateGeneralDev',
-            {'TenantID': self.tenant_id,
+        self.post.assert_called_once_with(
+            workflow.NwaWorkflow.path('CreateGeneralDev'),
+            {'TenantID': TENANT_ID,
              'CreateNW_DeviceType1': 'GeneralDev',
              'CreateNW_DCResourceGroupName': DC_RESOURCE_GROUP_POD1,
              'CreateNW_VlanLogicalName1': vlan_name,
              'CreateNW_VlanType1': vlan_type,
              'CreateNW_PortType1': port_type,
              'CreateNW_VlanLogicalID1': 'vlan-logical-id-1'})
+        self.assertEqual(rd, 200)
+        self.assertEqual(rj['status'], 'SUCCESS')
+        self.assertEqual(self.post.call_count, 1)
 
     def test_delete_general_dev(self):
         vlan_name = 'LNW_BusinessVLAN_49'
         vlan_type = 'BusinessVLAN'
         port_type = 'BM'
-        self.nwa.l2.delete_general_dev(
-            self.tenant_id, DC_RESOURCE_GROUP_POD1,
+        rd, rj = self.nwa.l2.delete_general_dev(
+            TENANT_ID, DC_RESOURCE_GROUP_POD1,
             vlan_name, vlan_type, port_type, 'vlan-logical-id-2'
         )
-        self.call_wf.assert_called_once_with(
-            self.tenant_id,
-            self.nwa.post,
-            'DeleteGeneralDev',
-            {'TenantID': self.tenant_id,
+        self.post.assert_called_once_with(
+            workflow.NwaWorkflow.path('DeleteGeneralDev'),
+            {'TenantID': TENANT_ID,
              'DeleteNW_DeviceType1': 'GeneralDev',
              'DeleteNW_DCResourceGroupName': DC_RESOURCE_GROUP_POD1,
              'DeleteNW_VlanLogicalName1': vlan_name,
              'DeleteNW_VlanType1': vlan_type,
              'DeleteNW_PortType1': port_type,
              'DeleteNW_VlanLogicalID1': 'vlan-logical-id-2'})
+        self.assertEqual(rd, 200)
+        self.assertEqual(rj['status'], 'SUCCESS')
+        self.assertEqual(self.post.call_count, 1)
