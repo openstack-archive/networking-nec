@@ -1,1 +1,1 @@
-../doc/source/devstack.rst
+../doc/source/nwa/devstack.rst
