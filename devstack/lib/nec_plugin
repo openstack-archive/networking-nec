@@ -25,7 +25,9 @@ function neutron_plugin_configure_common {
     Q_PLUGIN_CONF_PATH=etc/neutron/plugins/nec
     Q_PLUGIN_CONF_FILENAME=necnwa.ini
     Q_PLUGIN_CLASS="necnwa"
-    Q_SERVICE_PLUGIN_CLASSES="necnwa_router"
+    if [ -n "$NECNWA_L3_PLUGIN" ]; then
+        _neutron_service_plugin_class_add $NECNWA_L3_PLUGIN
+    fi
     local plugin_conf_src_abspath=${NETWORKING_NEC_DIR}/${Q_PLUGIN_CONF_PATH}
     local plugin_conf_sys_abspath=/${Q_PLUGIN_CONF_PATH}
     mkdir -p ${plugin_conf_sys_abspath}
