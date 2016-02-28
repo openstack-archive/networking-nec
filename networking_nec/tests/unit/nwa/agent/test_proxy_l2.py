@@ -42,7 +42,7 @@ class TestAgentProxyL2(base.TestNWAAgentBase):
             'resource_group_name': resource_group_name,
             'resource_group_name_nw': resource_group_name,
         }
-        self.nwacli.create_tenant_nw.return_value = 500, {}
+        self.nwacli.l2.create_tenant_nw.return_value = 500, {}
         e = self.assertRaises(
             nwa_exc.AgentProxyException,
             self.agent.proxy_l2._create_tenant_nw,
@@ -64,7 +64,7 @@ class TestAgentProxyL2(base.TestNWAAgentBase):
         nwa_info = load_data_file('add_router_interface_nwa_info.json')
         ret_vln = load_data_file('create_vlan_result.json')
         ret_vln['resultdata']['VlanID'] = '300'
-        self.nwacli.create_vlan.return_value = (200, ret_vln)
+        self.nwacli.l2.create_vlan.return_value = (200, ret_vln)
         result = self.agent.proxy_l2._create_vlan(
             mock.sentinel.context,
             tenant_id=tenant_id,
@@ -81,7 +81,7 @@ class TestAgentProxyL2(base.TestNWAAgentBase):
         # resource_group_name = 'OpenStack/DC1/APP'
         nwa_data = {'NW_546a8551-5c2b-4050-a769-cc3c962fc5cf': 'net100'}
         nwa_info = load_data_file('add_router_interface_nwa_info.json')
-        self.nwacli.create_vlan.return_value = 500, {}
+        self.nwacli.l2.create_vlan.return_value = 500, {}
         self.assertRaises(
             nwa_exc.AgentProxyException,
             self.agent.proxy_l2._create_vlan,
@@ -99,7 +99,7 @@ class TestAgentProxyL2(base.TestNWAAgentBase):
         nwa_data = load_data_file('nwa_data_delete_vlan_succeed1.json')
         nwa_info = load_data_file('add_router_interface_nwa_info.json')
         dvl_result = load_data_file('delete_vlan_result.json')
-        self.nwacli.create_vlan.return_value = (200, dvl_result)
+        self.nwacli.l2.create_vlan.return_value = (200, dvl_result)
         result = self.agent.proxy_l2._delete_vlan(
             mock.sentinel.context,
             tenant_id=tenant_id,
@@ -178,12 +178,13 @@ class TestAgentProxyL2CreateGeneralDev(testscenarios.WithScenarios,
 
         nwa_info = load_data_file(self.nwa_info)
 
-        self.nwacli.create_tenant.return_value = self.retval_create_tenant
-        self.nwacli.create_tenant_nw.return_value = (
+        self.nwacli.tenant.create_tenant.return_value = \
+            self.retval_create_tenant
+        self.nwacli.l2.create_tenant_nw.return_value = (
             self.retval_create_tenant_nw[0],
             load_data_file(self.retval_create_tenant_nw[1])
         )
-        self.nwacli.create_vlan.return_value = (
+        self.nwacli.l2.create_vlan.return_value = (
             self.retval_create_vlan[0],
             load_data_file(self.retval_create_vlan[1])
         )
@@ -300,12 +301,13 @@ class TestAgentProxyL2DeleteGeneralDev(testscenarios.WithScenarios,
 
         nwa_info = load_data_file(self.nwa_info)
 
-        self.nwacli.delete_tenant.return_value = self.retval_delete_tenant
-        self.nwacli.delete_tenant_nw.return_value = (
+        self.nwacli.tenant.delete_tenant.return_value = \
+            self.retval_delete_tenant
+        self.nwacli.l2.delete_tenant_nw.return_value = (
             self.retval_delete_tenant_nw[0],
             load_data_file(self.retval_delete_tenant_nw[1])
         )
-        self.nwacli.delete_vlan.return_value = (
+        self.nwacli.l2.delete_vlan.return_value = (
             self.retval_delete_vlan[0],
             load_data_file(self.retval_delete_vlan[1])
         )
