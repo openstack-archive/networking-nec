@@ -22,7 +22,7 @@ from networking_nec.nwa.agent import nwa_agent
 
 def _init_nwa_client_patch(mocked_nwacli):
     succeed = (200, {
-        'status': 'SUCCESS',
+        'status': 'SUCCEED',
         'resultdata': {
             'LogicalNWName': 'LNW_BusinessVLAN_4000',
             'TenantFWName': 'T1',

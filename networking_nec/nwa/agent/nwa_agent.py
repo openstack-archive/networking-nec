@@ -92,7 +92,7 @@ class NECNWANeutronAgent(object):
         self.callback_proxy = nwa_proxy_callback.NwaProxyCallback(
             self.context, self.proxy_l2)
         self.callback_l3 = nwa_l3_proxy_callback.NwaL3ProxyCallback(
-            self.context, self.proxy_l2)
+            self.context, self.proxy_l3)
 
         # lbaas
         self.lbaas_driver = None
