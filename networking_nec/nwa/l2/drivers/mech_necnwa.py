@@ -28,7 +28,6 @@ from oslo_log import log as logging
 from networking_nec._i18n import _LW
 from networking_nec.nwa.common import exceptions as nwa_exc
 from networking_nec.nwa.common import utils as nwa_com_utils
-from networking_nec.nwa.l2 import db_api as nwa_db
 from networking_nec.nwa.l2 import utils as nwa_l2_utils
 from networking_nec.nwa.l3 import db_api as nwa_l3_db
 from networking_nec.nwa.l3.rpc import nwa_l3_proxy_api
@@ -44,7 +43,8 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
             cfg.CONF.NWA.resource_group, default_value=[])
 
     def _get_l2api_proxy(self, context, tenant_id):
-        proxy = context._plugin.get_nwa_proxy(tenant_id, context)
+        proxy = context._plugin.get_nwa_proxy(tenant_id,
+                                              context._plugin_context)
         return proxy
 
     def _get_l3api_proxy(self, context, tenant_id):
@@ -158,11 +158,11 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
                     segmentation_id = provider[prov_net.SEGMENTATION_ID]
                     break
 
-        LOG.debug("provider segmentation_id = %d", segmentation_id)
+        LOG.debug("provider segmentation_id = %s", segmentation_id)
         LOG.debug("_bind_port_nwa %(network_name)s "
                   "%(network_id)s %(device_id)s %(device_owner)s "
                   "%(port_id)s %(mac_address)s %(subnet_ids)s "
-                  "%(segmentation_id)d",
+                  "%(segmentation_id)s",
                   {'network_name': network_name,
                    'network_id': network_id,
                    'device_id': context._port['device_id'],
@@ -178,26 +178,20 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
         proxy.create_general_dev(context.network._plugin_context, **kwargs)
 
     def _l2_delete_general_dev(self, context, use_original_port=False):
-        kwargs = self._make_l2api_kwargs(context,
-                                         use_original_port=use_original_port)
-        proxy = self._get_l2api_proxy(context, kwargs['tenant_id'])
-        kwargs['nwa_info'] = self._revert_dhcp_agent_device_id(
-            context, kwargs['nwa_info'])
-        proxy.delete_general_dev(context.network._plugin_context, **kwargs)
+        try:
+            kwargs = self._make_l2api_kwargs(
+                context, use_original_port=use_original_port)
+            proxy = self._get_l2api_proxy(context, kwargs['tenant_id'])
+            kwargs['nwa_info'] = self._revert_dhcp_agent_device_id(
+                context, kwargs['nwa_info'])
+            proxy.delete_general_dev(context.network._plugin_context, **kwargs)
+        except nwa_exc.TenantNotFound as e:
+            LOG.warning(_LW("skip delete_general_dev: %s"), e)
 
     def _make_l2api_kwargs(self, context, use_original_port=False):
         tenant_id, nwa_tenant_id = nwa_com_utils.get_tenant_info(context)
-        rc = nwa_db.get_nwa_tenant_binding(
-            context.network._plugin_context.session,
-            tenant_id, nwa_tenant_id)
-        if not rc:
-            raise nwa_exc.TenantNotFound(tenant_id=tenant_id)
-
         nwa_info = nwa_l2_utils.portcontext_to_nwa_info(
             context, self.resource_groups, use_original_port)
-        if not nwa_info.get('resource_group_name'):
-            raise ValueError('resource_group_name is None. nwa_info=%s' %
-                             nwa_info)
         return {
             'tenant_id': tenant_id,
             'nwa_tenant_id': nwa_tenant_id,
@@ -237,13 +231,6 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
             context._port['device_id']
         )
         nwa_rt_tid = nwa_com_utils.get_nwa_tenant_id(rt_tid)
-
-        rc = nwa_db.get_nwa_tenant_binding(
-            context.network._plugin_context.session,
-            rt_tid, nwa_rt_tid)
-        if not rc:
-            raise nwa_exc.TenantNotFound(tenant_id=rt_tid)
-
         nwa_info = nwa_l2_utils.portcontext_to_nwa_info(
             context, self.resource_groups)
         nwa_info['tenant_id'] = rt_tid           # overwrite by router's

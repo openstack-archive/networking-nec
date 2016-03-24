@@ -149,6 +149,15 @@ class TestAddNwaTenantBinding(testlib_api.SqlTestCaseLight):
                 self.ssn, self.tenant1, self.nwa_tenant2).value_json,
             {self.key2: self.value2})
 
+    def test_value_is_empty_string(self):
+        self.assertTrue(
+            db_api.add_nwa_tenant_binding(
+                self.ssn, self.tenant1, self.nwa_tenant1, {self.key1: ''}))
+        self.assertEqual(
+            db_api.get_nwa_tenant_binding(
+                self.ssn, self.tenant1, self.nwa_tenant1).value_json,
+            {self.key1: ''})
+
     def test_value_is_none(self):
         self.assertTrue(
             db_api.add_nwa_tenant_binding(
@@ -156,7 +165,7 @@ class TestAddNwaTenantBinding(testlib_api.SqlTestCaseLight):
         self.assertEqual(
             db_api.get_nwa_tenant_binding(
                 self.ssn, self.tenant1, self.nwa_tenant1).value_json,
-            {self.key1: None})
+            {self.key1: u''})
 
     def test_value_is_true(self):
         self.assertTrue(

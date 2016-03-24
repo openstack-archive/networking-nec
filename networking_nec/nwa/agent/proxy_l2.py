@@ -42,7 +42,7 @@ def check_vlan(network_id, nwa_data):
     # dev_key = 'VLAN_' + network_id + '_.*_VlanID$'
     #  TFW, GDV: VLAN_' + network_id + '_.*_VlanID$
     #  TLB:      VLAN_LB_' + network_id + '_.*_VlanID$
-    vlan_pat = re.compile(r'VLAN_.*_' + network_id + '_.*_VlanID$')
+    vlan_pat = re.compile(r'VLAN_(LB_)?' + network_id + '_.*_VlanID$')
     matched = [k for k in nwa_data if vlan_pat.match(k)]
     if matched:
         LOG.debug("find device in network(ids=%s)", network_id)
@@ -80,6 +80,26 @@ def check_segment_tfw(network_id, res_name, nwa_data):
                          nwa_const.NWA_DEVICE_TFW)
 
 
+def get_resource_group_name(nwa_info, nwa_data, dev_type):
+    try:
+        device_id = nwa_info['device']['id']
+        network_id = nwa_info['network']['id']
+        mac = nwa_info['port']['mac']
+        dev_pat = re.compile(r'(DEV_' + device_id + '_' + network_id + '_)')
+        for k, v in nwa_data.items():
+            if v == mac:
+                m = dev_pat.match(k)
+                if m:
+                    pat = re.compile(m.group(1) + '(.*)')
+                    for k, v in nwa_data.items():
+                        if v == dev_type:
+                            m = pat.match(k)
+                            if m:
+                                return m.group(1)
+    except KeyError:
+        return None
+
+
 class AgentProxyL2(object):
 
     def __init__(self, agent_top, client):
@@ -113,7 +133,7 @@ class AgentProxyL2(object):
                 resource_group_name
             )
 
-            if rcode == 200 and body['status'] == 'SUCCESS':
+            if rcode == 200 and body['status'] == 'SUCCEED':
                 LOG.debug("CreateTenantNW succeed.")
                 nwa_data[KEY_CREATE_TENANT_NW] = True
                 return nwa_data
@@ -130,8 +150,8 @@ class AgentProxyL2(object):
             nwa_tenant_id,
         )
 
-        if rcode == 200 and body['status'] == 'SUCCESS':
-            LOG.debug("DeleteTenantNW SUCCESS.")
+        if rcode == 200 and body['status'] == 'SUCCEED':
+            LOG.debug("DeleteTenantNW SUCCEED.")
             nwa_data.pop(KEY_CREATE_TENANT_NW)
         else:
             LOG.error(_LE("DeleteTenantNW %s."), body['status'])
@@ -159,7 +179,7 @@ class AgentProxyL2(object):
             openstack_network_id=network_id
         )
 
-        if rcode == 200 and body['status'] == 'SUCCESS':
+        if rcode == 200 and body['status'] == 'SUCCEED':
             # create vlan succeed.
             LOG.debug("CreateVlan succeed.")
             data_utils.set_network_data(nwa_data, network_id, nwa_info,
@@ -191,8 +211,8 @@ class AgentProxyL2(object):
             vlan_type
         )
 
-        if rcode == 200 and body['status'] == 'SUCCESS':
-            LOG.debug("DeleteVlan SUCCESS.")
+        if rcode == 200 and body['status'] == 'SUCCEED':
+            LOG.debug("DeleteVlan SUCCEED.")
 
             data_utils.strip_network_data(nwa_data, network_id)
             data_utils.strip_vlan_data(nwa_data, network_id)
@@ -347,8 +367,8 @@ class AgentProxyL2(object):
             port_type=port_type
         )
 
-        if rcode == 200 and body['status'] == 'SUCCESS':
-            LOG.debug("CreateGeneralDev SUCCESS")
+        if rcode == 200 and body['status'] == 'SUCCEED':
+            LOG.debug("CreateGeneralDev SUCCEED")
 
             vlan_key = data_utils.get_vlan_key(network_id)
             if vlan_key not in nwa_data:
@@ -398,6 +418,10 @@ class AgentProxyL2(object):
                        'nwa_tenant_id': nwa_tenant_id})
             return {'result': 'FAILED'}
 
+        if not resource_group_name:
+            resource_group_name = get_resource_group_name(
+                nwa_info, nwa_data, nwa_const.NWA_DEVICE_GDV)
+            nwa_info['resource_group_name'] = resource_group_name
         gd_count = check_segment_gd(network_id, resource_group_name, nwa_data)
 
         if 1 < gd_count:
@@ -507,8 +531,8 @@ class AgentProxyL2(object):
             # error port send to plugin
             raise nwa_exc.AgentProxyException(value=nwa_data)
 
-        if body['status'] == 'SUCCESS':
-            LOG.debug("DeleteGeneralDev SUCCESS")
+        if body['status'] == 'SUCCEED':
+            LOG.debug("DeleteGeneralDev SUCCEED")
             nwa_data = self._delete_general_dev_data(**kwargs)
         else:
             LOG.debug("DeleteGeneralDev %s", body['status'])

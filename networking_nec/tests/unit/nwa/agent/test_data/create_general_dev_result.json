@@ -1,3 +1,4 @@
+
 {
     "progress": 100,
     "resultdata": {
@@ -10,5 +11,5 @@
         "VlanID": "200",
         "VlanLoopCounter": "1"
     },
-    "status": "SUCCESS"
+    "status": "SUCCEED"
 }
