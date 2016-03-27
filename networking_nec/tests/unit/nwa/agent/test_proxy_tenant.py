@@ -58,7 +58,7 @@ class TestAgentProxyTenant(base.TestNWAAgentBase):
             'resultdata': {'LogicalNWName': 'LNW_BusinessVLAN_4000',
                            'TenantFWName': 'T1',
                            'VlanID': '4000'},
-            'status': 'SUCCESS'}
+            'status': 'SUCCEED'}
         self.assertDictEqual(exp_data, nwa_data)
 
     def test__delete_tenant_failed(self):
