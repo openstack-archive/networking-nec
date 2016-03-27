@@ -113,7 +113,7 @@ class AgentProxyL2(object):
                 resource_group_name
             )
 
-            if rcode == 200 and body['status'] == 'SUCCESS':
+            if rcode == 200 and body['status'] == 'SUCCEED':
                 LOG.debug("CreateTenantNW succeed.")
                 nwa_data[KEY_CREATE_TENANT_NW] = True
                 return nwa_data
@@ -130,8 +130,8 @@ class AgentProxyL2(object):
             nwa_tenant_id,
         )
 
-        if rcode == 200 and body['status'] == 'SUCCESS':
-            LOG.debug("DeleteTenantNW SUCCESS.")
+        if rcode == 200 and body['status'] == 'SUCCEED':
+            LOG.debug("DeleteTenantNW SUCCEED.")
             nwa_data.pop(KEY_CREATE_TENANT_NW)
         else:
             LOG.error(_LE("DeleteTenantNW %s."), body['status'])
@@ -159,7 +159,7 @@ class AgentProxyL2(object):
             openstack_network_id=network_id
         )
 
-        if rcode == 200 and body['status'] == 'SUCCESS':
+        if rcode == 200 and body['status'] == 'SUCCEED':
             # create vlan succeed.
             LOG.debug("CreateVlan succeed.")
             data_utils.set_network_data(nwa_data, network_id, nwa_info,
@@ -191,8 +191,8 @@ class AgentProxyL2(object):
             vlan_type
         )
 
-        if rcode == 200 and body['status'] == 'SUCCESS':
-            LOG.debug("DeleteVlan SUCCESS.")
+        if rcode == 200 and body['status'] == 'SUCCEED':
+            LOG.debug("DeleteVlan SUCCEED.")
 
             data_utils.strip_network_data(nwa_data, network_id)
             data_utils.strip_vlan_data(nwa_data, network_id)
@@ -347,8 +347,8 @@ class AgentProxyL2(object):
             port_type=port_type
         )
 
-        if rcode == 200 and body['status'] == 'SUCCESS':
-            LOG.debug("CreateGeneralDev SUCCESS")
+        if rcode == 200 and body['status'] == 'SUCCEED':
+            LOG.debug("CreateGeneralDev SUCCEED")
 
             vlan_key = data_utils.get_vlan_key(network_id)
             if vlan_key not in nwa_data:
@@ -507,8 +507,8 @@ class AgentProxyL2(object):
             # error port send to plugin
             raise nwa_exc.AgentProxyException(value=nwa_data)
 
-        if body['status'] == 'SUCCESS':
-            LOG.debug("DeleteGeneralDev SUCCESS")
+        if body['status'] == 'SUCCEED':
+            LOG.debug("DeleteGeneralDev SUCCEED")
             nwa_data = self._delete_general_dev_data(**kwargs)
         else:
             LOG.debug("DeleteGeneralDev %s", body['status'])
