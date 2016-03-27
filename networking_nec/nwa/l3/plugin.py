@@ -29,6 +29,7 @@ from neutron.plugins.ml2 import driver_context
 from neutron.services import service_base
 from neutron_lib import constants as n_const
 from neutron_lib import exceptions as exc
+from oslo_config import cfg
 from oslo_log import helpers
 from oslo_log import log as logging
 
@@ -37,6 +38,8 @@ from networking_nec.nwa.common import utils as nwa_com_utils
 from networking_nec.nwa.l2 import db_api as nwa_db
 from networking_nec.nwa.l2 import utils as nwa_l2_utils
 from networking_nec.nwa.l3 import db_api as nwa_l3_db
+from networking_nec.nwa.l3.rpc import nwa_l3_proxy_api
+from networking_nec.nwa.l3.rpc import nwa_l3_server_callback
 
 LOG = logging.getLogger(__name__)
 
@@ -55,7 +58,9 @@ class NECNWAL3Plugin(service_base.ServicePluginBase,
         l3_db.subscribe()
         self.start_rpc_listeners()
         self.nwa_proxies = {}
-        self.resource_groups = None
+        self.resource_groups = nwa_com_utils.load_json_from_file(
+            'resource_group', cfg.CONF.NWA.resource_group_file,
+            cfg.CONF.NWA.resource_group, default_value=[])
 
     @helpers.log_method_call
     def start_rpc_listeners(self):
@@ -64,7 +69,8 @@ class NECNWAL3Plugin(service_base.ServicePluginBase,
         self.conn = n_rpc.create_connection()
         self.agent_notifiers.update(
             {n_const.AGENT_TYPE_L3: l3_rpc_agent_api.L3AgentNotifyAPI()})
-        self.endpoints = [l3_rpc.L3RpcCallback()]
+        self.endpoints = [l3_rpc.L3RpcCallback(),
+                          nwa_l3_server_callback.NwaL3ServerRpcCallback()]
         self.conn.create_consumer(self.topic, self.endpoints,
                                   fanout=False)
         return self.conn.consume_in_threads()
@@ -101,15 +107,16 @@ class NECNWAL3Plugin(service_base.ServicePluginBase,
         }
         LOG.info(_LI('delete_nat fl_data=%s'), fl_data)
 
-        proxy = self._core_plugin.get_nwa_proxy(tenant_id)
+        proxy = self._get_nwa_proxy(self, tenant_id)
         proxy.delete_nat(
             context, tenant_id=tenant_id,
             nwa_tenant_id=nwa_tenant_id,
             floating=fl_data
         )
 
+    # pylint: disable=arguments-differ
     @helpers.log_method_call
-    def disassociate_floatingips(self, context, port_id):
+    def disassociate_floatingips(self, context, port_id, do_notify=True):
         floating_ips = context.session.query(l3_db.FloatingIP).filter(
             or_(l3_db.FloatingIP.fixed_port_id == port_id,
                 l3_db.FloatingIP.floating_port_id == port_id)
@@ -119,11 +126,11 @@ class NECNWAL3Plugin(service_base.ServicePluginBase,
         for fip in floating_ips:
             self._delete_nat(context, fip)
         router_ids = super(NECNWAL3Plugin, self).disassociate_floatingips(
-            context, port_id)
+            context, port_id, do_notify)
         return router_ids
 
     @helpers.log_method_call
-    def update_floatingip(self, context, id_, floatingip):
+    def update_floatingip(self, context, fpid, floatingip):
         port_id_specified = 'port_id' in floatingip['floatingip']
         if not port_id_specified:
             LOG.error(_LE("port_id key is not found in %s"), floatingip)
@@ -133,18 +140,18 @@ class NECNWAL3Plugin(service_base.ServicePluginBase,
         try:
             if port_id_specified and not port_id:
                 floating = context.session.query(l3_db.FloatingIP).filter_by(
-                    id=id).one()
+                    id=fpid).one()
                 self._delete_nat(context, floating)
         except sa.orm.exc.NoResultFound:
             raise exc.PortNotFound(port_id=port_id)
 
         ret = super(NECNWAL3Plugin, self).update_floatingip(
-            context, id, floatingip)
+            context, fpid, floatingip)
 
         try:
             if port_id_specified and port_id:
                 floating = context.session.query(l3_db.FloatingIP).filter_by(
-                    id=id).one()
+                    id=fpid).one()
                 tenant_id = nwa_l3_db.get_tenant_id_by_router(
                     context.session,
                     floating['router_id']
@@ -154,13 +161,13 @@ class NECNWAL3Plugin(service_base.ServicePluginBase,
                 fl_data = {
                     'floating_ip_address': floating['floating_ip_address'],
                     'fixed_ip_address': floating['fixed_ip_address'],
-                    'id': id, 'device_id': floating['router_id'],
+                    'id': fpid, 'device_id': floating['router_id'],
                     'floating_network_id': floating['floating_network_id'],
                     'tenant_id': floating['tenant_id'],
                     'floating_port_id': floating['floating_port_id']
                 }
                 LOG.info(_LI('setting_nat fl_data is %s'), fl_data)
-                proxy = self._core_plugin.get_nwa_proxy(tenant_id)
+                proxy = self._get_nwa_proxy(self, tenant_id)
                 proxy.setting_nat(
                     context, tenant_id=tenant_id,
                     nwa_tenant_id=nwa_tenant_id,
@@ -206,7 +213,7 @@ class NECNWAL3Plugin(service_base.ServicePluginBase,
             nwa_rt_tid = nwa_com_utils.get_nwa_tenant_id(rt_tid)
             nwa_info['tenant_id'] = rt_tid
             nwa_info['nwa_tenant_id'] = nwa_rt_tid
-            proxy = plugin._core_plugin.get_nwa_proxy(rt_tid)
+            proxy = self._get_nwa_proxy(plugin, rt_tid)
             proxy.create_tenant_fw(
                 port_context.network._plugin_context,
                 rt_tid,
@@ -216,3 +223,7 @@ class NECNWAL3Plugin(service_base.ServicePluginBase,
 
         except Exception as e:
             LOG.exception(_LE("create tenant firewall %s"), e)
+
+    def _get_nwa_proxy(self, plugin, tenant_id):
+        proxy = plugin._core_plugin.get_nwa_proxy(tenant_id)
+        return nwa_l3_proxy_api.NwaL3ProxyApi(proxy.client)
