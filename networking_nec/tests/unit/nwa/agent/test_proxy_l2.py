@@ -386,7 +386,7 @@ class TestNECNWANeutronAgentRpc(testscenarios.WithScenarios,
 
         context = mock.MagicMock()
         stb.return_value = {}
-        utb.return_value = {'status': 'SUCCESS'}
+        utb.return_value = {'status': 'SUCCEED'}
         if self.gtb_data:
             gtb.return_value = load_data_file(self.gtb_data)
         else:
