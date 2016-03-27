@@ -42,7 +42,7 @@ def check_vlan(network_id, nwa_data):
     # dev_key = 'VLAN_' + network_id + '_.*_VlanID$'
     #  TFW, GDV: VLAN_' + network_id + '_.*_VlanID$
     #  TLB:      VLAN_LB_' + network_id + '_.*_VlanID$
-    vlan_pat = re.compile(r'VLAN_.*_' + network_id + '_.*_VlanID$')
+    vlan_pat = re.compile(r'VLAN_(LB_)?' + network_id + '_.*_VlanID$')
     matched = [k for k in nwa_data if vlan_pat.match(k)]
     if matched:
         LOG.debug("find device in network(ids=%s)", network_id)
