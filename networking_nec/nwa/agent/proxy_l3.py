@@ -71,8 +71,11 @@ class AgentProxyL3(object):
         network_id = kwargs['nwa_info']['network']['id']
         dev_key = data_utils.get_device_key(device_id)
         net_key = data_utils.get_device_net_key(device_id, network_id)
-        if dev_key not in nwa_data or net_key not in nwa_data:
+        if dev_key not in nwa_data:
             nwa_data = self._create_tenant_fw(nwa_data, context, **kwargs)
+        elif net_key not in nwa_data:
+            nwa_data = self._update_tenant_fw(
+                context, connect='connect', nwa_data=nwa_data, **kwargs)
         else:
             LOG.warning(_LW("unknown device."))
 
