@@ -55,8 +55,6 @@ def convert_if_special_value(s):
         return True
     if s == 'False' or s == '0':
         return False
-    if s == '':
-        return None
     return s
 
 
