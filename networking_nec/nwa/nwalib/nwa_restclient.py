@@ -153,7 +153,7 @@ class NwaRestClient(restclient.RestClient):
                   'status': status, 'progress': progress})
         if status == 'FAILED':
             self._log_workflow_error(data)
-        elif status == 'SUCCESS':
+        elif status == 'SUCCEED':
             self._log_workflow_success(data)
 
     def rest_api(self, method, url, body=None):
