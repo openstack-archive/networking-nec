@@ -24,5 +24,5 @@
         "TenantVlanIPSubnet": "100.64.1.0",
         "TenantVlanSubnetMask": "255.255.255.0"
     },
-    "status": "SUCCESS"
+    "status": "SUCCEED"
 }

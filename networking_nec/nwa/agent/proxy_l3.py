@@ -113,10 +113,10 @@ class AgentProxyL3(object):
             data_utils.get_vlan_logical_name(nwa_data, network_id),
             kwargs['nwa_info']['network']['vlan_type']
         )
-        if rcode != 200 or body['status'] != 'SUCCESS':
+        if rcode != 200 or body['status'] != 'SUCCEED':
             return None
 
-        LOG.debug("CreateTenantFW SUCCESS.")
+        LOG.debug("CreateTenantFW SUCCEED.")
 
         tfw_name = body['resultdata']['TenantFWName']
         resource_group_name_nw = kwargs['nwa_info']['resource_group_name_nw']
@@ -163,7 +163,7 @@ class AgentProxyL3(object):
             kwargs['nwa_info']['network']['vlan_type'],
             connect='connect')
 
-        if rcode != 200 or body['status'] != 'SUCCESS':
+        if rcode != 200 or body['status'] != 'SUCCEED':
             raise nwa_exc.AgentProxyException(value=None)
 
         LOG.debug("UpdateTenantFW succeed.")
@@ -210,13 +210,13 @@ class AgentProxyL3(object):
             kwargs['nwa_info']['network']['vlan_type'],
             connect='disconnect'
         )
-        if rcode != 200 or body['status'] != 'SUCCESS':
+        if rcode != 200 or body['status'] != 'SUCCEED':
             LOG.error(_LE("UpdateTenantFW(disconnect) FAILED."))
             info = {'status': 'FAILED',
                     'msg': 'UpdateTenantFW(disconnect) FAILED.'}
             raise nwa_exc.AgentProxyException(value=info)
 
-        LOG.debug("UpdateTenantFW(disconnect) SUCCESS.")
+        LOG.debug("UpdateTenantFW(disconnect) SUCCEED.")
         resource_group_name_nw = kwargs['nwa_info']['resource_group_name_nw']
 
         data_utils.strip_interface_data(nwa_data, device_id, network_id,
@@ -254,12 +254,12 @@ class AgentProxyL3(object):
             device_name,
             'TFW'
         )
-        if rcode != 200 or body['status'] != 'SUCCESS':
+        if rcode != 200 or body['status'] != 'SUCCEED':
             msg = _LE("DeleteTenantFW %s."), body['status']
             LOG.error(msg)
             raise nwa_exc.AgentProxyException(value=nwa_data)
 
-        LOG.debug("DeleteTenantFW SUCCESS.")
+        LOG.debug("DeleteTenantFW SUCCEED.")
 
         resource_group_name_nw = nwa_info['resource_group_name_nw']
         # delete recode
@@ -370,12 +370,12 @@ class AgentProxyL3(object):
             floating['floating_ip_address'], dev_name, data=floating
         )
 
-        if rcode != 200 or body['status'] != 'SUCCESS':
+        if rcode != 200 or body['status'] != 'SUCCEED':
             LOG.debug("SettingNat Error: invalid responce."
                       " rcode=%d status=%s" % (rcode, body))
             raise nwa_exc.AgentProxyException(value=None)
         else:
-            LOG.debug("SettingNat SUCCESS")
+            LOG.debug("SettingNat SUCCEED")
             data_utils.set_floatingip_data(nwa_data, floating)
             return nwa_data
 
@@ -417,11 +417,11 @@ class AgentProxyL3(object):
             floating['fixed_ip_address'],
             floating['floating_ip_address'], dev_name, data=floating)
 
-        if rcode != 200 or body['status'] != 'SUCCESS':
+        if rcode != 200 or body['status'] != 'SUCCEED':
             LOG.debug("DeleteNat Error: invalid responce."
                       " rcode=%d status=%s" % (rcode, body))
             raise nwa_exc.AgentProxyException(value=None)
         else:
-            LOG.debug("DeleteNat SUCCESS")
+            LOG.debug("DeleteNat SUCCEED")
             data_utils.strip_floatingip_data(nwa_data, floating)
             return nwa_data
