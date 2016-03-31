@@ -14,9 +14,9 @@
 
 from neutron.db import api as db_api
 from neutron.db import models_v2
-from neutron.db import segments_db
 from neutron import manager
 from neutron.plugins.ml2 import db as db_ml2
+from neutron.plugins.ml2 import models as models_ml2
 from neutron_lib import constants
 from oslo_log import helpers
 from oslo_log import log as logging
@@ -75,7 +75,7 @@ class NwaL2ServerRpcCallback(object):
         session = db_api.get_session()
         with session.begin(subtransactions=True):
             try:
-                query = (session.query(segments_db.NetworkSegment).
+                query = (session.query(models_ml2.NetworkSegment).
                          filter_by(network_id=network_id))
                 query = query.filter_by(physical_network=physical_network)
                 query = query.filter_by(is_dynamic=True)
