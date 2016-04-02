@@ -37,6 +37,8 @@ from networking_nec.nwa.common import utils as nwa_com_utils
 from networking_nec.nwa.l2 import db_api as nwa_db
 from networking_nec.nwa.l2 import utils as nwa_l2_utils
 from networking_nec.nwa.l3 import db_api as nwa_l3_db
+from networking_nec.nwa.l3.rpc import nwa_l3_proxy_api
+from networking_nec.nwa.l3.rpc import nwa_l3_server_callback
 
 LOG = logging.getLogger(__name__)
 
@@ -64,7 +66,8 @@ class NECNWAL3Plugin(service_base.ServicePluginBase,
         self.conn = n_rpc.create_connection()
         self.agent_notifiers.update(
             {n_const.AGENT_TYPE_L3: l3_rpc_agent_api.L3AgentNotifyAPI()})
-        self.endpoints = [l3_rpc.L3RpcCallback()]
+        self.endpoints = [l3_rpc.L3RpcCallback(),
+                          nwa_l3_server_callback.NwaL3ServerRpcCallback()]
         self.conn.create_consumer(self.topic, self.endpoints,
                                   fanout=False)
         return self.conn.consume_in_threads()
@@ -101,7 +104,7 @@ class NECNWAL3Plugin(service_base.ServicePluginBase,
         }
         LOG.info(_LI('delete_nat fl_data=%s'), fl_data)
 
-        proxy = self._core_plugin.get_nwa_proxy(tenant_id)
+        proxy = self._get_nwa_proxy(self, tenant_id)
         proxy.delete_nat(
             context, tenant_id=tenant_id,
             nwa_tenant_id=nwa_tenant_id,
@@ -160,7 +163,7 @@ class NECNWAL3Plugin(service_base.ServicePluginBase,
                     'floating_port_id': floating['floating_port_id']
                 }
                 LOG.info(_LI('setting_nat fl_data is %s'), fl_data)
-                proxy = self._core_plugin.get_nwa_proxy(tenant_id)
+                proxy = self._get_nwa_proxy(self, tenant_id)
                 proxy.setting_nat(
                     context, tenant_id=tenant_id,
                     nwa_tenant_id=nwa_tenant_id,
@@ -206,7 +209,7 @@ class NECNWAL3Plugin(service_base.ServicePluginBase,
             nwa_rt_tid = nwa_com_utils.get_nwa_tenant_id(rt_tid)
             nwa_info['tenant_id'] = rt_tid
             nwa_info['nwa_tenant_id'] = nwa_rt_tid
-            proxy = plugin._core_plugin.get_nwa_proxy(rt_tid)
+            proxy = self._get_nwa_proxy(plugin, rt_tid)
             proxy.create_tenant_fw(
                 port_context.network._plugin_context,
                 rt_tid,
@@ -216,3 +219,7 @@ class NECNWAL3Plugin(service_base.ServicePluginBase,
 
         except Exception as e:
             LOG.exception(_LE("create tenant firewall %s"), e)
+
+    def _get_nwa_proxy(self, plugin, tenant_id):
+        proxy = plugin._core_plugin.get_nwa_proxy(tenant_id)
+        return nwa_l3_proxy_api.NwaL3ProxyApi(proxy.client)
