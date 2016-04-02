@@ -401,7 +401,7 @@ class AgentProxyL3(object):
             return
 
         self.nwa_l3_rpc.update_floatingip_status(
-            context, fip_id, constants.FLOATINGIP_STATUS_ACTIVE)
+            context, fip_id, constants.FLOATINGIP_STATUS_DOWN)
         return self.proxy_tenant.update_tenant_binding(
             context, tenant_id, nwa_tenant_id, ret_val)
 

@@ -114,8 +114,9 @@ class NECNWAL3Plugin(service_base.ServicePluginBase,
             floating=fl_data
         )
 
+    # pylint: disable=arguments-differ
     @helpers.log_method_call
-    def disassociate_floatingips(self, context, port_id):
+    def disassociate_floatingips(self, context, port_id, do_notify=True):
         floating_ips = context.session.query(l3_db.FloatingIP).filter(
             or_(l3_db.FloatingIP.fixed_port_id == port_id,
                 l3_db.FloatingIP.floating_port_id == port_id)
@@ -125,11 +126,11 @@ class NECNWAL3Plugin(service_base.ServicePluginBase,
         for fip in floating_ips:
             self._delete_nat(context, fip)
         router_ids = super(NECNWAL3Plugin, self).disassociate_floatingips(
-            context, port_id)
+            context, port_id, do_notify)
         return router_ids
 
     @helpers.log_method_call
-    def update_floatingip(self, context, id_, floatingip):
+    def update_floatingip(self, context, fpid, floatingip):
         port_id_specified = 'port_id' in floatingip['floatingip']
         if not port_id_specified:
             LOG.error(_LE("port_id key is not found in %s"), floatingip)
@@ -139,18 +140,18 @@ class NECNWAL3Plugin(service_base.ServicePluginBase,
         try:
             if port_id_specified and not port_id:
                 floating = context.session.query(l3_db.FloatingIP).filter_by(
-                    id=id).one()
+                    id=fpid).one()
                 self._delete_nat(context, floating)
         except sa.orm.exc.NoResultFound:
             raise exc.PortNotFound(port_id=port_id)
 
         ret = super(NECNWAL3Plugin, self).update_floatingip(
-            context, id, floatingip)
+            context, fpid, floatingip)
 
         try:
             if port_id_specified and port_id:
                 floating = context.session.query(l3_db.FloatingIP).filter_by(
-                    id=id).one()
+                    id=fpid).one()
                 tenant_id = nwa_l3_db.get_tenant_id_by_router(
                     context.session,
                     floating['router_id']
@@ -160,7 +161,7 @@ class NECNWAL3Plugin(service_base.ServicePluginBase,
                 fl_data = {
                     'floating_ip_address': floating['floating_ip_address'],
                     'fixed_ip_address': floating['fixed_ip_address'],
-                    'id': id, 'device_id': floating['router_id'],
+                    'id': fpid, 'device_id': floating['router_id'],
                     'floating_network_id': floating['floating_network_id'],
                     'tenant_id': floating['tenant_id'],
                     'floating_port_id': floating['floating_port_id']
