@@ -23,7 +23,6 @@ from oslo_config import cfg
 from oslo_serialization import jsonutils
 
 from networking_nec.nwa.common import constants as nwa_const
-from networking_nec.nwa.common import exceptions as nwa_exc
 from networking_nec.nwa.l2.drivers import mech_necnwa as mech
 
 
@@ -196,15 +195,6 @@ class TestNECNWAMechanismDriver(TestMechNwa):
         self.context._port['device_owner'] = 'compute:DC01_KVM01_ZONE01'
         self.driver.create_port_precommit(self.context)
 
-    @patch('networking_nec.nwa.l2.db_api.get_nwa_tenant_binding')
-    def test_create_port_precommit_tenant_not_found(self, gntb):
-        for device_owner in (constants.DEVICE_OWNER_ROUTER_INTF,
-                             constants.DEVICE_OWNER_ROUTER_GW):
-            self.context._port['device_owner'] = device_owner
-            gntb.return_value = None
-            self.assertRaises(nwa_exc.TenantNotFound,
-                              self.driver.create_port_precommit, self.context)
-
     @patch('networking_nec.nwa.l2.db_api.add_nwa_tenant_binding')
     @patch('networking_nec.nwa.l2.db_api.get_nwa_tenant_binding')
     def test_create_port_precommit_owner_router_intf(self, gntb, antb):
@@ -246,15 +236,6 @@ class TestNECNWAMechanismDriver(TestMechNwa):
                              constants.DEVICE_OWNER_ROUTER_GW):
             self.context._port['device_owner'] = device_owner
             self.driver.update_port_precommit(self.context)
-
-    @patch('networking_nec.nwa.l2.db_api.get_nwa_tenant_binding')
-    def test_delete_port_precommit_tenat_not_found(self, gntb):
-        for device_owner in (constants.DEVICE_OWNER_ROUTER_INTF,
-                             constants.DEVICE_OWNER_ROUTER_GW):
-            self.context._port['device_owner'] = device_owner
-            gntb.return_value = None
-            self.assertRaises(nwa_exc.TenantNotFound,
-                              self.driver.delete_port_precommit, self.context)
 
     @patch('networking_nec.nwa.l2.db_api.set_nwa_tenant_binding')
     @patch('networking_nec.nwa.l2.db_api.get_nwa_tenant_binding')
@@ -425,17 +406,6 @@ class TestNECNWAMechanismDriver(TestMechNwa):
         rb = self.driver.try_to_bind_segment_for_agent(
             self.context, self.network_segments[1], self.host_agents[1])
         self.assertEqual(rb, False)
-
-    @patch('networking_nec.nwa.l2.db_api.get_nwa_tenant_binding')
-    def test_try_to_bind_segment_for_agent_tenant_not_found(self, gntb):
-        # in segment
-        self.context._port['device_owner'] = 'compute:AZ1'
-        gntb.return_value = None
-        self.assertRaises(nwa_exc.TenantNotFound,
-                          self.driver.try_to_bind_segment_for_agent,
-                          self.context,
-                          self.network_segments[1],
-                          self.host_agents[0])
 
     def test__bind_segment_to_vif_type(self):
         pod3_eth1 = self.host_agents[0]
