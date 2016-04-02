@@ -248,7 +248,7 @@ class AgentProxyL3(object):
         network_id = nwa_info['network']['id']
         device_id = nwa_info['device']['id']
 
-        device_name = data_utils.get_tfw_device_name(nwa_info, device_id)
+        device_name = data_utils.get_tfw_device_name(nwa_data, device_id)
         if self.tenant_fw_delete_hook:
             self.tenant_fw_delete_hook(context, device_name, **kwargs)
 
@@ -317,6 +317,7 @@ class AgentProxyL3(object):
             sgif_count = len([k for k in nwa_data if tfw_sgif.match(k)])
             if sgif_count:
                 raise nwa_exc.AgentProxyException(value=nwa_data)
+            nwa_data = ret_val
         elif count == 1:
             # raise AgentProxyException if fail
             nwa_data = self._delete_tenant_fw(
@@ -325,7 +326,8 @@ class AgentProxyL3(object):
             LOG.error(_LE("count miss match"))
             raise nwa_exc.AgentProxyException(value=nwa_data)
 
-        return self.proxy_l2.terminate_l2_network(context, **kwargs)
+        return self.proxy_l2._terminate_l2_network(context,
+                                                   nwa_data, **kwargs)
 
     @helpers.log_method_call
     def setting_nat(self, context, **kwargs):
