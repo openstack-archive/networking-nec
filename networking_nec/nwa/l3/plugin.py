@@ -29,6 +29,7 @@ from neutron.plugins.ml2 import driver_context
 from neutron.services import service_base
 from neutron_lib import constants as n_const
 from neutron_lib import exceptions as exc
+from oslo_config import cfg
 from oslo_log import helpers
 from oslo_log import log as logging
 
@@ -55,7 +56,9 @@ class NECNWAL3Plugin(service_base.ServicePluginBase,
         l3_db.subscribe()
         self.start_rpc_listeners()
         self.nwa_proxies = {}
-        self.resource_groups = None
+        self.resource_groups = nwa_com_utils.load_json_from_file(
+            'resource_group', cfg.CONF.NWA.resource_group_file,
+            cfg.CONF.NWA.resource_group, default_value=[])
 
     @helpers.log_method_call
     def start_rpc_listeners(self):
