@@ -109,6 +109,18 @@ class TestAgentProxyL2(base.TestNWAAgentBase):
         )
         self.assertDictEqual(nwa_data, result)
 
+    def test_check_vlan_for_tenant_fw(self):
+        network_id = '546a8551-5c2b-4050-a769-cc3c962fc5cf'
+        segment = 'OpenStack/DC1/APP'
+        nwa_data = {'VLAN_%s_%s_VlanID' % (network_id, segment): '4000'}
+        self.assertEqual(1, proxy_l2.check_vlan(network_id, nwa_data))
+
+    def test_check_vlan_for_tenant_lb(self):
+        network_id = '546a8551-5c2b-4050-a769-cc3c962fc5cf'
+        segment = 'OpenStack/DC1/APP'
+        nwa_data = {'VLAN_LB_%s_%s_VlanID' % (network_id, segment): '4000'}
+        self.assertEqual(1, proxy_l2.check_vlan(network_id, nwa_data))
+
 
 class TestAgentProxyL2CreateGeneralDev(testscenarios.WithScenarios,
                                        base.TestNWAAgentBase):
