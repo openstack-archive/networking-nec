@@ -47,7 +47,7 @@ class AgentProxyL3(object):
         self.nwa_tenant_rpc = tenant_binding_api.TenantBindingServerRpcApi(
             topics.PLUGIN)
         self.nwa_l2_rpc = nwa_l2_server_api.NwaL2ServerRpcApi(topics.PLUGIN)
-        self.nwa_l3_rpc = nwa_l3_server_api.NwaL3ServerRpcApi(topics.PLUGIN)
+        self.nwa_l3_rpc = nwa_l3_server_api.NwaL3ServerRpcApi(topics.L3PLUGIN)
         self.agent_top = agent_top
         self.client = client
         self.tenant_fw_create_hook = tenant_fw_create_hook
