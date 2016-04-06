@@ -20,6 +20,7 @@ from neutron.plugins.common import constants as plugin_const
 from neutron.plugins.ml2 import driver_api as api
 from oslo_log import helpers
 from oslo_log import log as logging
+import six
 
 from networking_nec._i18n import _LE, _LI, _LW
 from networking_nec.common import utils
@@ -78,6 +79,25 @@ def check_segment_gd(network_id, res_name, nwa_data):
 def check_segment_tfw(network_id, res_name, nwa_data):
     return check_segment(network_id, res_name, nwa_data,
                          nwa_const.NWA_DEVICE_TFW)
+
+
+def get_resource_group_name(nwa_info, nwa_data, dev_type):
+    device_id = nwa_info['device']['id']
+    network_id = nwa_info['network']['id']
+    mac = nwa_info['port']['mac']
+
+    found_mac = None
+    found_dev_type = None
+    dev_prefix = 'DEV_%s_%s_' % (device_id, network_id)
+    for k, v in six.iteritems(nwa_data):
+        if not k.startswith(dev_prefix):
+            continue
+        if v == mac:
+            found_mac = k[len(dev_prefix):]
+        elif v == dev_type:
+            found_dev_type = k[len(dev_prefix):]
+    if found_mac and found_dev_type:
+        return found_dev_type
 
 
 class AgentProxyL2(object):
@@ -397,6 +417,16 @@ class AgentProxyL2(object):
                       {'tenant_id': tenant_id,
                        'nwa_tenant_id': nwa_tenant_id})
             return {'result': 'FAILED'}
+
+        if not resource_group_name:
+            resource_group_name = get_resource_group_name(
+                nwa_info, nwa_data, nwa_const.NWA_DEVICE_GDV)
+            if not resource_group_name:
+                LOG.debug('skip delete_general_dev.'
+                          ' No nwa device is associated with'
+                          ' the port %s', nwa_info.get('port'))
+                return {'result': 'FAILED'}
+            nwa_info['resource_group_name'] = resource_group_name
 
         gd_count = check_segment_gd(network_id, resource_group_name, nwa_data)
 
