@@ -80,6 +80,26 @@ def check_segment_tfw(network_id, res_name, nwa_data):
                          nwa_const.NWA_DEVICE_TFW)
 
 
+def get_resource_group_name(nwa_info, nwa_data, dev_type):
+    try:
+        device_id = nwa_info['device']['id']
+        network_id = nwa_info['network']['id']
+        mac = nwa_info['port']['mac']
+        dev_pat = re.compile(r'(DEV_' + device_id + '_' + network_id + '_)')
+        for k, v in nwa_data.items():
+            if v == mac:
+                m = dev_pat.match(k)
+                if m:
+                    pat = re.compile(m.group(1) + '(.*)')
+                    for k, v in nwa_data.items():
+                        if v == dev_type:
+                            m = pat.match(k)
+                            if m:
+                                return m.group(1)
+    except KeyError:
+        return None
+
+
 class AgentProxyL2(object):
 
     def __init__(self, agent_top, client):
@@ -397,6 +417,16 @@ class AgentProxyL2(object):
                       {'tenant_id': tenant_id,
                        'nwa_tenant_id': nwa_tenant_id})
             return {'result': 'FAILED'}
+
+        if not resource_group_name:
+            resource_group_name = get_resource_group_name(
+                nwa_info, nwa_data, nwa_const.NWA_DEVICE_GDV)
+            if not resource_group_name:
+                LOG.debug('skip delete_general_dev.'
+                          ' No nwa device is associated with'
+                          ' the port %s', nwa_info.get('port'))
+                return {'result': 'FAILED'}
+            nwa_info['resource_group_name'] = resource_group_name
 
         gd_count = check_segment_gd(network_id, resource_group_name, nwa_data)
 
