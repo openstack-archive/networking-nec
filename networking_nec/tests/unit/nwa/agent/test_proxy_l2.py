@@ -343,6 +343,47 @@ def test_check_segment():
     proxy_l2.check_segment(network_id, nwa_data)
 
 
+class TestGetResourceGroupName(base.TestNWAAgentBase):
+
+    def setUp(self):
+        super(TestGetResourceGroupName, self).setUp()
+        self.nwa_info = load_data_file('nwa_info_get_resource_group_name.json')
+        self.nwa_data = load_data_file('nwa_data_get_resource_group_name.json')
+        self.dev_type = 'GeneralDev'
+        self.resource_group_name = 'OpenStack/DC/HA1'
+
+    def test_resource_group_name_found(self):
+        self.assertEqual(
+            proxy_l2.get_resource_group_name(self.nwa_info, self.nwa_data,
+                                             self.dev_type),
+            self.resource_group_name
+        )
+
+    def test_mac_not_found(self):
+        self.nwa_info['port']['mac'] = 'X'
+        self.assertIsNone(
+            proxy_l2.get_resource_group_name(self.nwa_info, self.nwa_data,
+                                             self.dev_type))
+
+    def test_network_id_not_found(self):
+        self.nwa_info['network']['id'] = 'X'
+        self.assertIsNone(
+            proxy_l2.get_resource_group_name(self.nwa_info, self.nwa_data,
+                                             self.dev_type))
+
+    def test_device_id_not_found(self):
+        self.nwa_info['device']['id'] = 'X'
+        self.assertIsNone(
+            proxy_l2.get_resource_group_name(self.nwa_info, self.nwa_data,
+                                             self.dev_type))
+
+    def test_dev_type_not_found(self):
+        dev_type = 'X'
+        self.assertIsNone(
+            proxy_l2.get_resource_group_name(self.nwa_info, self.nwa_data,
+                                             dev_type))
+
+
 class TestNECNWANeutronAgentRpc(testscenarios.WithScenarios,
                                 base.TestNWAAgentBase):
 
