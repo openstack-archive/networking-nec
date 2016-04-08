@@ -20,6 +20,19 @@ BRANCH_NAME=stable/mitaka
 
 set -e
 
+CONSTRAINTS_FILE=$1
+shift
+
+install_cmd="pip install"
+if [ $CONSTRAINTS_FILE != "unconstrained" ]; then
+    install_cmd="$install_cmd -c$CONSTRAINTS_FILE"
+    if [ -f "$CONSTRAINTS_FILE" ]; then
+        echo "=========="
+        cat $CONSTRAINTS_FILE
+        echo "=========="
+    fi
+fi
+
 if [ $neutron_installed -eq 0 ]; then
     echo "ALREADY INSTALLED" > /tmp/tox_install.txt
     echo "Neutron already installed; using existing package"
@@ -33,11 +46,11 @@ elif [ -x "$ZUUL_CLONER" ]; then
        git://git.openstack.org \
        openstack/neutron
    cd openstack/neutron
-   pip install -e .
+   $install_cmd -e .
    cd "$cwd"
 else
     echo "PIP HARDCODE" > /tmp/tox_install.txt
-    pip install -U -egit+https://git.openstack.org/openstack/neutron.git@$BRANCH_NAME#egg=neutron
+    $install_cmd -U -egit+https://git.openstack.org/openstack/neutron.git@$BRANCH_NAME#egg=neutron
 fi
 
 pip install -U $*
