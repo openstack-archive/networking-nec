@@ -23,6 +23,11 @@ with NEC NWA (Network Automation) product.
 NWA plugin consists of layer-2 core plugin, layer-3 service plugin,
 FWaaS service plugin and LBaaS driver.
 
+.. toctree::
+   :maxdepth: 1
+
+   DevStack support <nwa/devstack>
+
 NEC OpenFlow plugin
 ===================
 
