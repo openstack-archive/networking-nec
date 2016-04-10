@@ -5,7 +5,7 @@ Installation of OpenFlow plugin
 Requirements
 ============
 
-OpenFlow controller is required to make NEC OepnFlow plugin work.
+OpenFlow controller is required to make NEC OpenFlow plugin work.
 A controller needs to support REST API available at `Sliceable Network Management API`_.
 
 The following controllers are available:

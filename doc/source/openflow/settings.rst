@@ -42,7 +42,7 @@ Features of North-bound REST API of OpenFlow controller
 
   * Trema Sliceable Switch
 
-    * **trema**: Trema Slieable Switch. Alias for **trema_port**.
+    * **trema**: Trema Sliceable Switch. Alias for **trema_port**.
     * **trema_port** : Virtual networks are identified based on OpenFlow port. Each port of virtual network is identified by datapath_id, port_no and (optional) vlan_id.
     * **trema_portmac** : Similar to **trema_port**. In addition MAC address is also considered when identify a port of virtual network.
     * **trema_mac** : Virtual networks are identified based on received MAC address.

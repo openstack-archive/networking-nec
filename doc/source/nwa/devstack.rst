@@ -4,10 +4,10 @@
 DevStack support for NWA plugin
 ===============================
 
-This devstack external plugin installs NEC plugin library
+This DevStack external plugin installs NEC plugin library
 so that Neutron NEC NWA plugin can be enabled.
 
-To use this devstack plugin, add the following to your local.conf::
+To use this DevStack plugin, add the following to your local.conf::
 
     enable_plugin networking-nec https://git.openstack.org/openstack/networking-nec [<branch>]
 
