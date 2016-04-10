@@ -1,6 +1,6 @@
-===================================
-Installation of NEC OpenFlow plugin
-===================================
+===============================
+Installation of OpenFlow plugin
+===============================
 
 Requirements
 ============

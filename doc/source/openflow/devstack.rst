@@ -1,8 +1,8 @@
 .. _devstack:
 
-===============================================
-DevStack plugin for NEC OpenFlow Neutron plugin
-===============================================
+====================================
+DevStack support for OpenFlow plugin
+====================================
 
 As a part of vendor plugins/drivers decomposition work in Kilo,
 NEC plugin decomposition has been done.

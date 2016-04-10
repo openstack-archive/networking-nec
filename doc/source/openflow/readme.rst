@@ -1,6 +1,6 @@
-===================================
-Introduction of NEC OpenFlow plugin
-===================================
+===============================
+Introduction of OpenFlow plugin
+===============================
 
 .. toctree::
    :maxdepth: 1

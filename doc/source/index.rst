@@ -3,9 +3,9 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-===================================================
-Neutron plugins/drivers for NEC networking products
-===================================================
+===========================================
+Neutron plugins for NEC networking products
+===========================================
 
 ``networking-nec`` library provides Neutron plugins/drivers
 for `NEC SDN <http://www.necam.com/SDN/>`_ networking products`.
@@ -26,7 +26,7 @@ FWaaS service plugin and LBaaS driver.
 .. toctree::
    :maxdepth: 1
 
-   DevStack support <nwa/devstack>
+   nwa/devstack
 
 NEC OpenFlow plugin
 ===================
@@ -47,10 +47,10 @@ NEC OpenFlow plugin in Liberty or older releases supported
 .. toctree::
    :maxdepth: 1
 
-   Introduction <openflow/readme>
-   Installation <openflow/installation>
-   Settings <openflow/settings>
-   DevStack support <openflow/devstack>
+   openflow/readme
+   openflow/installation
+   openflow/settings
+   openflow/devstack
 
 Developers Guide
 ================

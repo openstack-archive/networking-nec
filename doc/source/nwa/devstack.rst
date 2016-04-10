@@ -1,8 +1,8 @@
 .. _nwa-devstack:
 
-==================================
-DevStack plugin for NEC NWA plugin
-==================================
+===============================
+DevStack support for NWA plugin
+===============================
 
 This devstack external plugin installs NEC plugin library
 so that Neutron NEC NWA plugin can be enabled.

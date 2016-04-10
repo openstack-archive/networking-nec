@@ -1,6 +1,6 @@
-====================================
-Configuration of NEC OpenFlow plugin
-====================================
+===========================
+Settings of OpenFlow plugin
+===========================
 
 This section describes the configurations of the releases maintained by OpenStack community (i.e., Juno, Kilo).
 
