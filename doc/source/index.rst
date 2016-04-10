@@ -11,16 +11,8 @@ Neutron plugins/drivers for NEC networking products
 for `NEC SDN`_ networking products` (mainly OpenFlow related at now)
 and `Trema`_ `Sliceable Switch`_ (reference implementation).
 
-* Documentation:
-
-  * http://pythonhosted.org/networking-nec/
-  * https://wiki.openstack.org/wiki/Neutron/NEC_OpenFlow_Plugin
-
-* Source:
-
-  * http://git.openstack.org/cgit/openstack/networking-nec
-  * https://github.com/openstack/networking-nec
-
+* Documentation: http://networking-nec.readthedocs.org/
+* Source: http://git.openstack.org/cgit/openstack/networking-nec
 * Bugs: http://bugs.launchpad.net/networking-nec
 * License: Apache License 2.0
 
