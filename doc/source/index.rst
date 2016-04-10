@@ -10,7 +10,7 @@ Neutron plugins for NEC networking products
 ``networking-nec`` library provides Neutron plugins/drivers
 for `NEC SDN <http://www.necam.com/SDN/>`_ networking products`.
 
-* Documentation: http://pythonhosted.org/networking-nec/
+* Documentation: http://networking-nec.readthedocs.org/
 * Source: http://git.openstack.org/cgit/openstack/networking-nec
 * Bugs: http://bugs.launchpad.net/networking-nec
 * License: Apache License 2.0

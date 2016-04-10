@@ -22,7 +22,7 @@ The following steps are required to release a package.
 
   .. warning::
 
-     Before pushinng a tag to gerrit, you are strongly suggested to
+     Before pushing a tag to gerrit, you are strongly suggested to
      test whether a generated package works as expected.
 
      .. code-block:: console
@@ -105,8 +105,11 @@ To sync it automatically, you need to:
 * add ``openstack/networking-nec`` to ``projects.txt`` in the
   requirements project.
 
-Build and puslish the documentation
------------------------------------
+Documentation
+-------------
+
+Build documentation
+~~~~~~~~~~~~~~~~~~~
 
 To build the documentation:
 
@@ -116,21 +119,19 @@ To build the documentation:
 
 and the generated documentation will be found under ``doc/build/html``.
 
-To publish the documentation, we use http://pythonhosted.org/ now.
-As of now, networking-nec is not a part of official OpenStack projects
-and docs.openstack.org cannot be used.
-To upload/update the document in http://pythonhosted.org/,
-visit https://pypi.python.org/pypi?:action=pkg_edit&name=networking-nec.
-(Note that you need to log-in to PyPI web site as networking-nec administrator.)
+Publish documentation
+~~~~~~~~~~~~~~~~~~~~~
 
-To prepare a zip file for a new document,
+The document is hosted by `Read The Docs <https://readthedocs.org/>`__
+and the documentation is available at
+http://networking-nec.readthedocs.org/en/latest/.
 
-.. code-block:: console
-
-   tox -e docs
-   cd doc/build/html
-   zip -r ../../../docs.zip .
-   [Update docs.zip in pypi.python.org]
+To publish the latest documentation,
+visit the `project page <https://readthedocs.org/projects/networking-nec/>`__,
+go to **Builds** and click **Build version** after selecting **latest**.
+After completing the build, the status will be **Passed** and
+you can see the new document.
+If the build fails, investigate reasons of the failure.
 
 Third party CI
 --------------
@@ -138,7 +139,7 @@ Third party CI
 * The master information about setting up and operating a third party CI
   is available at
   http://docs.openstack.org/infra/system-config/third_party.html.
-  It is better to check this site regularlly.
+  It is better to check this site regularly.
 
 * The status of your third party CI system should be available at
   https://wiki.openstack.org/wiki/ThirdPartySystems.
