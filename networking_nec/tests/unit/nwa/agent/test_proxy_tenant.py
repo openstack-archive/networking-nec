@@ -14,6 +14,7 @@
 
 import mock
 
+from networking_nec.nwa.common import exceptions as nwa_exc
 from networking_nec.tests.unit.nwa.agent import base
 
 
@@ -34,9 +35,9 @@ class TestAgentProxyTenant(base.TestNWAAgentBase):
         }
         self.assertEqual(exp_data, body)
 
-    def test__create_tenant_failed(self):
+    def test__create_tenant_already_exists(self):
         nwa_tenant_id = 'DC1_844eb55f21e84a289e9c22098d387e5d'
-        self.nwacli.tenant.create_tenant.return_value = 400, {}
+        self.nwacli.tenant.create_tenant.return_value = 500, {}
         body = self.agent.proxy_tenant.create_tenant(
             mock.sentinel.context,
             nwa_tenant_id=nwa_tenant_id
@@ -46,6 +47,17 @@ class TestAgentProxyTenant(base.TestNWAAgentBase):
             'NWA_tenant_id': 'DC1_844eb55f21e84a289e9c22098d387e5d'
         }
         self.assertEqual(exp_data, body)
+
+    def test__create_tenant_failed(self):
+        nwa_tenant_id = 'DC1_844eb55f21e84a289e9c22098d387e5d'
+        self.nwacli.tenant.create_tenant.return_value = 400, {}
+        e = self.assertRaises(
+            nwa_exc.AgentProxyException,
+            self.agent.proxy_tenant.create_tenant,
+            mock.sentinel.context,
+            nwa_tenant_id=nwa_tenant_id
+        )
+        self.assertEqual(400, e.value)
 
     def test__delete_tenant(self):
         nwa_tenant_id = 'DC1_844eb55f21e84a289e9c22098d387e5d'
