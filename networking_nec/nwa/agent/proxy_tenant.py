@@ -16,6 +16,7 @@ from neutron.common import topics
 from oslo_log import log as logging
 from oslo_serialization import jsonutils
 
+from networking_nec._i18n import _LW
 from networking_nec.common import utils
 from networking_nec.nwa.common import exceptions as nwa_exc
 from networking_nec.nwa.l2.rpc import tenant_binding_api
@@ -73,10 +74,10 @@ class AgentProxyTenant(object):
         @return: result(succeed = (True, dict(empty)  other = False, None)
         """
         nwa_tenant_id = kwargs.get('nwa_tenant_id')
-        __rcode, body = self.client.tenant.delete_tenant(nwa_tenant_id)
-        # NOTE(amotoki): At now this method never fails.
-        # If we need to handle a failure, raise nwa_exc.AgentProxyException.
-        # and catch the exception in a caller.
+        rcode, body = self.client.tenant.delete_tenant(nwa_tenant_id)
+        if rcode != 200:
+            LOG.warning(_LW('unexpected status code %s in delete_tenant'),
+                        rcode)
         return body
 
     @utils.log_method_return_value
