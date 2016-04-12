@@ -45,6 +45,15 @@ class TestNECNWAL2Plugin(base.BaseTestCase):
 
         self.l2_plugin = plugin.NECNWAL2Plugin()
 
+    def test_extend_network_dict_providor_no_id(self):
+        context = MagicMock()
+        network = {}
+
+        result = self.l2_plugin._extend_network_dict_provider(context,
+                                                              network)
+
+        self.assertIsNone(result)
+
     @patch('neutron.plugins.ml2.db.get_network_segments')
     def test_extend_network_dict_provider_segment_none(self, f1):
         context = MagicMock()
@@ -112,3 +121,118 @@ class TestNECNWAL2Plugin(base.BaseTestCase):
                                              sorts, limit, marker,
                                              page_reverse)
         self.assertTrue(result)
+
+    @patch('networking_nec.nwa.l2.db_api.get_nwa_tenant_queue')
+    @patch('networking_nec.nwa.l2.plugin.NECNWAL2Plugin._is_alive_nwa_agent')
+    def test_create_nwa_agent_tenant_queue(self, f1, f2):
+        context = MagicMock()
+        tid = 'Tenant1'
+        f1.return_value = True
+        f2.return_value = None
+        self.l2_plugin._create_nwa_agent_tenant_queue(context, tid)
+
+    def test_create_nwa_agent_tenant_queue_not_alive(self):
+        context = MagicMock()
+        tid = 'Tenant1'
+        self.l2_plugin._create_nwa_agent_tenant_queue(context, tid)
+
+    @patch('neutron.plugins.ml2.plugin.Ml2Plugin.delete_network')
+    @patch('networking_nec.nwa.l2.plugin.'
+           'NECNWAL2Plugin._create_nwa_agent_tenant_queue')
+    @patch('neutron.plugins.ml2.plugin.Ml2Plugin.create_network')
+    def test_create_delete_network(self, f1, f2, f3):
+        context = MagicMock()
+        context.tenant_id = 'Tenant1'
+        network = {'id': '99f771b4-af69-45cc-942f-a76be4e8cd1d'}
+
+        result = self.l2_plugin.create_network(context, network)
+
+        self.assertTrue(result)
+
+        result = self.l2_plugin.delete_network(context, result.id)
+
+        self.assertTrue(result)
+
+    @patch('neutron.plugins.ml2.plugin.Ml2Plugin.create_port')
+    def test_create_port(self, f1):
+        context = MagicMock()
+        port = MagicMock()
+
+        result = self.l2_plugin.create_port(context, port)
+        self.assertTrue(result)
+
+    @patch('networking_nec.nwa.l2.rpc.nwa_agent_api.'
+           'NECNWAAgentApi.get_nwa_rpc_servers')
+    def test_get_nwa_topics(self, f1):
+        context = MagicMock()
+        id = 'Tenant1'  # Tenant ID
+        f1.return_value = {'nwa_rpc_servers':
+                           [{'tenant_id': 'Tenant1', 'topic': 'topic1'},
+                            {'tenant_id': 'Tenant2', 'topic': 'topic2'},
+                            {'tenant_id': 'Tenant1', 'topic': 'topic11'}]}
+
+        result = self.l2_plugin.get_nwa_topics(context, id)
+        self.assertEqual(len(result), 2)
+
+    @patch('networking_nec.nwa.l2.rpc.nwa_agent_api.'
+           'NECNWAAgentApi.get_nwa_rpc_servers')
+    def test_get_nwa_topics_not_dict(self, f1):
+        context = MagicMock()
+        id = 'Tenant1'  # Tenant ID
+        f1.return_value = ['topic1', 'topic2']  # not dict
+
+        result = self.l2_plugin.get_nwa_topics(context, id)
+        self.assertEqual(len(result), 0)
+
+    def test_get_nwa_proxy(self):
+        tid = 'Tenant1'
+        result = self.l2_plugin.get_nwa_proxy(tid)
+
+        self.assertTrue(result)
+
+    def test_get_nwa_proxy_in_nwa_proxies(self):
+        tid = 'Tenant1'
+        proxy = MagicMock()
+        self.l2_plugin.nwa_proxies = {tid: proxy}
+        result = self.l2_plugin.get_nwa_proxy(tid)
+
+        self.assertEqual(result, proxy)
+
+    @patch('networking_nec.nwa.l2.plugin.NECNWAL2Plugin.get_nwa_topics')
+    def test_get_nwa_proxy_with_context(self, f1):
+        tid = 'Tenant1'
+        context = MagicMock()
+        f1.return_value = ['topic1']
+        result = self.l2_plugin.get_nwa_proxy(tid, context)
+
+        self.assertTrue(result)
+
+    @patch('networking_nec.nwa.l2.plugin.NECNWAL2Plugin.get_nwa_topics')
+    def test_get_nwa_proxy_no_topics(self, f1):
+        tid = 'Tenant1'
+        context = MagicMock()
+        f1.return_value = []
+        result = self.l2_plugin.get_nwa_proxy(tid, context)
+
+        self.assertTrue(result)
+
+    @patch('networking_nec.nwa.l2.plugin.NECNWAL2Plugin.get_agents')
+    def test_is_alive_nwa_agent(self, f1):
+        context = MagicMock()
+        f1.return_value = [{'alive': True}, {'alive': False}]
+
+        result = self.l2_plugin._is_alive_nwa_agent(context)
+        self.assertTrue(result)
+
+    @patch('networking_nec.nwa.l2.plugin.NECNWAL2Plugin.get_agents')
+    def test_is_alive_nwa_agent_not_alive(self, f1):
+        context = MagicMock()
+        f1.return_value = [{'alive': False}]
+
+        result = self.l2_plugin._is_alive_nwa_agent(context)
+        self.assertFalse(result)
+
+    def test_get_port_from_device(self):
+        context = MagicMock()
+        device = 'device'
+        self.l2_plugin.get_port_from_device(context, device)

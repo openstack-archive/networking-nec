@@ -62,6 +62,12 @@ class TestCommonUtils(base.BaseTestCase):
         # json_file has priority. json_str passed here is not evaluated.
         self._test_load_json_from_file_from_file(json_str='invalid')
 
+    def test_load_json_from_file_no_json_file_abspath(self):
+        json_file = 'test.json'
+        self.assertRaises(cfg.Error,
+                          nwa_com_utils.load_json_from_file,
+                          'test', json_file, None, [])
+
     def test_load_json_from_file_with_invalid_json_file(self):
         json_file = self.get_temp_file_path('test.json')
         with open(json_file, 'w') as f:
