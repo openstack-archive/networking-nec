@@ -13,6 +13,7 @@
 #    under the License.
 
 from mock import patch
+from oslo_config import cfg
 
 from networking_nec.nwa.agent import nwa_agent
 from networking_nec.tests.unit.nwa.agent import base
@@ -25,6 +26,23 @@ class TestNECNWANeutronAgentAsNwaClient(base.TestNWAAgentBase):
     @patch('networking_nec.nwa.l2.rpc.tenant_binding_api.'
            'TenantBindingServerRpcApi')
     def test__setup_rpc(self, f1, f2, f3):
+        self.agent.setup_rpc()
+        self.assertIsNotNone(self.agent.host)
+        self.assertIsNotNone(self.agent.agent_id)
+        self.assertIsNotNone(self.agent.context)
+        self.assertIsNotNone(self.agent.nwa_l2_rpc)
+        self.assertIsNotNone(self.agent.state_rpc)
+        self.assertIsNotNone(self.agent.callback_nwa)
+        self.assertIsNotNone(self.agent.callback_proxy)
+
+    @patch('neutron.common.rpc.Connection')
+    @patch('neutron.agent.rpc.PluginReportStateAPI')
+    @patch('networking_nec.nwa.l2.rpc.tenant_binding_api.'
+           'TenantBindingServerRpcApi')
+    def test__setup_rpc_no_report_interval(self, f1, f2, f3):
+        self.agent.conf.NWA.lbaas_driver = True
+        self.agent.conf.NWA.fwaas_driver = True
+        cfg.CONF.AGENT.report_interval = 0
         self.agent.setup_rpc()
         self.assertIsNotNone(self.agent.host)
         self.assertIsNotNone(self.agent.agent_id)

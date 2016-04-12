@@ -68,6 +68,28 @@ class TestNwaClientL3(test_client.TestNwaClientBase):
         self.assertEqual(rj['status'], 'SUCCESS')
         self.assertEqual(self.post.call_count, 1)
 
+    def test_update_tenant_fw_without_connect(self):
+        device_name = 'TFW0'
+        device_type = 'TFW'
+        vlan_name = 'LNW_BusinessVLAN_49'
+        vlan_type = 'BusinessVLAN'
+        rd, rj = self.nwa.l3.update_tenant_fw(
+            TENANT_ID,
+            device_name, mock.sentinel.vlan_devaddr,
+            vlan_name, vlan_type
+        )
+        self.post.assert_called_once_with(
+            workflow.NwaWorkflow.path('UpdateTenantFW'),
+            {'TenantID': TENANT_ID,
+             'ReconfigNW_DeviceName1': device_name,
+             'ReconfigNW_DeviceType1': device_type,
+             'ReconfigNW_VlanLogicalName1': vlan_name,
+             'ReconfigNW_Vlan_DeviceAddress1': mock.sentinel.vlan_devaddr,
+             'ReconfigNW_VlanType1': vlan_type})
+        self.assertEqual(rd, 200)
+        self.assertEqual(rj['status'], 'SUCCESS')
+        self.assertEqual(self.post.call_count, 1)
+
     def test_delete_tenant_fw(self):
         device_name = 'TFW0'
         device_type = 'TFW'
@@ -131,3 +153,17 @@ class TestNwaClientL3(test_client.TestNwaClientBase):
         self.assertEqual(rd, 200)
         self.assertEqual(rj['status'], 'SUCCESS')
         self.assertEqual(self.post.call_count, 1)
+
+    def test_update_nat(self):
+        fw_name = 'TFW8'
+        vlan_name = 'LNW_PublicVLAN_46'
+        vlan_type = 'PublicVLAN'
+        local_ip = '172.16.0.2'
+        global_ip = '10.0.0.10'
+        rd, rj = self.nwa.l3.update_nat(
+            TENANT_ID,
+            vlan_name, vlan_type, local_ip, global_ip, fw_name
+        )
+
+        self.assertEqual(rj['status'], 'SUCCESS')
+        self.assertEqual(self.post.call_count, 2)

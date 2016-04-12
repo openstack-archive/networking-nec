@@ -13,6 +13,7 @@
 #    under the License.
 
 from mock import MagicMock
+from sqlalchemy.orm import exc as sa_exc
 
 from neutron.tests import base
 from oslo_config import cfg
@@ -202,6 +203,20 @@ class TestPortcontextToNwaInfo(TestNwa):
         self.assertEqual(rd['port']['ip'], p['fixed_ips'][0]['ip_address'])
         self.assertEqual(rd['port']['mac'], p['mac_address'])
 
+    def test_portcontext_to_nwa_info_business_vlan(self):
+        # session in context
+        self.context.session = MagicMock()
+        # external network is not found
+        self.context.session.query().filter_by().\
+            one.side_effect = sa_exc.NoResultFound
+        self.context.network.current['name'] = 'BusinessVLAN_200'
+        self.context.network.current['id'] = 'Uuid-BusinessVLAN_200'
+        self.context.current = self.context._port
+        rd = nwa_l2_utils.portcontext_to_nwa_info(self.context,
+                                                  self.resource_group)
+        self.assertIsInstance(rd, dict)
+        self.assertEqual(rd['network']['vlan_type'], 'BusinessVLAN')
+
     def test_portcontext_to_nwa_info_original_port(self):
         device_owner = 'do-1'
         device_id = 'di-1'
@@ -274,6 +289,13 @@ class test__getResourceGroupName(TestNwa):
         self.assertEqual(rc, 'Common/App/Pod4')
 
         self.context.current['device_owner'] = 'compute:AZ1'
+        rc = nwa_l2_utils._get_resource_group_name(self.context,
+                                                   self.resource_group)
+        self.assertIsNone(rc)
+
+        self.context.current['device_owner'] = 'network:router_interface'
+        self.host_agent[0]['alive'] = False
+        self.resource_group = []
         rc = nwa_l2_utils._get_resource_group_name(self.context,
                                                    self.resource_group)
         self.assertIsNone(rc)
