@@ -56,6 +56,25 @@ class TestAgentProxyL2(base.TestNWAAgentBase):
         ret_val = e.value
         self.assertEqual(ret_val, nwa_data1)
 
+    def test__create_tenant_nw_with_key(self):
+        tenant_id = '844eb55f21e84a289e9c22098d387e5d'
+        nwa_tenant_id = 'DC1_' + tenant_id
+        resource_group_name = 'OpenStack/DC1/APP'
+        nwa_data1 = {proxy_l2.KEY_CREATE_TENANT_NW: True}
+        nwa_info = {
+            'resource_group_name': resource_group_name,
+            'resource_group_name_nw': resource_group_name,
+        }
+        result = self.agent.proxy_l2._create_tenant_nw(
+            mock.sentinel.context,
+            tenant_id=tenant_id,
+            nwa_tenant_id=nwa_tenant_id,
+            resource_group_name=resource_group_name,
+            nwa_data=nwa_data1,
+            nwa_info=nwa_info,
+        )
+        self.assertIsNone(result)
+
     def test__create_vlan_succeed1(self):
         tenant_id = '844eb55f21e84a289e9c22098d387e5d'
         nwa_tenant_id = 'DC1_' + '844eb55f21e84a289e9c22098d387e5d'
@@ -74,6 +93,27 @@ class TestAgentProxyL2(base.TestNWAAgentBase):
         )
         exp_data = load_data_file('expected_proxy_create_vlan_succeed1.json')
         self.assertDictEqual(exp_data, result)
+
+    def test__create_vlan_succeed2(self):
+        net_id = '546a8551-5c2b-4050-a769-cc3c962fc5cf'
+        vlan_id_key = 'VLAN_' + net_id
+        tenant_id = '844eb55f21e84a289e9c22098d387e5d'
+        nwa_tenant_id = 'DC1_' + '844eb55f21e84a289e9c22098d387e5d'
+        # resource_group_name = 'OpenStack/DC1/APP'
+        nwa_data = {vlan_id_key: 'net-uuid-1'}
+        nwa_info = load_data_file('add_router_interface_nwa_info.json')
+        ret_vln = load_data_file('create_vlan_result.json')
+        ret_vln['resultdata']['VlanID'] = '300'
+        ret_vln['resultdata'][net_id] = 'net-uuid-1'
+        self.nwacli.l2.create_vlan.return_value = (200, ret_vln)
+        result = self.agent.proxy_l2._create_vlan(
+            mock.sentinel.context,
+            tenant_id=tenant_id,
+            nwa_tenant_id=nwa_tenant_id,
+            nwa_info=nwa_info,
+            nwa_data=nwa_data
+        )
+        self.assertDictEqual(nwa_data, result)
 
     def test__create_vlan_fail1(self):
         tenant_id = '844eb55f21e84a289e9c22098d387e5d'

@@ -139,6 +139,25 @@ class TestNwaClientL2(test_client.TestNwaClientBase):
         self.assertEqual(rj['status'], 'SUCCESS')
         self.assertEqual(self.post.call_count, 1)
 
+    def test_create_vlan_without_open_nid(self):
+        vlan_type = 'BusinessVLAN'
+        ipaddr = '10.0.0.0'
+        mask = 24
+
+        rd, rj = self.nwa.l2.create_vlan(
+            TENANT_ID, ipaddr, mask, vlan_type
+        )
+
+        self.post.assert_called_once_with(
+            workflow.NwaWorkflow.path('CreateVLAN'),
+            {'TenantID': TENANT_ID,
+             'CreateNW_IPSubnetMask1': mask,
+             'CreateNW_IPSubnetAddress1': ipaddr,
+             'CreateNW_VlanType1': vlan_type})
+        self.assertEqual(rd, 200)
+        self.assertEqual(rj['status'], 'SUCCESS')
+        self.assertEqual(self.post.call_count, 1)
+
     def test_delete_vlan(self):
         vlan_name = 'LNW_BusinessVLAN_49'
         vlan_type = 'BusinessVLAN'
