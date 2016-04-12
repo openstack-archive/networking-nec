@@ -497,3 +497,15 @@ class TestNECNWAMechanismDriver(TestMechNwa):
         self.context._port['device_owner'] = constants.DEVICE_OWNER_ROUTER_INTF
         gntb.side_effect = Exception
         self.driver._bind_port_nwa(self.context)
+
+    @patch('neutron.plugins.ml2.db.get_dynamic_segment')
+    @patch('neutron.plugins.ml2.db.delete_network_segment')
+    def test__l2_delete_segment(self, dns, gds):
+        gds.return_value = None
+        self.driver._l2_delete_segment(self.context, MagicMock())
+        self.assertEqual(0, dns.call_count)
+
+        dns.mock_reset()
+        gds.return_value = {'id': 'ID-100'}
+        self.driver._l2_delete_segment(self.context, MagicMock())
+        self.assertEqual(1, dns.call_count)
