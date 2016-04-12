@@ -15,6 +15,7 @@
 from mock import MagicMock
 from mock import patch
 
+from neutron.common import constants as neutron_const
 from neutron import context
 from neutron.extensions import providernet as prov_net
 from neutron.tests.unit import testlib_api
@@ -23,6 +24,7 @@ from oslo_config import cfg
 from oslo_serialization import jsonutils
 
 from networking_nec.nwa.common import constants as nwa_const
+from networking_nec.nwa.common import exceptions as nwa_exc
 from networking_nec.nwa.l2.drivers import mech_necnwa as mech
 
 
@@ -195,6 +197,17 @@ class TestNECNWAMechanismDriver(TestMechNwa):
         self.context._port['device_owner'] = 'compute:DC01_KVM01_ZONE01'
         self.driver.create_port_precommit(self.context)
 
+    def test_create_port_precommit_group_not_found(self):
+        self.driver.resource_groups = [
+            {
+                "physical_network": "Common/App/Pod3",
+                "device_owner": constants.DEVICE_OWNER_ROUTER_GW,
+                "ResourceGroupName": "Common/App/Pod3"
+            }
+        ]
+        self.assertRaises(nwa_exc.ResourceGroupNameNotFound,
+                          self.driver.create_port_precommit, self.context)
+
     @patch('networking_nec.nwa.l2.db_api.add_nwa_tenant_binding')
     @patch('networking_nec.nwa.l2.db_api.get_nwa_tenant_binding')
     def test_create_port_precommit_owner_router_intf(self, gntb, antb):
@@ -236,6 +249,30 @@ class TestNECNWAMechanismDriver(TestMechNwa):
                              constants.DEVICE_OWNER_ROUTER_GW):
             self.context._port['device_owner'] = device_owner
             self.driver.update_port_precommit(self.context)
+
+    @patch('networking_nec.nwa.l2.utils.portcontext_to_nwa_info')
+    @patch('networking_nec.nwa.l2.db_api.get_nwa_tenant_binding')
+    def test_update_port_precommit_current_none(self, gntb, ptni):
+        self.context.current = self.context._port
+        self.context.current['device_id'] = None
+        self.context.current['device_owner'] = None
+        self.context.original[
+            'device_owner'] = constants.DEVICE_OWNER_ROUTER_INTF
+        self.context.original['device_id'] = 'uuid-device_id_000'
+        gntb.return_value = self._get_nwa_tenant_binding({
+            'CreateTenant': True,
+            'NWA_tenant_id': 'RegionOnetenant201',
+            'DEV_uuid-device_id_100_61': constants.DEVICE_OWNER_ROUTER_INTF,
+            'DEV_uuid-device_id_100_61_TYPE': nwa_const.NWA_DEVICE_TFW,
+            'DEV_uuid-device_id_100_61_ip_address': '192.168.120.1',
+            'DEV_uuid-device_id_100_61_mac_address': '12:34:56:78:9a:bc'}
+        )
+        ptni.return_value = {
+            'tenant_id': 'Tenant1',
+            'nwa_tenant_id': 'RegionOnetenant201',
+            'resource_group_name': 'Common/App/Pod3',
+            'physical_network': 'Common/App/Pod3'}
+        self.driver.update_port_precommit(self.context)
 
     @patch('networking_nec.nwa.l2.db_api.set_nwa_tenant_binding')
     @patch('networking_nec.nwa.l2.db_api.get_nwa_tenant_binding')
@@ -355,6 +392,72 @@ class TestNECNWAMechanismDriver(TestMechNwa):
 
     @patch('networking_nec.nwa.l2.db_api.set_nwa_tenant_binding')
     @patch('networking_nec.nwa.l2.db_api.get_nwa_tenant_binding')
+    def test_delete_port_precommit_owner_floatingip(self, gntb, sntb):
+        floatingip = constants.DEVICE_OWNER_FLOATINGIP
+        self.context._port['device_owner'] = floatingip
+        gntb.return_value = self._get_nwa_tenant_binding({
+            'CreateTenant': 1,
+            'CreateTenantNW': True,
+            'NWA_tenant_id': 'RegionOnetenant201',
+            'DEV_uuid-device_id_100': 'device_id',
+            'DEV_uuid-device_id_100_device_owner': floatingip,
+            'DEV_uuid-device_id_100_61_TYPE': nwa_const.NWA_DEVICE_TFW,
+            'DEV_uuid-device_id_100_61': 'public001',
+            'DEV_uuid-device_id_100_61_ip_address': '172.16.1.23',
+            'DEV_uuid-device_id_100_63_mac_address': '12:34:56:78:9a:bc'}
+        )
+        self.driver.delete_port_precommit(self.context)
+
+    @patch('networking_nec.nwa.l2.db_api.set_nwa_tenant_binding')
+    @patch('networking_nec.nwa.l2.db_api.get_nwa_tenant_binding')
+    def test_delete_port_precommit_owner_none(self, gntb, sntb):
+        self.context._port['device_owner'] = ''
+        self.context._port['device_id'] = ''
+        gntb.return_value = self._get_nwa_tenant_binding({
+            'CreateTenant': 1,
+            'CreateTenantNW': True,
+            'NWA_tenant_id': 'RegionOnetenant201',
+            'DEV_uuid-device_id_100': 'device_id',
+            'DEV_uuid-device_id_100_device_owner': '',
+            'DEV_uuid-device_id_100_61_TYPE': nwa_const.NWA_DEVICE_TFW,
+            'DEV_uuid-device_id_100_61': 'public001',
+            'DEV_uuid-device_id_100_61_ip_address': '172.16.1.23',
+            'DEV_uuid-device_id_100_63_mac_address': '12:34:56:78:9a:bc'}
+        )
+        self.driver.delete_port_precommit(self.context)
+
+    @patch('networking_nec.nwa.l2.utils.portcontext_to_nwa_info')
+    @patch('networking_nec.nwa.l2.db_api.get_nwa_tenant_binding')
+    def test_delete_port_precommit_owner_dhcp(self, gntb, ptni):
+        self.context._port['device_owner'] = constants.DEVICE_OWNER_DHCP
+        self.context._port[
+            'device_id'] = neutron_const.DEVICE_ID_RESERVED_DHCP_PORT
+        self.context._port['binding:host_id'] = 'myhost'
+
+        # _revert_dhcp_agent_device
+        gntb.return_value = self._get_nwa_tenant_binding({
+            'CreateTenant': 1,
+            'CreateTenantNW': True,
+            'NWA_tenant_id': 'RegionOnetenant201',
+            'DEV_uuid-device_id_100': 'device_id',
+            'DEV_uuid-device_id_100_device_owner': constants.DEVICE_OWNER_DHCP,
+            'DEV_uuid-device_id_100_61_TYPE': nwa_const.NWA_DEVICE_TFW,
+            'DEV_uuid-device_id_100_61': 'public001',
+            'DEV_uuid-device_id_100_61_ip_address': '172.16.1.23',
+            'DEV_uuid-device_id_100_63_mac_address': '12:34:56:78:9a:bc'}
+        )
+        ptni.return_value = {
+            'tenant_id': 'Tenant1',
+            'nwa_tenant_id': 'RegionOnetenant201',
+            'device': {
+                'owner': constants.DEVICE_OWNER_DHCP,
+                'id': 'device_id'},
+            'resource_group_name': 'Common/App/Pod3',
+            'physical_network': 'Common/App/Pod3'}
+        self.driver.delete_port_precommit(self.context)
+
+    @patch('networking_nec.nwa.l2.db_api.set_nwa_tenant_binding')
+    @patch('networking_nec.nwa.l2.db_api.get_nwa_tenant_binding')
     def test_delete_port_precommit_owner_compute_az(self, gntb, sntb):
         # 1 net 1 port(compute:AZ1)
         self.context.current = self.context._port
@@ -402,10 +505,35 @@ class TestNECNWAMechanismDriver(TestMechNwa):
             self.context, self.network_segments[1], self.host_agents[0])
         self.assertEqual(rb, True)
 
+        # in physical_network
+        self.context.network.current[
+            'provider:physical_network'] = 'Common/App/Pod3'
+        self.context.network.current['provider:segmentation_id'] = 199
+        self.context.current = self.context._port
+        rb = self.driver.try_to_bind_segment_for_agent(
+            self.context, self.network_segments[1], self.host_agents[0])
+        self.assertEqual(rb, True)
+
         # not in segment
         rb = self.driver.try_to_bind_segment_for_agent(
             self.context, self.network_segments[1], self.host_agents[1])
         self.assertEqual(rb, False)
+
+        # device_owner is router_gw
+        self.context._port['device_owner'] = constants.DEVICE_OWNER_ROUTER_GW
+        rb = self.driver.try_to_bind_segment_for_agent(
+            self.context, self.network_segments[1], self.host_agents[0])
+        self.assertEqual(rb, False)
+
+    @patch('networking_nec.nwa.l2.db_api.get_nwa_tenant_binding')
+    def test_try_to_bind_segment_for_agent_in_segments(self, gntb):
+        # in segment
+        self.context._port['device_owner'] = 'network:dhcp'
+        self.context.network.current['segments'] = self.network_segments
+        self.context.current = self.context._port
+        rb = self.driver.try_to_bind_segment_for_agent(
+            self.context, self.network_segments[2], self.host_agents[0])
+        self.assertEqual(rb, True)
 
     def test__bind_segment_to_vif_type(self):
         pod3_eth1 = self.host_agents[0]
@@ -418,6 +546,12 @@ class TestNECNWAMechanismDriver(TestMechNwa):
         self.assertEqual(rb, False)
 
     def test__bind_segment_to_vif_type_agent_none(self):
+        rb = self.driver._bind_segment_to_vif_type(self.context)
+        self.assertEqual(rb, True)
+
+    @patch('neutron.plugins.ml2.db.get_dynamic_segment')
+    def test__bind_segment_to_vif_type_dummy_segment_none(self, gds):
+        gds.return_value = None
         rb = self.driver._bind_segment_to_vif_type(self.context)
         self.assertEqual(rb, True)
 

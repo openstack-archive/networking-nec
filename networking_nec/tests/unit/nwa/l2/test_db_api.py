@@ -185,6 +185,12 @@ class TestAddNwaTenantBinding(testlib_api.SqlTestCaseLight):
                 self.ssn, self.tenant2, self.nwa_tenant2).value_json,
             {self.key1: False})
 
+    def test_json_value_not_dict(self):
+        self.assertFalse(
+            db_api.add_nwa_tenant_binding(
+                self.ssn, self.tenant1, self.nwa_tenant1,
+                [self.value1, self.value2]))    # list
+
 
 class TestGetNwaTenantBinding(base.BaseTestCase):
     def setUp(self):
@@ -398,6 +404,12 @@ class TestTenantQueue(testlib_api.SqlTestCase):
         self.assertFalse(ret)  # do nothing
         ret = db_api.get_nwa_tenant_queue(self.ssn, self.tenant1)
         self.assertFalse(ret)  # not found
+
+    def test_add_tenant_queue_no_result_found(self):
+        session = MagicMock()
+        session.query().filter().all.side_effect = NoResultFound
+        self.assertFalse(
+            db_api.add_nwa_tenant_queue(session, self.tenant1))
 
     def test_add_tenant_queue_detail(self):
         ret = db_api.add_nwa_tenant_queue(
