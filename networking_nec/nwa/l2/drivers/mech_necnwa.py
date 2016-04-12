@@ -181,6 +181,7 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
         try:
             kwargs = self._make_l2api_kwargs(
                 context, use_original_port=use_original_port)
+            self._l2_delete_segment(context, kwargs['nwa_info'])
             proxy = self._get_l2api_proxy(context, kwargs['tenant_id'])
             kwargs['nwa_info'] = self._revert_dhcp_agent_device_id(
                 context, kwargs['nwa_info'])
@@ -209,6 +210,16 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
                 context._port.get('binding:host_id')
             )
         return nwa_info
+
+    def _l2_delete_segment(self, context, nwa_info):
+        session = context.network._plugin_context.session
+        del_segment = db.get_dynamic_segment(
+            session,
+            context.network.current['id'],
+            physical_network=nwa_info['physical_network'])
+        if del_segment:
+            LOG.debug('delete_network_segment %s', del_segment)
+            db.delete_network_segment(session, del_segment['id'])
 
     def _l3_create_tenant_fw(self, context):
         device_owner = context._port['device_owner']
