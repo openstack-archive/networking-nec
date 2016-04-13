@@ -128,7 +128,7 @@ class NECNWANeutronAgent(object):
     def _report_state(self):
         try:
             queues = self.server_manager.get_rpc_server_topics()
-            self.agent_state['configurations']['tenant_queues'] = queues
+            self.agent_state['configurations']['tenant_queues'] = len(queues)
             self.state_rpc.report_state(self.context,
                                         self.agent_state)
             self.agent_state.pop('start_flag', None)

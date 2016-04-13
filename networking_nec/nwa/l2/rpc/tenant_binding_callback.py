@@ -117,26 +117,21 @@ class TenantBindingServerRpcCallback(object):
         return {'status': 'FAILED'}
 
     def update_tenant_rpc_servers(self, rpc_context, **kwargs):
-        ret = {'servers': []}
-
-        servers = kwargs.get('servers')
-        plugin = manager.NeutronManager.get_plugin()
         session = db_api.get_session()
 
         with session.begin(subtransactions=True):
-            queues = necnwa_api.get_nwa_tenant_queues(session)
-            for queue in queues:
-                tenant_ids = [server['tenant_id'] for server in servers]
-                if queue.tenant_id in tenant_ids:
-                    LOG.info(_LI("RPC Server active(tid=%s)"),
-                             queue.tenant_id)
-                    continue
-                else:
-                    # create rpc server for tenant
-                    LOG.debug("create_server: tid=%s", queue.tenant_id)
-                    plugin.nwa_rpc.create_server(
-                        rpc_context, queue.tenant_id
-                    )
-                    ret['servers'].append({'tenant_id': queue.tenant_id})
-
-        return ret
+            q_tids = [q.tenant_id
+                      for q in necnwa_api.get_nwa_tenant_queues(session)]
+        plugin = manager.NeutronManager.get_plugin()
+        tenant_ids = [server['tenant_id'] for server in kwargs['servers']]
+        ret = []
+        for tenant_id in set(q_tids) - set(tenant_ids):
+            LOG.info(_LI("RPCServer only db tid=%s, send create_server"),
+                     tenant_id)
+            plugin.nwa_rpc.create_server(rpc_context, tenant_id)
+            ret.append({'tenant_id': tenant_id})
+        for tenant_id in set(tenant_ids) - set(q_tids):
+            LOG.info(_LI("RPCServer only agent tid=%s, send delete_server"),
+                     tenant_id)
+            plugin.nwa_rpc.delete_server(rpc_context, tenant_id)
+        return {'servers': ret}
