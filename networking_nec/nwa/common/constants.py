@@ -19,3 +19,6 @@ NWA_AGENT_TOPIC = 'nwa_agent'
 NWA_AGENT_TYPE = 'NEC NWA Agent'
 
 NWA_FIREWALL_PLUGIN = 'NECNWAFWaaS'
+
+# initial size and incremental size if thread pool is empty.
+NWA_GREENPOOL_SIZE = 32
