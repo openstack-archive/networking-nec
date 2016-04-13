@@ -19,3 +19,6 @@ NWA_AGENT_TOPIC = 'nwa_agent'
 NWA_AGENT_TYPE = 'NEC NWA Agent'
 
 NWA_FIREWALL_PLUGIN = 'NECNWAFWaaS'
+
+# an incremental size if the rest size is zero.
+NWA_GREENPOOL_ADD_SIZE = 32
