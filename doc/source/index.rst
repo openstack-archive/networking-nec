@@ -20,13 +20,16 @@ NEC NWA plugin
 
 In Mitaka release, NWA plugin was added as a new integration layer
 with NEC NWA (Network Automation) product.
-NWA plugin consists of layer-2 core plugin, layer-3 service plugin,
-FWaaS service plugin and LBaaS driver.
+NWA plugin consists of layer-2 core plugin, layer-3 service plugin.
 
 .. toctree::
    :maxdepth: 1
 
+   nwa/readme
+   nwa/installation
+   nwa/settings
    nwa/devstack
+
 
 NEC OpenFlow plugin
 ===================
