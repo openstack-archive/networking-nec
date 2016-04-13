@@ -33,7 +33,7 @@ Minimum sample local.conf::
     NECNWA_SECRET_ACCESS_KEY="/3iSORtq1E3F+SQtQg6YN00eM3GUda0EKqWDUV/mvqo="
 
     # Run neutron-nwa-agent
-    enable_plugin nwa-agt
+    enable_service nwa-agt
 
     [[post-config|/etc/neutron/dhcp_agent.ini]]
     [DEFAULT]

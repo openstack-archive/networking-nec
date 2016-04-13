@@ -26,7 +26,11 @@ FWaaS service plugin and LBaaS driver.
 .. toctree::
    :maxdepth: 1
 
+   nwa/readme
+   nwa/installation
+   nwa/settings
    nwa/devstack
+
 
 NEC OpenFlow plugin
 ===================
