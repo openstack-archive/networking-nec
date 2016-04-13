@@ -12,13 +12,15 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import eventlet
 from neutron.common import rpc as n_rpc
 from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_messaging.rpc.server import get_rpc_server
 from oslo_messaging.target import Target
 
-from networking_nec._i18n import _LW
+from networking_nec._i18n import _LW, _LI, _LE
+from networking_nec.nwa.common import constants as nwa_const
 
 LOG = logging.getLogger(__name__)
 
@@ -32,6 +34,8 @@ class ServerManager(object):
         super(ServerManager, self).__init__()
         self.topic = topic
         self.agent_top = agent_top
+        self.greenpool_size = nwa_const.NWA_GREENPOOL_SIZE
+        self.greenpool = eventlet.greenpool.GreenPool(self.greenpool_size)
 
     def get_rpc_server_topics(self):
         return [v['topic'] for v in self.rpc_servers.values()]
@@ -66,14 +70,32 @@ class ServerManager(object):
             self.agent_top.endpoints,
             'blocking', serializer
         )
+
+        LOG.debug("RPCServer create: topic=%s", topic)
+        if self.greenpool.free() < 1:
+            self.greenpool_size += nwa_const.NWA_GREENPOOL_SIZE
+            self.greenpool.resize(self.greenpool_size)
+            LOG.info(_LI('RPCServer greenpool resize %s'), self.greenpool_size)
+
+        def server_start():
+            while True:
+                try:
+                    LOG.debug('RPCServer thread %d start %s' %
+                              (self.greenpool.running(), server))
+                    server.start()
+                    LOG.debug('RPCServer thread end %s', server)
+                    break
+                except Exception as e:
+                    LOG.exception(_LE('RPCServer thread start failed: %s'), e)
+
         self.rpc_servers[tid] = {
+            'thread': self.greenpool.spawn(server_start),
             'server': server,
             'topic': topic
         }
-
-        LOG.debug("RPCServer create: topic=%s", topic)
-
-        self.rpc_servers[tid]['server'].start()
+        eventlet.sleep(0)
+        LOG.info(_LI('RPCServer started: %(topic)s server=%(server)s') %
+                 {'topic': topic, 'server': server})
 
         ret['result'] = 'SUCCESS'
         ret['tenant_id'] = tid
@@ -86,14 +108,23 @@ class ServerManager(object):
             LOG.warning(_LW("rpc server not found. tid=%s"), tid)
             return {'result': 'FAILED'}
 
+        LOG.debug('RPCServer delete: stop %s', tid)
         self.rpc_servers[tid]['server'].stop()
+
+        LOG.debug('RPCServer delete: wait %s', tid)
+        self.rpc_servers[tid]['server'].wait()
+
+        LOG.debug('RPCServer delete: pop %s', tid)
         self.rpc_servers.pop(tid)
+
+        LOG.debug('RPCServer delete: sleep %s' % tid)
+        eventlet.sleep(0)
 
         ret = {
             'result': 'SUCCESS',
             'tenant_id': tid
         }
 
-        LOG.debug("RPCServer delete: %s", ret)
+        LOG.debug("RPCServer deleted: %s", ret)
 
         return ret
