@@ -41,6 +41,7 @@ class TestNECNWAServerRpcCallbacks(base.BaseTestCase):
             segment = {'segmentation_id': 1000,
                        portbindings.VIF_TYPE: 'vlan'}
             vif_type = None
+            segment_id = 'seg-id-1000'
 
         class PortContext(object):
             bound_segment = None
@@ -121,6 +122,49 @@ class TestNECNWAServerRpcCallbacks(base.BaseTestCase):
     @mock.patch('networking_nec.nwa.l2.plugin.'
                 'NECNWAL2Plugin._device_to_port_id')
     @mock.patch('neutron.manager.NeutronManager.get_plugin')
+    def test__get_device_details_segment_zero(self, f1, f2, f3, f4, f5, f6):
+        rpc_context = mock.MagicMock()
+        f1.return_value = self.l2_plugin
+        f2.return_value = None
+        f3.current = True
+        f4.begin.return_value = None
+        f5.return_value = [{'segmentation_id': 0, 'id': 'seg-id'}]
+
+        device = self.rpc._get_device_details(rpc_context, kwargs={'test':
+                                                                   "sample"})
+        self.assertTrue(device)
+
+    @mock.patch('neutron.plugins.ml2.plugin.Ml2Plugin.update_port_status')
+    @mock.patch('neutron.plugins.ml2.db.get_network_segments')
+    @mock.patch('neutron.db.api.get_session')
+    @mock.patch('networking_nec.nwa.l2.plugin.'
+                'NECNWAL2Plugin.get_bound_port_context')
+    @mock.patch('networking_nec.nwa.l2.plugin.'
+                'NECNWAL2Plugin._device_to_port_id')
+    @mock.patch('neutron.manager.NeutronManager.get_plugin')
+    def test__get_device_details_segment_no_zero(self, f1, f2, f3, f4, f5, f6):
+        rpc_context = mock.MagicMock()
+        f1.return_value = self.l2_plugin
+        f2.return_value = None
+        f3.current = True
+        f4.begin.return_value = None
+        f5.return_value = [{'segmentation_id': 1,
+                            'id': 'seg-id',
+                            'network_type': 'vlan',
+                            'physical_network': 'OpenStack/DC1/APP'}]
+
+        device = self.rpc._get_device_details(rpc_context, kwargs={'test':
+                                                                   "sample"})
+        self.assertTrue(device)
+
+    @mock.patch('neutron.plugins.ml2.plugin.Ml2Plugin.update_port_status')
+    @mock.patch('neutron.plugins.ml2.db.get_network_segments')
+    @mock.patch('neutron.db.api.get_session')
+    @mock.patch('networking_nec.nwa.l2.plugin.'
+                'NECNWAL2Plugin.get_bound_port_context')
+    @mock.patch('networking_nec.nwa.l2.plugin.'
+                'NECNWAL2Plugin._device_to_port_id')
+    @mock.patch('neutron.manager.NeutronManager.get_plugin')
     def test_get_device_details_segment_size_miss_match(self, f1, f2, f3, f4,
                                                         f5, f6):
         rpc_context = mock.MagicMock()
@@ -173,6 +217,7 @@ class TestNECNWAServerRpcCallbacks(base.BaseTestCase):
         class PortBinding(object):
             segment = None
             vif_type = None
+            segment_id = None
 
         f6.return_value = PortBinding()
 
@@ -202,7 +247,6 @@ class TestNECNWAServerRpcCallbacks(base.BaseTestCase):
                             'network_type': 'vlan',
                             'physical_network': 'OpenStack/DC1/APP'}]
         f6.return_value = self.port_binding
-
         device = self.rpc.get_device_details(rpc_context,
                                              kwargs={'test': "sample"})
         self.assertTrue(device)
