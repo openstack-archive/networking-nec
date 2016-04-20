@@ -433,6 +433,7 @@ class AgentProxyL2(object):
         if 1 < gd_count:
             nwa_data = self._delete_general_dev_data(
                 nwa_data=nwa_data, **kwargs)
+            self._delete_general_dev_segment(context, nwa_data, nwa_info)
             raise nwa_exc.AgentProxyException(value=nwa_data)
 
         # delete general dev
@@ -514,6 +515,15 @@ class AgentProxyL2(object):
 
         return nwa_data
 
+    def _delete_general_dev_segment(self, context, nwa_data, nwa_info):
+        network_id = nwa_info['network']['id']
+        physical_network = nwa_info['physical_network']
+        resource_group_name = nwa_info['resource_group_name']
+        if not check_segment_gd(network_id, resource_group_name, nwa_data):
+            self.nwa_l2_rpc.release_dynamic_segment_from_agent(
+                context, physical_network, network_id
+            )
+
     @utils.log_method_return_value
     @helpers.log_method_call
     def _delete_general_dev(self, context, **kwargs):
@@ -540,6 +550,7 @@ class AgentProxyL2(object):
         if body['status'] == 'SUCCEED':
             LOG.debug("DeleteGeneralDev SUCCEED")
             nwa_data = self._delete_general_dev_data(**kwargs)
+            self._delete_general_dev_segment(context, nwa_data, nwa_info)
         else:
             LOG.debug("DeleteGeneralDev %s", body['status'])
             raise nwa_exc.AgentProxyException(value=nwa_data)
