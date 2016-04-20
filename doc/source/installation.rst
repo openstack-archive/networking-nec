@@ -28,7 +28,7 @@ Manual Installation
 
 (Kilo or later) Neutron integration is available.
 After the core/vendor decomposition work, the main code is provided
-as a separate python module called **networking-nec***,
+as a separate python module called **networking-nec**,
 and the shim code and configuration exist in the Neutron code tree.
 
 The code is maintained at http://git.openstack.org/cgit/openstack/networking-nec
