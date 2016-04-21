@@ -8,7 +8,7 @@ Neutron plugins for NEC networking products
 ===========================================
 
 ``networking-nec`` library provides Neutron plugins/drivers
-for `NEC SDN <http://www.necam.com/SDN/>`_ networking products`.
+for `NEC SDN <http://www.necam.com/SDN/>`_ networking products.
 
 * Documentation: http://networking-nec.readthedocs.org/
 * Source: http://git.openstack.org/cgit/openstack/networking-nec
@@ -44,13 +44,8 @@ NEC OpenFlow plugin in Liberty or older releases supported
    Note that the production support will be continued based
    on the production support policy.
 
-.. toctree::
-   :maxdepth: 1
-
-   openflow/readme
-   openflow/installation
-   openflow/settings
-   openflow/devstack
+The documentation on NEC OpenFlow plugin is found at
+http://networking-nec.readthedocs.org/en/stable-liberty/.
 
 Developers Guide
 ================
