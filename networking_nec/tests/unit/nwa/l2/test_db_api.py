@@ -305,7 +305,7 @@ class TestSetNwaTenantBinding(testscenarios.WithScenarios, base.BaseTestCase):
              'call_count_insert': 1,
              'call_count_delete': 1
          }),
-    ]
+        ]
 
     @patch('networking_nec.nwa.l2.db_api.get_nwa_tenant_binding')
     def test_set_nwa_tenant_binding(self, gntb):
