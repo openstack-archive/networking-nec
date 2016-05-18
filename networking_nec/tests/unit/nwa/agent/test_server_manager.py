@@ -22,7 +22,7 @@ from networking_nec.tests.unit.nwa.agent import base
 
 class TestAgentServerManager(base.TestNWAAgentBase):
 
-    @mock.patch('oslo_messaging.server.MessageHandlingServer')
+    @mock.patch('oslo_messaging.server.service.ServiceBase')
     def test_create_tenant_rpc_server(self, f1):
         tenant_id = '844eb55f21e84a289e9c22098d387e5d'
         rd = self.agent.server_manager.create_tenant_rpc_server(tenant_id)
@@ -36,7 +36,7 @@ class TestAgentServerManager(base.TestNWAAgentBase):
                 eventlet.sleep(5)
         return Server()
 
-    @mock.patch('oslo_messaging.server.MessageHandlingServer')
+    @mock.patch('oslo_messaging.server.service.ServiceBase')
     def test_create_tenant_rpc_server_greenpool_resize(self, mhs):
         poolsize = 3
         manager = server_manager.ServerManager(self.agent.topic, self.agent,
