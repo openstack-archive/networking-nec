@@ -42,6 +42,10 @@ class TestNWAConfig(base.BaseTestCase):
     def test_section_default_NWA_scenario_polling_count(self):
         self.assertEqual(cfg.CONF.NWA.scenario_polling_count, 6)
 
+    def test_section_default_NWA_use_necnwa_router(self):
+        self.assertIsInstance(cfg.CONF.NWA.use_necnwa_router, bool)
+        self.assertTrue(cfg.CONF.NWA.use_necnwa_router)
+
     def test_section_default_NWA_ironic_az_prefix(self):
         self.assertEqual(cfg.CONF.NWA.ironic_az_prefix, 'BM_')
 

@@ -535,25 +535,35 @@ class TestNECNWAMechanismDriver(TestMechNwa):
             self.context, self.network_segments[2], self.host_agents[0])
         self.assertEqual(rb, True)
 
-    def test__bind_segment_to_vif_type(self):
+    def test__find_nwa_physical_network(self):
         pod3_eth1 = self.host_agents[0]
-        rb = self.driver._bind_segment_to_vif_type(self.context, pod3_eth1)
-        self.assertEqual(rb, True)
+        physnet = self.driver._find_nwa_physical_network(self.context,
+                                                         pod3_eth1)
+        self.assertEqual(physnet, 'Common/App/Pod3')
 
-    def test__bind_segment_to_vif_type_no_match(self):
-        rb = self.driver._bind_segment_to_vif_type(self.context,
-                                                   self.host_agents[1])
-        self.assertEqual(rb, False)
+    def test__find_nwa_physical_network_no_match(self):
+        physnet = self.driver._find_nwa_physical_network(self.context,
+                                                         self.host_agents[1])
+        self.assertIsNone(physnet)
 
-    def test__bind_segment_to_vif_type_agent_none(self):
-        rb = self.driver._bind_segment_to_vif_type(self.context)
-        self.assertEqual(rb, True)
+    def test__find_nwa_physical_network_agent_none(self):
+        physnet = self.driver._find_nwa_physical_network(self.context)
+        self.assertEqual(physnet, 'Common/App/Pod3')
 
     @patch('neutron.plugins.ml2.db.get_dynamic_segment')
     def test__bind_segment_to_vif_type_dummy_segment_none(self, gds):
         gds.return_value = None
-        rb = self.driver._bind_segment_to_vif_type(self.context)
-        self.assertEqual(rb, True)
+        physnet = 'Common/App/Pod3'
+        rd = self.driver._bind_segment_to_vif_type(self.context, physnet)
+        self.assertIsNone(rd)
+
+    @patch('neutron.plugins.ml2.db.get_dynamic_segment')
+    @patch('neutron.plugins.ml2.db.add_network_segment')
+    def test__bind_segment_to_vif_type_dummy_segment_exists(self, ans, gds):
+        gds.return_value = self.network_segments[1]
+        physnet = 'Common/KVM/Pod1-2'
+        self.driver._bind_segment_to_vif_type(self.context, physnet)
+        self.assertEqual(0, ans.call_count)
 
     @patch('networking_nec.nwa.l2.db_api.get_nwa_tenant_binding')
     def _test__bind_port_nwa(self, gntb):
