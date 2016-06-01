@@ -1,0 +1,28 @@
+{
+    "progress": 100,
+    "resultdata": {
+        "AutoRecovery": "0",
+        "BackEndFWInfo": "FortiGate",
+        "DCResourceReserveID": "1",
+        "DCResourceReserveID_Delete": "",
+        "ErrorMessage": "",
+        "InJsonFileName": "",
+        "ManagementLogicalNWName": "LNW_ManagementVLAN_88",
+        "ManagementVlanFwIpAddress": "100.64.0.254",
+        "ManagementVlanID": "1",
+        "ManagementVlanIPSubnet": "100.64.0.0",
+        "ManagementVlanSubnetMask": "255.255.255.0",
+        "OutJsonFileName": "",
+        "ResourceGroupName": "OpenStack/DC1/APP",
+        "TenantFWAccessInfo": "",
+        "TenantFWInfo": "",
+        "TenantFWName": "",
+        "TenantID": "DC1_844eb55f21e84a289e9c22098d387e5d",
+        "TenantLogicalNWName": "LNW_TenantVLAN_89",
+        "TenantVlanFwIpAddress": "",
+        "TenantVlanID": "",
+        "TenantVlanIPSubnet": "100.64.1.0",
+        "TenantVlanSubnetMask": "255.255.255.0"
+    },
+    "status": "SUCCEED"
+}
