@@ -41,6 +41,7 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
         self.resource_groups = nwa_com_utils.load_json_from_file(
             'resource_group', cfg.CONF.NWA.resource_group_file,
             cfg.CONF.NWA.resource_group, default_value=[])
+        self.necnwa_router = cfg.CONF.NWA.use_necnwa_router
 
     def _get_l2api_proxy(self, context, tenant_id):
         proxy = context._plugin.get_nwa_proxy(tenant_id,
@@ -52,15 +53,22 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
                                               context.network._plugin_context)
         return nwa_l3_proxy_api.NwaL3ProxyApi(proxy.client)
 
+    def is_router(self, device_owner):
+        return device_owner in (constants.DEVICE_OWNER_ROUTER_INTF,
+                                constants.DEVICE_OWNER_ROUTER_GW)
+
     def create_port_precommit(self, context):
+        if not self.necnwa_router:
+            return
         device_owner = context._port['device_owner']
-        if device_owner not in (constants.DEVICE_OWNER_ROUTER_INTF,
-                                constants.DEVICE_OWNER_ROUTER_GW):
+        if not self.is_router(device_owner):
             LOG.warning(_LW("device owner missmatch device_owner=%s"),
                         device_owner)
             return
         self._l3_create_tenant_fw(context)
-        self._bind_segment_to_vif_type(context)
+        physical_network = self._find_nwa_physical_network(context)
+        if physical_network:
+            self._bind_segment_to_vif_type(context, physical_network)
 
     def update_port_precommit(self, context):
         new_port = context.current
@@ -82,8 +90,7 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
                   {'tid': tenant_id, 'nid': nwa_tenant_id,
                    'dev': device_owner})
 
-        if device_owner in (constants.DEVICE_OWNER_ROUTER_GW,
-                            constants.DEVICE_OWNER_ROUTER_INTF):
+        if self.necnwa_router and self.is_router(device_owner):
             self._l3_delete_tenant_fw(context)
         elif device_owner == constants.DEVICE_OWNER_FLOATINGIP:
             pass
@@ -93,50 +100,48 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
             self._l2_delete_general_dev(context)
 
     def try_to_bind_segment_for_agent(self, context, segment, agent):
-        if self._bind_segment_to_vif_type(context, agent):
-            device_owner = context._port['device_owner']
-            if device_owner not in (constants.DEVICE_OWNER_ROUTER_GW,
-                                    constants.DEVICE_OWNER_ROUTER_INTF):
+        device_owner = context._port['device_owner']
+        if not self.necnwa_router or not self.is_router(device_owner):
+            physical_network = self._find_nwa_physical_network(context, agent)
+            if physical_network:
+                self._bind_segment_to_vif_type(context, physical_network)
                 self._bind_port_nwa_debug_message(context)
                 self._l2_create_general_dev(context)
                 return True
-        LOG.warning(_LW("binding segment not found for agent=%s"), agent)
+            LOG.warning(_LW("binding segment not found for agent=%s"), agent)
         return super(
             NECNWAMechanismDriver, self
         ).try_to_bind_segment_for_agent(context, segment, agent)
 
-    def _bind_segment_to_vif_type(self, context, agent=None):
+    def _find_nwa_physical_network(self, context, ovs_agent=None):
         mappings = {}
-        if agent:
-            mappings = agent['configurations'].get('bridge_mappings', {})
-
+        if ovs_agent:
+            mappings = ovs_agent['configurations'].get('bridge_mappings', {})
         for res in self.resource_groups:
-            if agent and res['ResourceGroupName'] not in mappings:
+            if ovs_agent and res['ResourceGroupName'] not in mappings:
                 continue
-            if res['device_owner'] != context._port['device_owner']:
-                continue
+            if res['device_owner'] == context._port['device_owner']:
+                return res['ResourceGroupName']
 
-            network_id = context.network.current['id']
-            dummy_segment = db.get_dynamic_segment(
-                context.network._plugin_context.session,
-                network_id, physical_network=res['ResourceGroupName'])
-            LOG.debug("1st: dummy segment is %s", dummy_segment)
-            if not dummy_segment:
-                dummy_segment = {
-                    api.PHYSICAL_NETWORK: res['ResourceGroupName'],
-                    api.NETWORK_TYPE: plugin_const.TYPE_VLAN,
-                    api.SEGMENTATION_ID: 0
-                }
-                db.add_network_segment(
-                    context.network._plugin_context.session,
-                    network_id, dummy_segment, is_dynamic=True)
-            LOG.debug("2nd: dummy segment is %s", dummy_segment)
-            context.set_binding(dummy_segment[api.ID],
-                                self.vif_type,
-                                {portbindings.CAP_PORT_FILTER: True,
-                                 portbindings.OVS_HYBRID_PLUG: True})
-            return True
-        return False
+    def _bind_segment_to_vif_type(self, context, physical_network):
+        network_id = context.network.current['id']
+        session = context.network._plugin_context.session
+        dummy_segment = db.get_dynamic_segment(
+            session, network_id, physical_network=physical_network)
+        LOG.debug("1st: dummy segment is %s", dummy_segment)
+        if not dummy_segment:
+            dummy_segment = {
+                api.PHYSICAL_NETWORK: physical_network,
+                api.NETWORK_TYPE: plugin_const.TYPE_VLAN,
+                api.SEGMENTATION_ID: 0
+            }
+            db.add_network_segment(
+                session, network_id, dummy_segment, is_dynamic=True)
+        LOG.debug("2nd: dummy segment is %s", dummy_segment)
+        context.set_binding(dummy_segment[api.ID],
+                            self.vif_type,
+                            {portbindings.CAP_PORT_FILTER: True,
+                             portbindings.OVS_HYBRID_PLUG: True})
 
     def _bind_port_nwa_debug_message(self, context):
         network_name, network_id = nwa_l2_utils.get_network_info(context)

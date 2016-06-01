@@ -37,6 +37,11 @@ function neutron_plugin_configure_common {
 }
 
 function neutron_plugin_configure_service {
+    if [ -n "$NECNWA_L3_PLUGIN" ]; then
+        iniset /$Q_PLUGIN_CONF_FILE NWA use_necnwa_router False
+    else
+        iniset /$Q_PLUGIN_CONF_FILE NWA use_necnwa_router True
+    fi
     iniset /$Q_PLUGIN_CONF_FILE NWA server_url $NECNWA_SERVER_URL
     iniset /$Q_PLUGIN_CONF_FILE NWA access_key_id $NECNWA_ACCESS_KEY_ID
     iniset /$Q_PLUGIN_CONF_FILE NWA secret_access_key $NECNWA_SECRET_ACCESS_KEY
