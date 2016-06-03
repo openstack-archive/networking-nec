@@ -1,0 +1,12 @@
+[Unit]
+Description=OpenStack Neutron NECNWA Agent Cleanup Queue
+After=syslog.target network.target
+
+[Service]
+Type=simple
+User=neutron
+ExecStart=/usr/bin/neutron-necnwa-cleanup --config-file /etc/neutron/neutron.conf --log-file /var/log/neutron/necnwa-cleanup.log
+PrivateTmp=false
+
+[Install]
+WantedBy=multi-user.target
