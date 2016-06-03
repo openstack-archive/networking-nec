@@ -1,0 +1,12 @@
+[Unit]
+Description=OpenStack Neutron NEC NWA Agent
+After=syslog.target network.target
+
+[Service]
+Type=simple
+User=neutron
+ExecStart=/usr/bin/neutron-necnwa-agent --config-file /usr/share/neutron/neutron-dist.conf --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugin.ini --log-file /var/log/neutron/necnwa-agent.log
+PrivateTmp=false
+
+[Install]
+WantedBy=multi-user.target
