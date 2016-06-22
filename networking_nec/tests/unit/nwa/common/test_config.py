@@ -46,6 +46,10 @@ class TestNWAConfig(base.BaseTestCase):
         self.assertIsInstance(cfg.CONF.NWA.use_necnwa_router, bool)
         self.assertTrue(cfg.CONF.NWA.use_necnwa_router)
 
+    def test_section_default_NWA_use_neutron_vlan_id(self):
+        self.assertIsInstance(cfg.CONF.NWA.use_neutron_vlan_id, bool)
+        self.assertFalse(cfg.CONF.NWA.use_neutron_vlan_id)
+
     def test_section_default_NWA_ironic_az_prefix(self):
         self.assertEqual(cfg.CONF.NWA.ironic_az_prefix, 'BM_')
 

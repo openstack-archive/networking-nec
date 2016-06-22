@@ -38,6 +38,8 @@ class NwaWorkflow(object):
         'CreateTenantLB': '40030092',
         'UpdateTenantLB': '40030093',
         'DeleteTenantLB': '40030094',
+        'CreateConnectPort': '50000001',
+        'DeleteConnectPort': '50000002',
     }
     _errno = {
         '1': 'Unknown parent node',

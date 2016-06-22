@@ -214,3 +214,45 @@ class TestNwaClientL2(test_client.TestNwaClientBase):
         self.assertEqual(rd, 200)
         self.assertEqual(rj['status'], 'SUCCESS')
         self.assertEqual(self.post.call_count, 1)
+
+    def test_create_connect_port(self):
+        vlan_name = 'LNW_BusinessVLAN_49'
+        vlan_type = 'BusinessVLAN'
+        vlan_id = 1001
+        rd, rj = self.nwa.l2.create_connect_port(
+            TENANT_ID, DC_RESOURCE_GROUP_POD1,
+            vlan_name, vlan_type, vlan_id
+        )
+        self.post.assert_called_once_with(
+            workflow.NwaWorkflow.path('CreateConnectPort'),
+            {'CreateNW_DCResourceGroupName': DC_RESOURCE_GROUP_POD1,
+             'CreateNW_DeviceType1': 'GeneralDev',
+             'CreateNW_OperationType': 'CreateConnectPort',
+             'CreateNW_VlanID1': vlan_id,
+             'CreateNW_VlanLogicalName1': vlan_name,
+             'CreateNW_VlanType1': vlan_type,
+             'TenantID': TENANT_ID})
+        self.assertEqual(rd, 200)
+        self.assertEqual(rj['status'], 'SUCCESS')
+        self.assertEqual(self.post.call_count, 1)
+
+    def test_delete_connect_port(self):
+        vlan_name = 'LNW_BusinessVLAN_49'
+        vlan_type = 'BusinessVLAN'
+        vlan_id = 1001
+        rd, rj = self.nwa.l2.delete_connect_port(
+            TENANT_ID, DC_RESOURCE_GROUP_POD1,
+            vlan_name, vlan_type, vlan_id
+        )
+        self.post.assert_called_once_with(
+            workflow.NwaWorkflow.path('DeleteConnectPort'),
+            {'DeleteNW_DCResourceGroupName': DC_RESOURCE_GROUP_POD1,
+             'DeleteNW_DeviceType1': 'GeneralDev',
+             'DeleteNW_OperationType': 'DeleteConnectPort',
+             'DeleteNW_VlanID1': vlan_id,
+             'DeleteNW_VlanLogicalName1': vlan_name,
+             'DeleteNW_VlanType1': vlan_type,
+             'TenantID': TENANT_ID})
+        self.assertEqual(rd, 200)
+        self.assertEqual(rj['status'], 'SUCCESS')
+        self.assertEqual(self.post.call_count, 1)

@@ -42,6 +42,7 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
             'resource_group', cfg.CONF.NWA.resource_group_file,
             cfg.CONF.NWA.resource_group, default_value=[])
         self.necnwa_router = cfg.CONF.NWA.use_necnwa_router
+        self.multi_dc = cfg.CONF.NWA.use_neutron_vlan_id
 
     def _get_l2api_proxy(self, context, tenant_id):
         proxy = context._plugin.get_nwa_proxy(tenant_id,
@@ -124,6 +125,8 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
                 return res['ResourceGroupName']
 
     def _bind_segment_to_vif_type(self, context, physical_network):
+        if self.multi_dc:
+            return
         network_id = context.network.current['id']
         session = context.network._plugin_context.session
         dummy_segment = db.get_dynamic_segment(

@@ -241,11 +241,23 @@ class TestAgentProxyL2CreateGeneralDev(testscenarios.WithScenarios,
             load_data_file(self.retval_create_vlan[1])
         )
 
+        self.agent.proxy_l2.multi_dc = False
         if isinstance(self.gtb_data, six.string_types):
             gtb.return_value = load_data_file(self.gtb_data)
         else:
             gtb.return_value = self.gtb_data
+        self.agent.proxy_l2.create_general_dev(
+            context,
+            tenant_id=tenant_id,
+            nwa_tenant_id=nwa_tenant_id,
+            nwa_info=nwa_info
+        )
 
+        self.agent.proxy_l2.multi_dc = True
+        if isinstance(self.gtb_data, six.string_types):
+            gtb.return_value = load_data_file(self.gtb_data)
+        else:
+            gtb.return_value = self.gtb_data
         self.agent.proxy_l2.create_general_dev(
             context,
             tenant_id=tenant_id,
@@ -364,11 +376,23 @@ class TestAgentProxyL2DeleteGeneralDev(testscenarios.WithScenarios,
             load_data_file(self.retval_delete_vlan[1])
         )
 
+        self.agent.proxy_l2.multi_dc = False
         if isinstance(self.gtb_data, six.string_types):
             gtb.return_value = load_data_file(self.gtb_data)
         else:
             gtb.return_value = self.gtb_data
+        self.agent.proxy_l2.delete_general_dev(
+            context,
+            tenant_id=tenant_id,
+            nwa_tenant_id=nwa_tenant_id,
+            nwa_info=nwa_info
+        )
 
+        self.agent.proxy_l2.multi_dc = True
+        if isinstance(self.gtb_data, six.string_types):
+            gtb.return_value = load_data_file(self.gtb_data)
+        else:
+            gtb.return_value = self.gtb_data
         self.agent.proxy_l2.delete_general_dev(
             context,
             tenant_id=tenant_id,

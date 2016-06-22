@@ -6,6 +6,7 @@
     "network": {
         "id": "546a8551-5c2b-4050-a769-cc3c962fc5cf",
         "name": "net100",
+        "vlan_id": "123",
         "vlan_type": "BusinessVLAN"
     },
     "physical_network": "OpenStack/DC1/APP",

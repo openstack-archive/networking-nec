@@ -114,3 +114,35 @@ class NwaClientL2(object):
         return self.client.call_workflow(
             tenant_id, self.client.post, 'DeleteGeneralDev', body
         )
+
+    # --- Connect Port ---
+
+    def create_connect_port(self, tenant_id, dc_resource_group_name,
+                            logical_name, vlan_type, vlan_id):
+        body = {
+            'CreateNW_DCResourceGroupName': dc_resource_group_name,
+            'CreateNW_DeviceType1': 'GeneralDev',
+            'CreateNW_OperationType': 'CreateConnectPort',
+            'CreateNW_VlanID1': vlan_id,
+            'CreateNW_VlanLogicalName1': logical_name,
+            'CreateNW_VlanType1': vlan_type,
+            'TenantID': tenant_id,
+        }
+        return self.client.call_workflow(
+            tenant_id, self.client.post, 'CreateConnectPort', body
+        )
+
+    def delete_connect_port(self, tenant_id, dc_resource_group_name,
+                            logical_name, vlan_type, vlan_id):
+        body = {
+            'DeleteNW_DCResourceGroupName': dc_resource_group_name,
+            'DeleteNW_DeviceType1': 'GeneralDev',
+            'DeleteNW_OperationType': 'DeleteConnectPort',
+            'DeleteNW_VlanID1': vlan_id,
+            'DeleteNW_VlanLogicalName1': logical_name,
+            'DeleteNW_VlanType1': vlan_type,
+            'TenantID': tenant_id,
+        }
+        return self.client.call_workflow(
+            tenant_id, self.client.post, 'DeleteConnectPort', body
+        )
