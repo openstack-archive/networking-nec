@@ -58,7 +58,7 @@ class NECNWANeutronAgent(object):
         self.conf = cfg.CONF
         self.host = socket.gethostname()
         self.agent_id = 'necnwa-q-agent.%s' % self.host
-
+        self.multi_dc = cfg.CONF.NWA.use_neutron_vlan_id
         self.client = nwa_cli.NwaClient()
 
         self.agent_state = {
@@ -71,8 +71,8 @@ class NECNWANeutronAgent(object):
 
         self.server_manager = server_manager.ServerManager(self.topic, self)
         self.proxy_tenant = proxy_tenant.AgentProxyTenant(self, self.client)
-        self.proxy_l2 = proxy_l2.AgentProxyL2(self, self.client)
-        self.proxy_l3 = proxy_l3.AgentProxyL3(self, self.client)
+        self.proxy_l2 = proxy_l2.AgentProxyL2(self, self.client, self.multi_dc)
+        self.proxy_l3 = proxy_l3.AgentProxyL3(self, self.client, self.multi_dc)
         self.setup_rpc()
 
         LOG.debug('NWA Agent state %s', self.agent_state)

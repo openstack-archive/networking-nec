@@ -6,6 +6,7 @@
     "network": {
         "id": "315414a5-8d06-4d8e-8932-6f73665e5733",
         "name": "LNetA",
+        "vlan_id": "123",
         "vlan_type": "BusinessVLAN"
     },
     "nwa_tenant_id": "T01DC7483b391c2c647c59097240d59e705d4",

@@ -13,6 +13,8 @@
 #    under the License.
 
 from neutron.db import external_net_db
+from neutron.plugins.ml2 import db as db_ml2
+from neutron.plugins.ml2 import driver_api as api
 from neutron_lib import constants
 from oslo_config import cfg
 from oslo_log import log as logging
@@ -57,6 +59,21 @@ def is_external_network(context, net_id):
         return False
 
 
+def get_vlan_id_of_physical_network(context, network_id, physical_network):
+    if hasattr(context, 'session'):
+        session = context.session
+    else:
+        session = context.network._plugin_context.session
+    segments = db_ml2.get_network_segments(session, network_id)
+    if not segments:
+        return ''
+    for segment in segments:
+        if segment[api.PHYSICAL_NETWORK] == physical_network:
+            return str(segment[api.SEGMENTATION_ID])
+    return str(segments[0][api.SEGMENTATION_ID])
+
+
+# pylint: disable=too-many-locals
 def portcontext_to_nwa_info(context, resource_groups,
                             use_original_port=False):
     tenant_id, nwa_tenant_id = nwa_com_utils.get_tenant_info(context)
@@ -64,6 +81,12 @@ def portcontext_to_nwa_info(context, resource_groups,
 
     port = context.original if use_original_port else context.current
     device_owner = port['device_owner']
+    resource_group_name = _get_resource_group_name(context, resource_groups,
+                                                   use_original_port)
+    physical_network = get_physical_network(device_owner, resource_groups,
+                                            resource_group_name)
+    vlan_id = get_vlan_id_of_physical_network(context, network_id,
+                                              physical_network)
     vlan_type = 'PublicVLAN' if is_external_network(context, network_id) \
                 else 'BusinessVLAN'
 
@@ -74,6 +97,7 @@ def portcontext_to_nwa_info(context, resource_groups,
         'nwa_tenant_id': nwa_tenant_id,
         'network': {'id': network_id,
                     'name': network_name,
+                    'vlan_id': vlan_id,
                     'vlan_type': vlan_type},
         'device': {'owner': device_owner,
                    'id': port['device_id']},
@@ -96,14 +120,9 @@ def portcontext_to_nwa_info(context, resource_groups,
                             'ip': '',
                             'mac': port['mac_address']}
 
-    resource_group_name = _get_resource_group_name(context, resource_groups,
-                                                   use_original_port)
     nwa_info['resource_group_name'] = resource_group_name
     nwa_info['resource_group_name_nw'] = cfg.CONF.NWA.resource_group_name
-    nwa_info['physical_network'] = get_physical_network(device_owner,
-                                                        resource_groups,
-                                                        resource_group_name)
-
+    nwa_info['physical_network'] = physical_network
     return nwa_info
 
 

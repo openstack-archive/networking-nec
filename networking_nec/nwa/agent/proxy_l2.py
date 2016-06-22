@@ -102,12 +102,13 @@ def get_resource_group_name(nwa_info, nwa_data, dev_type):
 
 class AgentProxyL2(object):
 
-    def __init__(self, agent_top, client):
+    def __init__(self, agent_top, client, multi_dc=False):
         self.nwa_tenant_rpc = tenant_binding_api.TenantBindingServerRpcApi(
             topics.PLUGIN)
         self.nwa_l2_rpc = nwa_l2_server_api.NwaL2ServerRpcApi(topics.PLUGIN)
         self.agent_top = agent_top
         self.client = client
+        self.multi_dc = multi_dc
 
     @property
     def proxy_tenant(self):
@@ -296,9 +297,12 @@ class AgentProxyL2(object):
 
         # create general dev
         if not check_segment_gd(network_id, resource_group_name, nwa_data):
+            if self.multi_dc:
+                sync_vlan_id = self._create_connect_port
+            else:
+                sync_vlan_id = self._create_general_dev
             # raise AgentProxyException if fail
-            nwa_data = self._create_general_dev(
-                context, nwa_data=nwa_data, **kwargs)
+            nwa_data = sync_vlan_id(context, nwa_data=nwa_data, **kwargs)
         else:
             ret_val = self._create_general_dev_data(
                 nwa_data=nwa_data, **kwargs)
@@ -436,10 +440,12 @@ class AgentProxyL2(object):
             self._delete_general_dev_segment(context, nwa_data, nwa_info)
             raise nwa_exc.AgentProxyException(value=nwa_data)
 
-        # delete general dev
+        if self.multi_dc:
+            sync_vlan_id = self._delete_connect_port
+        else:
+            sync_vlan_id = self._delete_general_dev
         # raise AgentProxyException if fail
-        nwa_data = self._delete_general_dev(context,
-                                            nwa_data=nwa_data, **kwargs)
+        nwa_data = sync_vlan_id(context, nwa_data=nwa_data, **kwargs)
         # delete general dev end
 
         return self._terminate_l2_network(context, nwa_data, **kwargs)
@@ -556,4 +562,79 @@ class AgentProxyL2(object):
             raise nwa_exc.AgentProxyException(value=nwa_data)
         # delete general dev end
 
+        return nwa_data
+
+    @utils.log_method_return_value
+    @helpers.log_method_call
+    def create_connect_port(self, context, **kwargs):
+        nwa_info = kwargs['nwa_info']
+        nwa_data = kwargs['nwa_data']
+        network_id = nwa_info['network']['id']
+        vlan_id = nwa_info['network']['vlan_id']
+        resource_group_name = nwa_info['resource_group_name']
+        rcode, body = self.client.l2.create_connect_port(
+            kwargs.get('nwa_tenant_id'),
+            resource_group_name,
+            data_utils.get_vlan_logical_name(nwa_data, network_id),
+            nwa_info['network']['vlan_type'],
+            vlan_id
+        )
+        if rcode == 200 and body['status'] == 'SUCCEED':
+            LOG.debug("CreateConnectPort SUCCEED")
+            return body
+
+    @utils.log_method_return_value
+    @helpers.log_method_call
+    def _create_connect_port(self, context, **kwargs):
+        body = self.create_connect_port(context, **kwargs)
+        if body:
+            nwa_data = kwargs['nwa_data']
+            nwa_info = kwargs['nwa_info']
+            network_id = nwa_info['network']['id']
+            vlan_id = nwa_info['network']['vlan_id']
+            resource_group_name = nwa_info['resource_group_name']
+            vlan_key = data_utils.get_vlan_key(network_id)
+            if vlan_key not in nwa_data:
+                LOG.error(_LE("not create vlan."))
+                raise nwa_exc.AgentProxyException(value=nwa_data)
+            data_utils.set_vp_net_data(nwa_data, network_id,
+                                       resource_group_name,
+                                       nwa_const.NWA_DEVICE_GDV,
+                                       vlan_id)
+            self._append_device_for_gdv(nwa_info, nwa_data)
+        else:
+            LOG.debug("CreateConnectPort %s", body['status'])
+            raise nwa_exc.AgentProxyException(value=nwa_data)
+        return nwa_data
+
+    @utils.log_method_return_value
+    @helpers.log_method_call
+    def delete_connect_port(self, context, **kwargs):
+        nwa_info = kwargs['nwa_info']
+        nwa_data = kwargs['nwa_data']
+        network_id = nwa_info['network']['id']
+        vlan_id = nwa_info['network']['vlan_id']
+        resource_group_name = nwa_info['resource_group_name']
+        rcode, body = self.client.l2.delete_connect_port(
+            kwargs['nwa_tenant_id'],
+            resource_group_name,
+            data_utils.get_vlan_logical_name(nwa_data, network_id),
+            nwa_info['network']['vlan_type'],
+            vlan_id
+        )
+        if rcode == 200 and body['status'] == 'SUCCEED':
+            LOG.debug("DeleteConnectPort SUCCEED")
+            return body
+
+    @utils.log_method_return_value
+    @helpers.log_method_call
+    def _delete_connect_port(self, context, **kwargs):
+        body = self.delete_connect_port(context, **kwargs)
+        if body:
+            nwa_data = self._delete_general_dev_data(**kwargs)
+            self._delete_general_dev_segment(context, nwa_data,
+                                             kwargs['nwa_info'])
+        else:
+            LOG.debug("DeleteConnectPort %s", body['status'])
+            raise nwa_exc.AgentProxyException(value=kwargs['nwa_data'])
         return nwa_data

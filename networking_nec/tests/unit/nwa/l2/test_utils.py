@@ -37,6 +37,20 @@ class TestNwa(base.BaseTestCase):
                 return
             pass
 
+        class network_segment(object):
+            id = '1'
+            network_id = 0
+            network_type = 'vlan'
+            physical_network = 'Phys1'
+            segmentation_id = '1001'
+
+            def __init__(self, id_, nid, ntype, physnet, vid):
+                self.id = id_
+                self.network_id = nid
+                self.network_type = ntype
+                self.physical_network = physnet
+                self.segmentation_id = vid
+
         self.context = network_context()
         self.context.network.current = {}
         self.context.network.current['tenant_id'] = 'T1'
@@ -84,19 +98,26 @@ class TestNwa(base.BaseTestCase):
             {
                 "physical_network": "Common/KVM/Pod1-1",
                 "id": "uuid-1-1",
-                "segmentation_id": 100
+                "segmentation_id": '100'
             },
             {
                 "physical_network": "Common/KVM/Pod1-2",
                 "id": "uuid-1-2",
-                "segmentation_id": 101
+                "segmentation_id": '101'
             },
             {
                 "physical_network": "Common/App/Pod3",
                 "id": "uuid-1-3",
-                "segmentation_id": 102
+                "segmentation_id": '102'
             }
         ]
+
+        self.segments_db = []
+        for segment in self.network_segments:
+            self.segments_db.append(network_segment(
+                self.context.network.current['id'],
+                segment['id'], 'vlan',
+                segment['physical_network'], segment['segmentation_id']))
 
         self.resource_group = [
             {
@@ -189,6 +210,38 @@ class TestGetPhysicalNetwork(TestNwa):
         self.assertIsNone(pnet)
 
 
+class TestGetVlanIdOfPhysicalNetwork(TestNwa):
+    def test_segment_not_found(self):
+        network_id = 'uuid-1-2'
+        physical_network = 'Common/KVM/Pod1-2'
+        self.context.network.session = MagicMock()
+        self.context.network.session.query().filter().order_by().filter_by().\
+            all.return_value = []
+        vid = nwa_l2_utils.get_vlan_id_of_physical_network(
+            self.context.network, network_id, physical_network)
+        self.assertEqual(vid, '')
+
+    def test_physical_network_not_found(self):
+        network_id = 'uuid-1-2'
+        physical_network = 'Common/KVM/Pod1-X'
+        self.context.network.session = MagicMock()
+        self.context.network.session.query().filter().order_by().filter_by().\
+            all.return_value = [self.segments_db[1]]
+        vid = nwa_l2_utils.get_vlan_id_of_physical_network(
+            self.context.network, network_id, physical_network)
+        self.assertEqual(vid, '101')
+
+    def test_found(self):
+        network_id = 'uuid-1-2'
+        physical_network = 'Common/KVM/Pod1-2'
+        self.context.network.session = MagicMock()
+        self.context.network.session.query().filter().order_by().filter_by().\
+            all.return_value = [self.segments_db[1]]
+        vid = nwa_l2_utils.get_vlan_id_of_physical_network(
+            self.context.network, network_id, physical_network)
+        self.assertEqual(vid, '101')
+
+
 class TestPortcontextToNwaInfo(TestNwa):
     def test_portcontext_to_nwa_info(self):
         self.context.current = self.context._port
@@ -202,6 +255,11 @@ class TestPortcontextToNwaInfo(TestNwa):
         self.assertEqual(rd['port']['id'], p['id'])
         self.assertEqual(rd['port']['ip'], p['fixed_ips'][0]['ip_address'])
         self.assertEqual(rd['port']['mac'], p['mac_address'])
+        c = self.context.network.current
+        self.assertEqual(rd['network']['id'], c['id'])
+        self.assertEqual(rd['network']['name'], c['name'])
+        self.assertEqual(rd['network']['vlan_type'], 'PublicVLAN')
+        self.assertEqual(rd['network']['vlan_id'], '')
 
     def test_portcontext_to_nwa_info_business_vlan(self):
         # session in context
