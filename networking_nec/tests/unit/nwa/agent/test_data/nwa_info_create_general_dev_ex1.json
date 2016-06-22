@@ -6,6 +6,7 @@
     "network": {
         "id": "0ed65870-9acb-48ce-8c0b-e803d527a9d2",
         "name": "net100",
+        "vlan_id": "123",
         "vlan_type": "BusinessVLAN"
     },
     "nwa_tenant_id": "DC02_844eb55f21e84a289e9c22098d387e5d",

@@ -6,6 +6,7 @@
     "network": {
         "id": "0f17fa8f-40fe-43bd-8573-1a1e1bfb699d",
         "name": "net01",
+        "vlan_id": "123",
         "vlan_type": "BusinessVLAN"
     },
     "nwa_tenant_id": "DC_KILO3_5d9c51b1d6a34133bb735d4988b309c2",

@@ -6,6 +6,7 @@
     "network": {
         "id": "a94fd0fc-2282-4092-9485-b0f438b0f6c4",
         "name": "pj1-net100",
+        "vlan_id": "123",
         "vlan_type": "BusinessVLAN"
     },
     "nwa_tenant_id": "DC1_844eb55f21e84a289e9c22098d387e5d",

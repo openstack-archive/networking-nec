@@ -104,10 +104,16 @@ It is usually placed at ``/etc/neutron/plugins/nec/necnwa.ini``.
 
     resource_group_file = resource_group.json
 
-* **use_necnwa_router**: If you use OpenStack L3 Router insted of NEC NWA Router,
+* **use_necnwa_router**: If you use OpenStack L3 Router instead of NEC NWA Router,
   it set to False. The default value is True. ::
 
     use_necnwa_router = True
+
+* **use_neutron_vlan_id**: If you want to use a vlan id which is
+  assigned by neutron, it set to True. The default value is False. In
+  case of False, the vlan id will be assigned by NWA. ::
+
+    use_neutron_vlan_id = True
 
 NWA resource group file
 =======================

@@ -35,9 +35,12 @@ def _init_nwa_client_patch(mocked_nwacli):
     mocked_nwacli.l2.create_general_dev.return_value = succeed
     mocked_nwacli.l2.create_tenant_nw.return_value = succeed
     mocked_nwacli.l2.create_vlan.return_value = succeed
+    mocked_nwacli.l2.create_connect_port.return_value = succeed
+
     mocked_nwacli.l2.delete_general_dev.return_value = succeed
     mocked_nwacli.l2.delete_tenant_nw.return_value = succeed
     mocked_nwacli.l2.delete_vlan.return_value = succeed
+    mocked_nwacli.l2.delete_connect_port.return_value = succeed
 
 
 class TestNWAAgentBase(base.BaseTestCase):

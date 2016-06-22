@@ -39,7 +39,7 @@ LOG = logging.getLogger(__name__)
 # pylint: disable=too-many-instance-attributes
 class AgentProxyL3(object):
 
-    def __init__(self, agent_top, client,
+    def __init__(self, agent_top, client, multi_dc=False,
                  tenant_fw_create_hook=None,
                  tenant_fw_delete_hook=None,
                  tenant_fw_connect_hook=None,
@@ -50,6 +50,7 @@ class AgentProxyL3(object):
         self.nwa_l3_rpc = nwa_l3_server_api.NwaL3ServerRpcApi(topics.L3PLUGIN)
         self.agent_top = agent_top
         self.client = client
+        self.multi_dc = multi_dc
         self.tenant_fw_create_hook = tenant_fw_create_hook
         self.tenant_fw_delete_hook = tenant_fw_delete_hook
         self.tenant_fw_connect_hook = tenant_fw_connect_hook
@@ -107,6 +108,9 @@ class AgentProxyL3(object):
 
     @utils.log_method_return_value
     def _create_tenant_fw(self, nwa_data, context, **kwargs):
+        if self.multi_dc:
+            self.proxy_l2.create_connect_port(context, nwa_data=nwa_data,
+                                              **kwargs)
         device_id = kwargs['nwa_info']['device']['id']
         network_id = kwargs['nwa_info']['network']['id']
         rcode, body = self.client.l3.create_tenant_fw(
@@ -153,8 +157,9 @@ class AgentProxyL3(object):
         return kwargs['nwa_data']
 
     def _update_tenant_fw_connect(self, context, **kwargs):
+        if self.multi_dc:
+            self.proxy_l2.create_connect_port(context, **kwargs)
         nwa_data = kwargs.get('nwa_data')
-
         device_id = kwargs['nwa_info']['device']['id']
         network_id = kwargs['nwa_info']['network']['id']
 
@@ -196,8 +201,9 @@ class AgentProxyL3(object):
         @return: nwa_data
         @raise AgentProxyException
         """
+        if self.multi_dc:
+            self.proxy_l2.delete_connect_port(context, **kwargs)
         nwa_data = kwargs.get('nwa_data')
-
         device_id = kwargs['nwa_info']['device']['id']
         network_id = kwargs['nwa_info']['network']['id']
         device_name = data_utils.get_tfw_device_name(nwa_data, device_id)
@@ -242,6 +248,8 @@ class AgentProxyL3(object):
         @param kwargs: nwa_tenant_id, nwa_tenant_id, nwa_info, nwa_data
         @return: resutl(succeed = True, other = False), data(nwa_data or None)
         """
+        if self.multi_dc:
+            self.proxy_l2.delete_connect_port(context, **kwargs)
         nwa_data = kwargs.get('nwa_data')
         nwa_info = kwargs['nwa_info']
 
