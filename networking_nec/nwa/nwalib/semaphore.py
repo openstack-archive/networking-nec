@@ -16,7 +16,7 @@ import eventlet
 from oslo_log import log as logging
 import six
 
-from networking_nec._i18n import _LI
+from networking_nec._i18n import _, _LI
 
 
 LOG = logging.getLogger(__name__)
@@ -40,7 +40,7 @@ class Semaphore(object):
     @classmethod
     def get_tenant_semaphore(cls, tenant_id):
         if not isinstance(tenant_id, six.string_types) or tenant_id == '':
-            raise TypeError('%s is not a string' % tenant_id)
+            raise TypeError(_('%s is not a string') % tenant_id)
         with Semaphore.lock:
             if tenant_id not in Semaphore.tenants:
                 LOG.info(_LI('create semaphore for %s'), tenant_id)
