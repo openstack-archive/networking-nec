@@ -14,7 +14,7 @@
 
 from sqlalchemy.orm import exc as sa_exc
 
-from neutron.db import l3_db
+from neutron.db.models import l3 as l3_db
 from oslo_log import log as logging
 
 LOG = logging.getLogger(__name__)

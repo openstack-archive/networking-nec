@@ -22,8 +22,8 @@ from neutron.common import topics
 from neutron.db import common_db_mixin
 from neutron.db import extraroute_db
 from neutron.db import l3_agentschedulers_db
-from neutron.db import l3_db
 from neutron.db import l3_gwmode_db
+from neutron.db.models import l3 as l3_db
 from neutron.plugins.common import constants
 from neutron.plugins.ml2 import driver_context
 from neutron.services import service_base
@@ -55,7 +55,7 @@ class NECNWAL3Plugin(service_base.ServicePluginBase,
 
     def __init__(self):
         super(NECNWAL3Plugin, self).__init__()
-        l3_db.subscribe()
+        # l3_db.subscribe()
         self.start_rpc_listeners()
         self.nwa_proxies = {}
         self.resource_groups = nwa_com_utils.load_json_from_file(
