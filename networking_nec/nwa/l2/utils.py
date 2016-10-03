@@ -17,12 +17,9 @@ from neutron.plugins.ml2 import db as db_ml2
 from neutron.plugins.ml2 import driver_api as api
 from neutron_lib import constants
 from oslo_config import cfg
-from oslo_log import log as logging
 from sqlalchemy.orm import exc as sa_exc
 
 from networking_nec.nwa.common import utils as nwa_com_utils
-
-LOG = logging.getLogger(__name__)
 
 
 def get_network_info(context):
