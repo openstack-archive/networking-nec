@@ -13,8 +13,8 @@
 #    under the License.
 
 from neutron.db import api as db_api
+from neutron.db.models import segment as segments_db
 from neutron.db import models_v2
-from neutron.db import segments_db
 from neutron import manager
 from neutron.plugins.ml2 import db as db_ml2
 from neutron_lib import constants
