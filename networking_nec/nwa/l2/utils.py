@@ -12,7 +12,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from neutron.db.models import external_net as external_net_db
 from neutron.db import segments_db as db_ml2
 from neutron.plugins.ml2 import driver_api as api
 from neutron_lib import constants
@@ -61,10 +60,10 @@ def is_external_network(context, net_id):
 
 def get_vlan_id_of_physical_network(context, network_id, physical_network):
     if hasattr(context, 'session'):
-        session = context.session
+        segments = db_ml2.get_network_segments(context, network_id)
     else:
-        session = context.network._plugin_context.session
-    segments = db_ml2.get_network_segments(session, network_id)
+        segments = db_ml2.get_network_segments(
+            context.network._plugin_context, network_id)
     if not segments:
         return ''
     for segment in segments:

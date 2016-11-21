@@ -128,9 +128,9 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
         if self.multi_dc:
             return
         network_id = context.network.current['id']
-        session = context.network._plugin_context.session
+        plugin_context = context.network._plugin_context
         dummy_segment = db_ml2.get_dynamic_segment(
-            session, network_id, physical_network=physical_network)
+            plugin_context, network_id, physical_network=physical_network)
         LOG.debug("1st: dummy segment is %s", dummy_segment)
         if not dummy_segment:
             dummy_segment = {
@@ -139,7 +139,7 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
                 api.SEGMENTATION_ID: 0
             }
             db_ml2.add_network_segment(
-                session, network_id, dummy_segment, is_dynamic=True)
+                plugin_context, network_id, dummy_segment, is_dynamic=True)
         LOG.debug("2nd: dummy segment is %s", dummy_segment)
         context.set_binding(dummy_segment[api.ID],
                             self.vif_type,
@@ -220,14 +220,14 @@ class NECNWAMechanismDriver(ovs.OpenvswitchMechanismDriver):
         return nwa_info
 
     def _l2_delete_segment(self, context, nwa_info):
-        session = context.network._plugin_context.session
+        plugin_context = context.network._plugin_context
         del_segment = db_ml2.get_dynamic_segment(
-            session,
+            plugin_context,
             context.network.current['id'],
             physical_network=nwa_info['physical_network'])
         if del_segment:
             LOG.debug('delete_network_segment %s', del_segment)
-            db_ml2.delete_network_segment(session, del_segment['id'])
+            db_ml2.delete_network_segment(plugin_context, del_segment['id'])
 
     def _l3_create_tenant_fw(self, context):
         device_owner = context._port['device_owner']
