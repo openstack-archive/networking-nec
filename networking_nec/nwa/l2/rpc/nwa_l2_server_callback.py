@@ -128,11 +128,10 @@ class NwaL2ServerRpcCallback(object):
         network_id = kwargs.get('network_id')
         physical_network = kwargs.get('physical_network')
 
-        session = db_api.get_session()
         del_segment = db_ml2.get_dynamic_segment(
-            session, network_id, physical_network=physical_network,
+            context, network_id, physical_network=physical_network,
         )
         if del_segment:
             LOG.debug("release_dynamic_segment segment=%s", del_segment)
             if del_segment['segmentation_id'] != 0:
-                db_ml2.delete_network_segment(session, del_segment['id'])
+                db_ml2.delete_network_segment(context, del_segment['id'])

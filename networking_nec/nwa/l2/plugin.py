@@ -76,7 +76,7 @@ class NECNWAL2Plugin(ml2_plugin.Ml2Plugin):
 
         net_id = network['id']
         segments = db_ml2.get_network_segments(
-            context.session, net_id, filter_dynamic=True)
+            context, net_id, filter_dynamic=True)
 
         if not segments:
             LOG.debug("Network %s has no segments", net_id)
