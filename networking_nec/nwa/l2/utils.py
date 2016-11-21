@@ -13,7 +13,7 @@
 #    under the License.
 
 from neutron.db.models import external_net as external_net_db
-from neutron.plugins.ml2 import db as db_ml2
+from neutron.db import segments_db
 from neutron.plugins.ml2 import driver_api as api
 from neutron_lib import constants
 from oslo_config import cfg
@@ -61,10 +61,10 @@ def is_external_network(context, net_id):
 
 def get_vlan_id_of_physical_network(context, network_id, physical_network):
     if hasattr(context, 'session'):
-        session = context.session
+        segments = segments_db.get_network_segments(context, network_id)
     else:
-        session = context.network._plugin_context.session
-    segments = db_ml2.get_network_segments(session, network_id)
+        segments = segments_db.get_network_segments(
+            context.network._plugin_context, network_id)
     if not segments:
         return ''
     for segment in segments:

@@ -557,8 +557,8 @@ class TestNECNWAMechanismDriver(TestMechNwa):
         rd = self.driver._bind_segment_to_vif_type(self.context, physnet)
         self.assertIsNone(rd)
 
-    @patch('neutron.plugins.ml2.db.get_dynamic_segment')
-    @patch('neutron.plugins.ml2.db.add_network_segment')
+    @patch('neutron.db.segments_db.get_dynamic_segment')
+    @patch('neutron.db.segments_db.delete_network_segment')
     def test__bind_segment_to_vif_type_dummy_segment_exists(self, ans, gds):
         gds.return_value = self.network_segments[1]
         physnet = 'Common/KVM/Pod1-2'
@@ -642,8 +642,8 @@ class TestNECNWAMechanismDriver(TestMechNwa):
         gntb.side_effect = Exception
         self.driver._bind_port_nwa(self.context)
 
-    @patch('neutron.plugins.ml2.db.get_dynamic_segment')
-    @patch('neutron.plugins.ml2.db.delete_network_segment')
+    @patch('neutron.db.segments_db.get_dynamic_segment')
+    @patch('neutron.db.segments_db.delete_network_segment')
     def test__l2_delete_segment(self, dns, gds):
         gds.return_value = None
         self.driver._l2_delete_segment(self.context, MagicMock())
