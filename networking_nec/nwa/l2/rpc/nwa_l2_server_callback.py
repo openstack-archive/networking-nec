@@ -15,8 +15,8 @@
 from neutron.db import api as db_api
 from neutron.db.models import segment as segments_db
 from neutron.db import models_v2
+from neutron.db import segments_db as db
 from neutron import manager
-from neutron.plugins.ml2 import db as db_ml2
 from neutron_lib import constants
 from oslo_log import helpers
 from oslo_log import log as logging
@@ -128,11 +128,10 @@ class NwaL2ServerRpcCallback(object):
         network_id = kwargs.get('network_id')
         physical_network = kwargs.get('physical_network')
 
-        session = db_api.get_session()
-        del_segment = db_ml2.get_dynamic_segment(
-            session, network_id, physical_network=physical_network,
+        del_segment = db.get_dynamic_segment(
+            context, network_id, physical_network=physical_network,
         )
         if del_segment:
             LOG.debug("release_dynamic_segment segment=%s", del_segment)
             if del_segment['segmentation_id'] != 0:
-                db_ml2.delete_network_segment(session, del_segment['id'])
+                db.delete_network_segment(context, del_segment['id'])

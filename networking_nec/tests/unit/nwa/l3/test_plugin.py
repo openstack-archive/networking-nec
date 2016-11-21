@@ -14,9 +14,9 @@
 
 from mock import MagicMock
 from mock import patch
+from neutron_lib import exceptions as n_exc
 from sqlalchemy.orm import exc as sa_exc
 
-from neutron.common import exceptions as n_exc
 from neutron.tests import base
 
 from networking_nec.nwa.l3.plugin import NECNWAL3Plugin

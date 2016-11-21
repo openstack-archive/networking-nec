@@ -18,9 +18,9 @@ from neutron.api.rpc.handlers import securitygroups_rpc
 from neutron.common import rpc as n_rpc
 from neutron.common import topics
 from neutron.db import agents_db
+from neutron.db import segments_db
 from neutron.extensions import multiprovidernet as mpnet
 from neutron.extensions import providernet as provider
-from neutron.plugins.ml2 import db as db_ml2
 from neutron.plugins.ml2 import driver_api as api
 from neutron.plugins.ml2 import plugin as ml2_plugin
 from oslo_log import log as logging
@@ -75,8 +75,8 @@ class NECNWAL2Plugin(ml2_plugin.Ml2Plugin):
             return
 
         net_id = network['id']
-        segments = db_ml2.get_network_segments(
-            context.session, net_id, filter_dynamic=True)
+        segments = segments_db.get_network_segments(
+            context, net_id, filter_dynamic=True)
 
         if not segments:
             LOG.debug("Network %s has no segments", net_id)
