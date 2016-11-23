@@ -18,9 +18,9 @@ from neutron.api.rpc.handlers import securitygroups_rpc
 from neutron.common import rpc as n_rpc
 from neutron.common import topics
 from neutron.db import agents_db
+from neutron.db import segments_db as db_ml2
 from neutron.extensions import multiprovidernet as mpnet
 from neutron.extensions import providernet as provider
-from neutron.plugins.ml2 import db as db_ml2
 from neutron.plugins.ml2 import driver_api as api
 from neutron.plugins.ml2 import plugin as ml2_plugin
 from oslo_log import log as logging

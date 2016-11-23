@@ -54,7 +54,7 @@ class TestNECNWAL2Plugin(base.BaseTestCase):
 
         self.assertIsNone(result)
 
-    @patch('neutron.plugins.ml2.db.get_network_segments')
+    @patch('neutron.db.segments_db.get_network_segments')
     def test_extend_network_dict_provider_segment_none(self, f1):
         context = MagicMock()
         network = {'id': '99f771b4-af69-45cc-942f-a76be4e8cd1d'}
@@ -64,7 +64,7 @@ class TestNECNWAL2Plugin(base.BaseTestCase):
                                                               network)
         self.assertIsNone(result)
 
-    @patch('neutron.plugins.ml2.db.get_network_segments')
+    @patch('neutron.db.segments_db.get_network_segments')
     def test_extend_network_dict_provider_segment_one(self, f1):
         context = MagicMock()
         network = {'id': '99f771b4-af69-45cc-942f-a76be4e8cd1d'}
@@ -76,7 +76,7 @@ class TestNECNWAL2Plugin(base.BaseTestCase):
                                                               network)
         self.assertIsNone(result)
 
-    @patch('neutron.plugins.ml2.db.get_network_segments')
+    @patch('neutron.db.segments_db.get_network_segments')
     def test_extend_network_dict_provider_segment_multi(self, f1):
         context = MagicMock()
         network = {'id': '99f771b4-af69-45cc-942f-a76be4e8cd1d'}

@@ -26,8 +26,8 @@ class TestNwaL2ServerRpcCallback(base.BaseTestCase):
         self.context = mock.MagicMock()
 
     @mock.patch('neutron.db.api.get_session')
-    @mock.patch('neutron.plugins.ml2.db.get_dynamic_segment')
-    @mock.patch('neutron.plugins.ml2.db.delete_network_segment')
+    @mock.patch('neutron.db.segments_db.get_dynamic_segment')
+    @mock.patch('neutron.db.segments_db.delete_network_segment')
     def test_release_dynamic_segment_from_agent(self, dns, gds, gs):
         del_segment = {'segmentation_id': 0, 'id': 'ID-0'}
         gds.return_value = del_segment

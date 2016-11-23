@@ -13,7 +13,7 @@
 #    under the License.
 
 from neutron.db.models import external_net as external_net_db
-from neutron.plugins.ml2 import db as db_ml2
+from neutron.db import segments_db as db_ml2
 from neutron.plugins.ml2 import driver_api as api
 from neutron_lib import constants
 from oslo_config import cfg
