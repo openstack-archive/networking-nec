@@ -16,8 +16,8 @@ from neutron.db import api as db_api
 from neutron.db.models import segment as segments_db
 from neutron.db import models_v2
 from neutron.db import segments_db as db_ml2
-from neutron import manager
 from neutron_lib import constants
+from neutron_lib.plugins import directory
 from oslo_log import helpers
 from oslo_log import log as logging
 import oslo_messaging
@@ -33,7 +33,7 @@ class NwaL2ServerRpcCallback(object):
     target = oslo_messaging.Target(version='1.0')
 
     def get_nwa_network_by_port_id(self, rpc_context, **kwargs):
-        plugin = manager.NeutronManager.get_plugin()
+        plugin = directory.get_plugin()
         port_id = kwargs.get('port_id')
         port = plugin.get_port(rpc_context, port_id)
 
@@ -42,7 +42,7 @@ class NwaL2ServerRpcCallback(object):
         return network
 
     def get_nwa_network_by_subnet_id(self, rpc_context, **kwargs):
-        plugin = manager.NeutronManager.get_plugin()
+        plugin = directory.get_plugin()
         subnet_id = kwargs.get('subnet_id')
         subnet = plugin.get_subnet(rpc_context, subnet_id)
 
@@ -51,14 +51,14 @@ class NwaL2ServerRpcCallback(object):
         return network
 
     def get_nwa_network(self, rpc_context, **kwargs):
-        plugin = manager.NeutronManager.get_plugin()
+        plugin = directory.get_plugin()
         net_id = kwargs.get('network_id')
         network = plugin.get_network(rpc_context, net_id)
 
         return network
 
     def get_nwa_networks(self, rpc_context, **kwargs):
-        plugin = manager.NeutronManager.get_plugin()
+        plugin = directory.get_plugin()
         networks = plugin.get_networks(rpc_context)
 
         return networks
@@ -85,7 +85,7 @@ class NwaL2ServerRpcCallback(object):
                 pass
 
         # 2 change port state
-        plugin = manager.NeutronManager.get_plugin()
+        plugin = directory.get_plugin()
         plugin.update_port_status(
             rpc_context,
             port_id,

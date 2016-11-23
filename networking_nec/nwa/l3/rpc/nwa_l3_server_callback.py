@@ -13,8 +13,8 @@
 #    under the License.
 
 from neutron.extensions import l3
-from neutron import manager
-from neutron.plugins.common import constants as plugin_constants
+from neutron_lib import constants
+from neutron_lib.plugins import directory
 from oslo_log import log as logging
 import oslo_messaging
 
@@ -28,8 +28,7 @@ class NwaL3ServerRpcCallback(object):
     @property
     def l3plugin(self):
         if not hasattr(self, '_l3plugin'):
-            self._l3plugin = manager.NeutronManager.get_service_plugins()[
-                plugin_constants.L3_ROUTER_NAT]
+            self._l3plugin = directory.get_plugin(constants.L3)
         return self._l3plugin
 
     def update_floatingip_status(self, context, floatingip_id, status):

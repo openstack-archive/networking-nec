@@ -64,7 +64,7 @@ class TestNECNWAServerRpcCallbacks(base.BaseTestCase):
                 'NECNWAL2Plugin.get_bound_port_context')
     @mock.patch('networking_nec.nwa.l2.plugin.'
                 'NECNWAL2Plugin._device_to_port_id')
-    @mock.patch('neutron.manager.NeutronManager.get_plugin')
+    @mock.patch('neutron_lib.plugins.directory.get_plugin')
     def test_get_device_details(self, f1, f2, f3):
         rpc_context = mock.MagicMock()
         f1.return_value = self.l2_plugin
@@ -82,7 +82,7 @@ class TestNECNWAServerRpcCallbacks(base.BaseTestCase):
                 'NECNWAL2Plugin.get_bound_port_context')
     @mock.patch('networking_nec.nwa.l2.plugin.'
                 'NECNWAL2Plugin._device_to_port_id')
-    @mock.patch('neutron.manager.NeutronManager.get_plugin')
+    @mock.patch('neutron_lib.plugins.directory.get_plugin')
     def test_get_device_details_no_segment(self, f1, f2, f3, f4, f5, f6):
         rpc_context = mock.MagicMock()
         f1.return_value = self.l2_plugin
@@ -102,7 +102,7 @@ class TestNECNWAServerRpcCallbacks(base.BaseTestCase):
                 'NECNWAL2Plugin.get_bound_port_context')
     @mock.patch('networking_nec.nwa.l2.plugin.'
                 'NECNWAL2Plugin._device_to_port_id')
-    @mock.patch('neutron.manager.NeutronManager.get_plugin')
+    @mock.patch('neutron_lib.plugins.directory.get_plugin')
     def test_get_device_details_multi_segment(self, f1, f2, f3, f4, f5, f6):
         rpc_context = mock.MagicMock()
         f1.return_value = self.l2_plugin
@@ -122,7 +122,7 @@ class TestNECNWAServerRpcCallbacks(base.BaseTestCase):
                 'NECNWAL2Plugin.get_bound_port_context')
     @mock.patch('networking_nec.nwa.l2.plugin.'
                 'NECNWAL2Plugin._device_to_port_id')
-    @mock.patch('neutron.manager.NeutronManager.get_plugin')
+    @mock.patch('neutron_lib.plugins.directory.get_plugin')
     def test_get_device_details_segment_size_miss_match(self, f1, f2, f3, f4,
                                                         f5, f6):
         rpc_context = mock.MagicMock()
@@ -141,7 +141,7 @@ class TestNECNWAServerRpcCallbacks(base.BaseTestCase):
                 'NECNWAL2Plugin.get_bound_port_context')
     @mock.patch('networking_nec.nwa.l2.plugin.'
                 'NECNWAL2Plugin._device_to_port_id')
-    @mock.patch('neutron.manager.NeutronManager.get_plugin')
+    @mock.patch('neutron_lib.plugins.directory.get_plugin')
     def test_get_device_details_segment_zero(self, f1, f2, f3, f4, f5, f6):
         rpc_context = mock.MagicMock()
         f1.return_value = self.l2_plugin
@@ -162,7 +162,7 @@ class TestNECNWAServerRpcCallbacks(base.BaseTestCase):
                 'NECNWAL2Plugin.get_bound_port_context')
     @mock.patch('networking_nec.nwa.l2.plugin.'
                 'NECNWAL2Plugin._device_to_port_id')
-    @mock.patch('neutron.manager.NeutronManager.get_plugin')
+    @mock.patch('neutron_lib.plugins.directory.get_plugin')
     def test_get_device_details_segment_not_binding(self, f1, f2, f3, f4, f5,
                                                     f6, f7):
         rpc_context = mock.MagicMock()
@@ -192,7 +192,7 @@ class TestNECNWAServerRpcCallbacks(base.BaseTestCase):
                 'NECNWAL2Plugin.get_bound_port_context')
     @mock.patch('networking_nec.nwa.l2.plugin.'
                 'NECNWAL2Plugin._device_to_port_id')
-    @mock.patch('neutron.manager.NeutronManager.get_plugin')
+    @mock.patch('neutron_lib.plugins.directory.get_plugin')
     def test_get_device_details_bound_segment(self, f1, f2, f3, f4, f5,
                                               f6, f7):
 
@@ -218,7 +218,7 @@ class TestNECNWAServerRpcCallbacks(base.BaseTestCase):
                 'NECNWAL2Plugin.get_bound_port_context')
     @mock.patch('networking_nec.nwa.l2.plugin.'
                 'NECNWAL2Plugin._device_to_port_id')
-    @mock.patch('neutron.manager.NeutronManager.get_plugin')
+    @mock.patch('neutron_lib.plugins.directory.get_plugin')
     def test_get_device_details_port_state_change(self, f1, f2, f3, f4, f5,
                                                   f6, f7):
         rpc_context = mock.MagicMock()
@@ -237,7 +237,7 @@ class TestNECNWAServerRpcCallbacks(base.BaseTestCase):
                                              kwargs={'test': "sample"})
         self.assertTrue(device)
 
-    @mock.patch('neutron.manager.NeutronManager.get_plugin')
+    @mock.patch('neutron_lib.plugins.directory.get_plugin')
     def test_update_device_up(self, dummy1):
         rpc_context = mock.MagicMock()
         dummy1.return_value = None

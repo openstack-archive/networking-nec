@@ -26,7 +26,7 @@ class TestTenantBindingServerRpcCallback(base.BaseTestCase):
         self.callback = tenant_cb.TenantBindingServerRpcCallback()
 
     @mock.patch('neutron.db.api.get_session')
-    @mock.patch('neutron.manager.NeutronManager.get_plugin')
+    @mock.patch('neutron_lib.plugins.directory.get_plugin')
     @mock.patch('networking_nec.nwa.l2.db_api.get_nwa_tenant_queues')
     def test_update_tenant_rpc_servers_both_empty(self, gntq, gs, gp):
         gntq.return_value = []
@@ -36,7 +36,7 @@ class TestTenantBindingServerRpcCallback(base.BaseTestCase):
         self.assertEqual(rd, {'servers': []})
 
     @mock.patch('neutron.db.api.get_session')
-    @mock.patch('neutron.manager.NeutronManager.get_plugin')
+    @mock.patch('neutron_lib.plugins.directory.get_plugin')
     @mock.patch('networking_nec.nwa.l2.db_api.get_nwa_tenant_queues')
     def test_update_tenant_rpc_servers_both_equal(self, gntq, plugin, gs):
         q1 = mock.MagicMock()
@@ -50,7 +50,7 @@ class TestTenantBindingServerRpcCallback(base.BaseTestCase):
         self.assertEqual(plugin.nwa_rpc.delete_server.call_count, 0)
 
     @mock.patch('neutron.db.api.get_session')
-    @mock.patch('neutron.manager.NeutronManager.get_plugin')
+    @mock.patch('neutron_lib.plugins.directory.get_plugin')
     @mock.patch('networking_nec.nwa.l2.db_api.get_nwa_tenant_queues')
     def test_update_tenant_rpc_servers_create(self, gntq, gp, gs):
         q1 = mock.MagicMock()
@@ -67,7 +67,7 @@ class TestTenantBindingServerRpcCallback(base.BaseTestCase):
         self.assertEqual(plugin.nwa_rpc.delete_server.call_count, 0)
 
     @mock.patch('neutron.db.api.get_session')
-    @mock.patch('neutron.manager.NeutronManager.get_plugin')
+    @mock.patch('neutron_lib.plugins.directory.get_plugin')
     @mock.patch('networking_nec.nwa.l2.db_api.get_nwa_tenant_queues')
     def test_update_tenant_rpc_servers_delete(self, gntq, gp, gs):
         gntq.return_value = []

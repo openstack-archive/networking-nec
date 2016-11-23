@@ -16,11 +16,11 @@ from oslo_config import cfg
 
 from neutron.extensions import portbindings
 from neutron.extensions import portsecurity as psec
-from neutron import manager
 from neutron.plugins.ml2 import driver_api as api
 from neutron.plugins.ml2 import rpc
 from neutron.services.qos import qos_consts
 from neutron_lib import constants
+from neutron_lib.plugins import directory
 from oslo_log import log as logging
 
 from networking_nec._i18n import _LW, _LI
@@ -49,7 +49,7 @@ class NwaML2ServerRpcCallbacks(rpc.RpcCallbacks):
                   "%(agent_id)s with host %(host)s",
                   {'device': device, 'agent_id': agent_id, 'host': host})
 
-        plugin = manager.NeutronManager.get_plugin()
+        plugin = directory.get_plugin()
         port_id = plugin._device_to_port_id(rpc_context, device)
         port_context = plugin.get_bound_port_context(rpc_context,
                                                      port_id,

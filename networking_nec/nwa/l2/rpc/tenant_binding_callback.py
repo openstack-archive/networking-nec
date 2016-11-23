@@ -13,7 +13,7 @@
 #    under the License.
 
 from neutron.db import api as db_api
-from neutron import manager
+from neutron_lib.plugins import directory
 from oslo_log import helpers
 from oslo_log import log as logging
 import oslo_messaging
@@ -122,7 +122,7 @@ class TenantBindingServerRpcCallback(object):
         with session.begin(subtransactions=True):
             q_tids = [q.tenant_id
                       for q in necnwa_api.get_nwa_tenant_queues(session)]
-        plugin = manager.NeutronManager.get_plugin()
+        plugin = directory.get_plugin()
         tenant_ids = [server['tenant_id'] for server in kwargs['servers']]
         ret = []
         for tenant_id in set(q_tids) - set(tenant_ids):
