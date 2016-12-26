@@ -24,7 +24,6 @@ from neutron.db import extraroute_db
 from neutron.db import l3_agentschedulers_db
 from neutron.db import l3_gwmode_db
 from neutron.db.models import l3 as l3_db
-from neutron.plugins.common import constants
 from neutron.plugins.ml2 import driver_context
 from neutron.services import service_base
 from neutron_lib import constants as n_const
@@ -76,7 +75,7 @@ class NECNWAL3Plugin(service_base.ServicePluginBase,
         return self.conn.consume_in_threads()
 
     def get_plugin_type(self):
-        return constants.L3_ROUTER_NAT
+        return n_const.L3
 
     def get_plugin_description(self):
         """Returns string description of the plugin."""
