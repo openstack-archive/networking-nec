@@ -20,9 +20,9 @@ from neutron.common import topics
 from neutron.db import agents_db
 from neutron.db import segments_db as db_ml2
 from neutron.extensions import multiprovidernet as mpnet
-from neutron.extensions import providernet as provider
 from neutron.plugins.ml2 import driver_api as api
 from neutron.plugins.ml2 import plugin as ml2_plugin
+from neutron_lib.api.definitions import provider_net as provider
 from oslo_log import log as logging
 
 from networking_nec._i18n import _LE, _LI, _LW

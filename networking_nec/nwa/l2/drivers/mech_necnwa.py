@@ -16,11 +16,11 @@ from neutron.common import constants as neutron_const
 from neutron.common import utils
 from neutron.db import segments_db as db_ml2
 from neutron.extensions import portbindings
-from neutron.extensions import providernet as prov_net
 from neutron.plugins.common import constants as plugin_const
 from neutron.plugins.ml2 import driver_api as api
 from neutron.plugins.ml2.drivers.openvswitch.mech_driver \
     import mech_openvswitch as ovs
+from neutron_lib.api.definitions import provider_net as prov_net
 from neutron_lib import constants
 from oslo_config import cfg
 from oslo_log import log as logging

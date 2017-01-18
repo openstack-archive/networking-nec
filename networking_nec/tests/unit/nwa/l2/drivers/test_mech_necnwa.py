@@ -17,8 +17,8 @@ from mock import patch
 
 from neutron.common import constants as neutron_const
 from neutron import context
-from neutron.extensions import providernet as prov_net
 from neutron.tests.unit import testlib_api
+from neutron_lib.api.definitions import provider_net as prov_net
 from neutron_lib import constants
 from oslo_config import cfg
 from oslo_serialization import jsonutils
