@@ -13,8 +13,8 @@
 #    under the License.
 
 import mock
-from neutron.extensions import portbindings
 from neutron.tests import base
+from neutron_lib.api.definitions import portbindings
 from neutron_lib import constants
 
 from networking_nec.nwa.l2 import plugin

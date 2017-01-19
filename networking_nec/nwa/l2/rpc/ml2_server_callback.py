@@ -14,11 +14,11 @@
 
 from oslo_config import cfg
 
-from neutron.extensions import portbindings
 from neutron.extensions import portsecurity as psec
 from neutron.plugins.ml2 import driver_api as api
 from neutron.plugins.ml2 import rpc
 from neutron.services.qos import qos_consts
+from neutron_lib.api.definitions import portbindings
 from neutron_lib import constants
 from neutron_lib.plugins import directory
 from oslo_log import log as logging
