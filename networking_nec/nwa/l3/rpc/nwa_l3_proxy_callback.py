@@ -13,10 +13,7 @@
 #    under the License.
 
 from oslo_log import helpers
-from oslo_log import log as logging
 import oslo_messaging
-
-LOG = logging.getLogger(__name__)
 
 
 class NwaL3ProxyCallback(object):
