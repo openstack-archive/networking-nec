@@ -17,3 +17,4 @@ import pbr.version
 
 __version__ = pbr.version.VersionInfo(
     'networking_nec').version_string()
+#  This Change is a no-op
