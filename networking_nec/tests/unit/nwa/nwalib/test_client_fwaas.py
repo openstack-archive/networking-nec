@@ -23,7 +23,7 @@ class TestNwaClientFWaaS(test_client.TestNwaClientBase):
     def test_setting_fw_policy(self):
         fw_name = 'TFW8'
         props = {'properties': [1]}
-        rd, rj = self.nwa.fwaas.setting_fw_policy_async(
+        rd, rj = self.nwa.fwaas.setting_fw_policy(
             TENANT_ID, fw_name, props
         )
         self.assertEqual(rd, 200)
