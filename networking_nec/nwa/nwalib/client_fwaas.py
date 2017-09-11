@@ -12,18 +12,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from debtcollector import removals
-
 
 class NwaClientFWaaS(object):
 
     def __init__(self, client):
         self.client = client
-
-    @removals.remove(
-        message='It is no longer async. Use setting_fw_policy instead.')
-    def setting_fw_policy_async(self, tenant_id, fw_name, props):
-        return self.setting_fw_policy(tenant_id, fw_name, props)
 
     def setting_fw_policy(self, tenant_id, fw_name, props):
         body = {
