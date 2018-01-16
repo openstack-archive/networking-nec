@@ -31,7 +31,7 @@ class TenantBindingServerRpcCallback(object):
 
     @helpers.log_method_call
     def get_nwa_tenant_binding(self, rpc_context, **kwargs):
-        """get nwa_tenant_binding from neutorn db.
+        """get nwa_tenant_binding from neutron db.
 
         @param rpc_context: rpc context.
         @param kwargs: tenant_id, nwa_tenant_id
@@ -56,7 +56,7 @@ class TenantBindingServerRpcCallback(object):
 
     @helpers.log_method_call
     def add_nwa_tenant_binding(self, rpc_context, **kwargs):
-        """get nwa_tenant_binding from neutorn db.
+        """get nwa_tenant_binding from neutron db.
 
         @param rpc_context: rpc context.
         @param kwargs: tenant_id, nwa_tenant_id
