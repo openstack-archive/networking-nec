@@ -42,7 +42,7 @@ The following steps are required to release a package.
      python setup.py sdist upload
 
   Once the upload succeeded, you can find a new release at
-  https://pypi.python.org/pypi/networking-nec.
+  https://pypi.org/project/networking-nec.
 
   Before uploading a package to PyPI, you need to create your PyPI
   account and prepare a proper credential file ``~/.pypirc`` like below.
@@ -54,7 +54,7 @@ The following steps are required to release a package.
        pypi
 
      [pypi]
-     repository=https://pypi.python.org/pypi
+     repository=https://pypi.org/project
      username=<your username>
      password=<your password>
 

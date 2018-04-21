@@ -20,7 +20,7 @@ Manual Installation
 ===================
 
 The released versions of Python module is available at
-https://pypi.python.org/pypi/networking-nec.
+https://pypi.org/project/networking-nec.
 
 To install::
 
