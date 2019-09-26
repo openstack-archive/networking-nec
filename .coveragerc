@@ -1,7 +1,0 @@
-[run]
-branch = True
-source = networking_nec
-omit = networking_nec/tests/*,networking_nec/openstack/*
-
-[report]
-ignore_errors = True
